@@ -1,1397 +1,498 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8" />
-  <title>齊默爾曼行動：1917</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #0b1020;
-      overflow: hidden;
-      height: 100%;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans TC", "PingFang TC", sans-serif;
-    }
-
-    /* Canvas 全畫面（用 svh/dvh 防 iOS Safari 黑邊/跳動） */
-    #game{
-      display:block;
-      width:100vw;
-      height:100svh;      /* 新 Safari */
-      height:100dvh;      /* 新規格 */
-      background:#0b1020;
-      touch-action:none;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    /* ===============================
-       手機虛擬控制器（圓形）
-       =============================== */
-
-    #touchUI{
-      position:fixed;
-      left:0;
-      right:0;
-      bottom: calc(14px + env(safe-area-inset-bottom));
-      height: 170px;
-      pointer-events:none;
-      z-index:10;
-      display:none; /* JS 判斷手機先顯示 */
-    }
-
-    /* 左邊：圓形方向盤 */
-    #movePad{
-      position:absolute;
-      left: 18px;
-      bottom: 0;
-      width: 124px;
-      height: 124px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.10);
-      border: 1px solid rgba(255,255,255,0.18);
-      pointer-events:auto;
-      touch-action:none;
-      backdrop-filter: blur(6px);
-    }
-    #movePad::after{
-      content:"";
-      position:absolute;
-      left:50%;
-      top:50%;
-      width: 38px;
-      height: 38px;
-      margin-left:-19px;
-      margin-top:-19px;
-      border-radius:50%;
-      background: rgba(255,255,255,0.22);
-    }
-
-    /* 右邊：跳躍掣（隔遠啲唔撞手） */
-    #btnJump{
-      position:absolute;
-      right: 24px;
-      bottom: 10px;
-      width: 98px;
-      height: 98px;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.20);
-      background: rgba(255,255,255,0.16);
-      color: #fff;
-      font-size: 22px;
-      font-weight: 800;
-      pointer-events:auto;
-      touch-action:none;
-      backdrop-filter: blur(6px);
-    }
-    #btnJump:active{ background: rgba(255,255,255,0.28); }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>1914–1919：戰爭與和平任務</title>
+<style>
+  :root{
+    --paper:#e8d5a5;
+    --paper2:#c8a86d;
+    --ink:#21170f;
+    --dark:#17140f;
+    --panel:rgba(32,23,14,.91);
+    --gold:#d9b45f;
+    --danger:#cf3b2f;
+    --green:#74a56b;
+    --blue:#6fa4b8;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0b0a08;color:var(--paper);font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;touch-action:none;overscroll-behavior:none;}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 20%,#302414,#090807 75%);}
+  canvas{display:block;width:100vw;height:100dvh;object-fit:contain;background:#15120e;touch-action:none;}
+  .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;z-index:5;background:rgba(0,0,0,.35);}
+  .hidden{display:none!important;}
+  .panel{width:min(1080px,96vw);max-height:94dvh;overflow:auto;border:2px solid rgba(217,180,95,.7);border-radius:18px;background:linear-gradient(135deg,rgba(35,26,16,.96),rgba(17,14,11,.96));box-shadow:0 18px 50px rgba(0,0,0,.55), inset 0 0 40px rgba(217,180,95,.08);padding:22px;}
+  h1,h2,h3{margin:0 0 12px;letter-spacing:.03em;}
+  h1{font-size:clamp(28px,5vw,52px);color:#f1d58a;text-shadow:0 3px 0 #000;}
+  h2{font-size:clamp(22px,4vw,34px);color:#f0ce76;}
+  h3{font-size:18px;color:#f4d990;}
+  p{line-height:1.55;margin:8px 0;color:#f0e0bd;}
+  .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;}
+  .card{border:1px solid rgba(217,180,95,.35);border-radius:14px;background:rgba(255,245,220,.06);padding:14px;margin-bottom:12px;}
+  .btnRow{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;}
+  button{border:1px solid rgba(255,225,150,.65);border-radius:12px;background:linear-gradient(#9b6b28,#5f3a16);color:#fff1c8;font-weight:800;font-size:16px;padding:12px 16px;cursor:pointer;box-shadow:0 4px 0 #2a1b0d;touch-action:manipulation;}
+  button:hover{filter:brightness(1.08)}
+  button:active{transform:translateY(2px);box-shadow:0 2px 0 #2a1b0d;}
+  .secondary{background:linear-gradient(#52504a,#27241f);}
+  .dangerBtn{background:linear-gradient(#a64236,#622018);}
+  .small{font-size:13px;color:#d6c6a2;}
+  .modeBox{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .leaderGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;color:#f5e6c6;}
+  th,td{border-bottom:1px solid rgba(217,180,95,.22);padding:6px 4px;text-align:left;white-space:nowrap;}
+  th{color:#f1d58a;font-weight:800;}
+  .quizQ{font-size:clamp(19px,3.2vw,30px);font-weight:850;color:#fff3ca;line-height:1.45;margin-bottom:14px;}
+  .quizMeta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .tag{border:1px solid rgba(217,180,95,.45);border-radius:999px;padding:4px 9px;font-size:12px;color:#f0d58e;background:rgba(0,0,0,.2);}
+  .option{width:100%;margin:7px 0;text-align:left;background:linear-gradient(#514333,#2b2118);box-shadow:none;border-color:rgba(217,180,95,.35);font-size:16px;line-height:1.4;}
+  .option.correct{background:linear-gradient(#3f7e45,#244c2b);}
+  .option.wrong{background:linear-gradient(#8e372d,#4e1a16);}
+  .feedback{min-height:46px;border-left:4px solid var(--gold);background:rgba(0,0,0,.22);padding:10px;margin:12px 0;border-radius:8px;color:#f6e9cc;line-height:1.5;}
+  input{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(217,180,95,.55);background:#17120c;color:#fff2c8;font-size:16px;}
+  #touchControls{position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));z-index:4;display:none;pointer-events:none;}
+  .touchPad{display:flex;justify-content:space-between;align-items:end;padding:0 18px;}
+  .touchGroup{display:flex;gap:12px;pointer-events:auto;}
+  .touchBtn{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;background:rgba(35,26,16,.72);border:2px solid rgba(235,203,128,.65);box-shadow:0 0 18px rgba(0,0,0,.45);}
+  .wideBtn{width:92px;border-radius:28px;}
+  #rotateHint{position:fixed;inset:0;z-index:9;display:none;align-items:center;justify-content:center;background:#0b0a08;text-align:center;padding:28px;}
+  #rotateHint .panel{max-width:520px;}
+  @media (pointer:coarse){#touchControls{display:block}.panel{padding:16px}.grid,.leaderGrid,.modeBox{grid-template-columns:1fr}.touchBtn{width:66px;height:66px}.wideBtn{width:86px}}
+  @media (max-width:740px) and (orientation:portrait){#rotateHint{display:flex}}
+</style>
 </head>
-
 <body>
-  <canvas id="game"></canvas>
+<div id="wrap"><canvas id="game" width="960" height="540"></canvas></div>
 
-  <!-- 手機虛擬控制器：圓形方向盤 + 跳躍 -->
-  <div id="touchUI" aria-hidden="true">
-    <div id="movePad" aria-label="移動"></div>
-    <button id="btnJump" aria-label="跳躍">⤒</button>
+<div id="menu" class="overlay">
+  <div class="panel">
+    <div class="grid">
+      <div>
+        <h1>1914–1919：戰爭與和平任務</h1>
+        <div class="card">
+          <h3>任務背景</h3>
+          <p>歐洲列強由競爭走向戰爭，再由戰爭走向巴黎和會。你要穿越戰壕、收集戰地檔案、破解歷史考點，理解第一次世界大戰的成因、爆發、戰後安排及其影響。</p>
+          <p class="small">操作：電腦用 ← → / A D 移動，Space / W / ↑ 跳躍，J / X 射擊。手機請橫向，使用畫面下方按鈕。</p>
+        </div>
+        <div class="modeBox">
+          <div class="card">
+            <h3>簡易模式</h3>
+            <p>8題。重點掌握基本史實、概念及簡單時序。敵人較少，時間較寬鬆。</p>
+            <button id="startEasy">開始簡易任務</button>
+          </div>
+          <div class="card">
+            <h3>困難模式</h3>
+            <p>12題。加入因果、比較、評價及較多時序題。敵人與陷阱較密，分數較高。</p>
+            <button id="startHard">開始困難任務</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h3>龍虎榜</h3>
+          <p class="small">如未設定 Google Sheet，會先使用本機榜。貼上 Apps Script URL 後會自動轉為網上榜。</p>
+          <div class="leaderGrid">
+            <div><h3>簡易 Top 5</h3><table id="easyBoard"></table></div>
+            <div><h3>困難 Top 5</h3><table id="hardBoard"></table></div>
+          </div>
+          <div class="btnRow"><button class="secondary" id="refreshBoard">更新龍虎榜</button><button class="secondary" id="showHow">排行榜設定</button></div>
+        </div>
+        <div class="card">
+          <h3>學習目標</h3>
+          <p class="small">1. 識別一戰前歐洲緊張局勢的主要因素。<br>2. 梳理一戰爆發至凡爾賽條約的時序。<br>3. 解釋巴黎和會及凡爾賽條約對戰後國際秩序的影響。</p>
+        </div>
+      </div>
+    </div>
   </div>
+</div>
 
-  <script>
-  (() => {
-    "use strict";
+<div id="quiz" class="overlay hidden">
+  <div class="panel" style="max-width:900px">
+    <div class="quizMeta"><span id="qType" class="tag"></span><span id="qCat" class="tag"></span><span id="qProgress" class="tag"></span></div>
+    <div id="qText" class="quizQ"></div>
+    <div id="qOptions"></div>
+    <div id="qFeedback" class="feedback hidden"></div>
+    <div class="btnRow"><button id="continueBtn" class="hidden">繼續任務</button></div>
+  </div>
+</div>
 
-    /* =========================================================
-     * 齊默爾曼行動：1917（穩定版 v5.1）
-     * ✅ 修正黑MON：回歸穩陣 fixed internal res + DPR resize
-     * ✅ 手機控制：圓形方向盤（左右拖）+ 跳躍分遠
-     * ✅ 移除任何 btnLeft/btnRight/bindHold 殘碼，避免爆 error
-     * ========================================================= */
+<div id="report" class="overlay hidden">
+  <div class="panel" style="max-width:920px">
+    <h2>任務報告</h2>
+    <div id="reportBody" class="card"></div>
+    <div class="card">
+      <h3>提交龍虎榜</h3>
+      <input id="playerName" maxlength="16" placeholder="輸入名稱，例如 3A Chan / 歷史情報員" />
+      <div class="btnRow"><button id="submitScore">提交成績</button><button class="secondary" id="backMenu">返回主畫面</button><button class="secondary" id="restartSame">再玩一次</button></div>
+      <p id="submitMsg" class="small"></p>
+    </div>
+  </div>
+</div>
 
-    const T = {
-      title: "齊默爾曼行動：1917",
-      hudScore: "分數",
-      hudLives: "生命",
-      hudTime: "時間",
-      pressToContinue: "電腦：SPACE/ENTER　｜　手機：點畫面繼續",
-      introTitle: "任務簡報：Room 40（40號房間）",
-      introLines: [
-        "1917年，德國外長齊默爾曼向墨西哥發出一封加密電報。",
-        "英國情報部門 Room 40 成功截獲並破譯。",
-        "你係英國情報員，要穿越城市避開德軍，",
-        "收集機密文件，並把電報送到唐寧街10號。"
-      ],
-      rulesTitle: "遊戲規則與注意事項",
-      rulesLines: [
-        "【操作】",
-        "電腦：← → 移動，SPACE/↑ 跳",
-        "手機：左邊圓形方向盤移動｜右邊圓形掣跳",
-        "",
-        "【星星⭐】",
-        "撞到要答補充MC；答錯→左右反轉10秒（主角會閃＋中央提示）",
-        "",
-        "【敵人👢】",
-        "✅ 只有「踏中敵人頭部」先會彈出「一戰MC」",
-        "❌ 側邊撞到 / 被子彈射中：只會扣命＋擊退（唔需要答題）",
-        "",
-        "【終點🚪】",
-        "到唐寧街10號要答「齊默爾曼電報」史料MC；答啱先過關",
-        "",
-        "【提示】",
-        "手機畫面太細：建議打橫玩（Landscape）"
-      ],
-      winTitle: "任務成功",
-      winLines: [
-        "你成功把齊默爾曼電報送達唐寧街10號。",
-        "電報公開後在美國引起極大憤怒，推動民意反德。",
-        "美國於1917年4月參戰，改變第一次世界大戰形勢。"
-      ],
-      loseTitle: "任務失敗",
-      timeUp: "時間耗盡，電報未能送達唐寧街10號。",
-      quizHint: "按 1–4 作答（或點選選項）",
-      quizDoorTitle: "過關史料題（齊默爾曼電報）",
-      quizStarTitle: "補充題（星星）",
-      quizWWITitle: "第一次世界大戰（踏頭踩敵必答）"
-    };
+<div id="how" class="overlay hidden">
+  <div class="panel" style="max-width:800px">
+    <h2>Google Sheet 龍虎榜設定</h2>
+    <p>1. 建立 Google Sheet，第一行填：timestamp, name, mode, score, correct, total, time, files。</p>
+    <p>2. 到 Apps Script 貼上我另外提供的 Code，部署為 Web App，權限設為「任何人」。</p>
+    <p>3. 回到 HTML，搜尋 <b>LEADERBOARD_URL</b>，貼入 Web App URL。</p>
+    <div class="btnRow"><button class="secondary" id="closeHow">關閉</button></div>
+  </div>
+</div>
 
-    const QUIZ_TELEGRAM = [
-      {
-        q: "齊默爾曼電報的主要內容係咩？",
-        options: [
-          "德國邀請墨西哥結盟；若美國參戰便共同對付美國",
-          "德國要求墨西哥立即入侵加拿大",
-          "英國向墨西哥承諾戰後割讓德州",
-          "美國要求英國退出第一次世界大戰"
-        ],
-        answer: 0,
-        explain: "電報提議：如美國參戰，德國希望墨西哥與德國結盟對抗美國。"
-      },
-      {
-        q: "Room 40（40號房間）最主要負責邊類工作？",
-        options: ["密碼破譯/情報解讀", "製造坦克", "海軍補給", "戰地醫療"],
-        answer: 0,
-        explain: "Room 40 以破譯及情報分析著稱。"
-      }
-    ];
+<div id="touchControls">
+  <div class="touchPad">
+    <div class="touchGroup"><div class="touchBtn" data-key="left">◀</div><div class="touchBtn" data-key="right">▶</div></div>
+    <div class="touchGroup"><div class="touchBtn wideBtn" data-key="shoot">射擊</div><div class="touchBtn" data-key="jump">跳</div></div>
+  </div>
+</div>
 
-    const QUIZ_STARS = [
-      {
-        q: "點解英國公開齊默爾曼電報會對德國不利？",
-        options: [
-          "令美國民意反德，削弱德國外交空間",
-          "令英國退出戰爭",
-          "令德國得到墨西哥即時軍援",
-          "令德國成功說服美國保持中立"
-        ],
-        answer: 0,
-        explain: "公開後在美國引起憤怒，增加美國參戰可能性。"
-      },
-      {
-        q: "齊默爾曼電報提到墨西哥，主要係想牽制邊個國家？",
-        options: ["美國", "法國", "俄國", "日本"],
-        answer: 0,
-        explain: "德國希望用墨西哥牽制美國。"
-      }
-    ];
+<div id="rotateHint"><div class="panel"><h2>請橫向使用手機</h2><p>此遊戲需要較闊畫面顯示戰場、題目及觸控鍵。請將手機轉為橫向。</p></div></div>
 
-    const QUIZ_WWI = [
-      {
-        q: "以下哪一項通常被視為一戰的導火線？",
-        options: [
-          "奧匈帝國皇儲斐迪南大公在薩拉熱窩被刺",
-          "德國對波蘭宣戰",
-          "俄國爆發十月革命",
-          "美國對德國宣戰"
-        ],
-        answer: 0,
-        explain: "薩拉熱窩事件觸發連鎖宣戰，最終引發一次世界大戰。"
-      },
-      {
-        q: "西線最典型的戰爭形式係？",
-        options: ["壕溝戰", "閃電戰", "游擊戰", "核戰"],
-        answer: 0,
-        explain: "西線長期僵持，壕溝戰造成巨大消耗。"
-      },
-      {
-        q: "以下哪一國最初並非協約國成員？",
-        options: ["意大利", "英國", "法國", "俄國"],
-        answer: 0,
-        explain: "意大利最初屬同盟國，其後倒戈加入協約國。"
-      },
-      {
-        q: "德國於19世紀末至一戰前主要體現邊種民族主義？",
-        options: [
-          "文化民族主義（語言、歷史、血緣）",
-          "公民民族主義",
-          "殖民地民族主義",
-          "宗教民族主義"
-        ],
-        answer: 0,
-        explain: "德國強調共同語言、文化與血緣，屬文化民族主義。"
-      },
-      {
-        q: "俄國於一戰前常以哪一理念包裝其民族主義？",
-        options: ["泛斯拉夫主義", "法西斯主義", "自由民族主義", "帝國主義現代化"],
-        answer: 0,
-        explain: "俄國以『保護斯拉夫民族』為名擴張影響力。"
-      },
-      {
-        q: "以下哪一組屬於一戰前的同盟國？",
-        options: [
-          "德國、奧匈帝國、意大利",
-          "英國、法國、德國",
-          "俄國、德國、奧匈帝國",
-          "英國、奧匈帝國、日本"
-        ],
-        answer: 0,
-        explain: "德、奧匈、意大利原為三國同盟。"
-      },
-      {
-        q: "巴爾幹地區被稱為『歐洲火藥庫』，主要原因係？",
-        options: ["民族衝突頻繁且列強介入", "資源豐富引起爭奪", "工業發展迅速", "人口急速老化"],
-        answer: 0,
-        explain: "民族主義高漲，加上列強干預，局勢極不穩定。"
-      }
-    ];
+<script>
+'use strict';
 
-    const PALETTE = {
-      " ": null,
-      "0": "#0b1020",
-      "S": "#f4f0e3",
-      "K": "#1b1f2e",
-      "G": "#4b566e",
-      "B": "#7a3b2e",
-      "R": "#b0463c",
-      "Y": "#f3c74b",
-      "L": "#c9a07b",
-      "D": "#3a6b3f",
-      "N": "#2a3e6e",
-      "W": "#cfd8e6",
-      "E": "#b9c7e6",
-      "O": "#ffb703"
-    };
+// ============ 排行榜設定 ============
+// 貼上 Google Apps Script Web App URL；未設定時會使用本機榜。
+const LEADERBOARD_URL = 'https://script.google.com/macros/s/AKfycbznfJMNPGJqktjMsqBKZCiE5BAdZxafipeEflXFWBd9KxHRWAqyAgWH1yfXbk_W_GkN/exec';
 
-    function drawSprite(ctx, sprite, x, y, scale = 3, flip = false) {
-      for (let j = 0; j < sprite.length; j++) {
-        const row = sprite[j];
-        for (let i = 0; i < row.length; i++) {
-          const ch = row[i];
-          const col = PALETTE[ch];
-          if (!col) continue;
-          const px = flip ? row.length - 1 - i : i;
-          ctx.fillStyle = col;
-          ctx.fillRect((x + px * scale) | 0, (y + j * scale) | 0, scale, scale);
-        }
-      }
-    }
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const W = 960, H = 540;
 
-    const SPRITES = {
-      playerIdle: [
-        "   NNN    ",
-        "  NYYYN   ",
-        "  NYYNN   ",
-        "   LL     ",
-        "  DDDDD   ",
-        "  DDDDD   ",
-        "  D D D   ",
-        "  K   K   "
-      ],
-      playerWalk1: [
-        "   NNN    ",
-        "  NYYYN   ",
-        "  NYYNN   ",
-        "   LL     ",
-        "  DDDDD   ",
-        "  DDDDD   ",
-        "  D  D    ",
-        " K    K   "
-      ],
-      playerWalk2: [
-        "   NNN    ",
-        "  NYYYN   ",
-        "  NYYNN   ",
-        "   LL     ",
-        "  DDDDD   ",
-        "  DDDDD   ",
-        "   D  D   ",
-        "  K   K   "
-      ],
-      enemy1: [
-        "   K K    ",
-        "  KYYYK   ",
-        "  KYYYK   ",
-        "   LL     ",
-        "  GGGGG   ",
-        "  GGGGG   ",
-        "  G G G   ",
-        "  K   K   "
-      ],
-      enemy2: [
-        "   K K    ",
-        "  KYYYK   ",
-        "  KYYYK   ",
-        "   LL     ",
-        "  GGGGG   ",
-        "  GGGGG   ",
-        "  G  G    ",
-        " K    K   "
-      ],
-      shooter1: [
-        "   K K    ",
-        "  KYYYK   ",
-        "  KYYYK   ",
-        "   LL     ",
-        "  GGGGG   ",
-        "  GGGGG   ",
-        "  GGGGO   ",
-        "  K   K   "
-      ],
-      shooter2: [
-        "   K K    ",
-        "  KYYYK   ",
-        "  KYYYK   ",
-        "   LL     ",
-        "  GGGGG   ",
-        "  GGGGO   ",
-        "  GGGGG   ",
-        "  K   K   "
-      ],
-      bullet: [
-        " O ",
-        "OOO",
-        " O "
-      ],
-      doc: [
-        "  SSSS  ",
-        " SSSSSS ",
-        " SS KSS ",
-        " SSSSSS ",
-        " SS KK  ",
-        "  SSSS  "
-      ],
-      star: [
-        "   Y   ",
-        "  YYY  ",
-        "YYYYYYY",
-        "  YYY  ",
-        " Y   Y ",
-        "Y     Y"
-      ],
-      brick: [
-        "RRRRRRRR",
-        "RBRBRBRR",
-        "RRRRRRRR",
-        "RBRBRBRR",
-        "RRRRRRRR",
-        "RBRBRBRR",
-        "RRRRRRRR",
-        "RBRBRBRR"
-      ],
-      beam: [
-        "GGGGGGGGGGGG",
-        "GEEEEEEEEEEG",
-        "GGGGGGGGGGGG"
-      ],
-      cloud: [
-        "   WWWW    ",
-        " WWWWWWWW  ",
-        "WWWWWWWWWW ",
-        " WWWWWWWW  ",
-        "   WWWW    "
-      ],
-      door: [
-        "KKKKKKKKKK",
-        "KYYYYYYYYK",
-        "KYYKKKKYYK",
-        "KYYK  KYYK",
-        "KYYK  KYYK",
-        "KYYK  KYYK",
-        "KYYK  KYYK",
-        "KYYKKKKYYK",
-        "KYYYYYYYYK",
-        "KKKKKKKKKK"
-      ]
-    };
+const $ = id => document.getElementById(id);
+const UI = {menu:$('menu'), quiz:$('quiz'), report:$('report'), how:$('how'), easyBoard:$('easyBoard'), hardBoard:$('hardBoard')};
 
-    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-    const lerp = (a, b, t) => a + (b - a) * t;
+const keys = {left:false,right:false,jump:false,shoot:false};
+let lastT = 0;
+let raf = null;
 
-    class AABB {
-      constructor(x, y, w, h) { this.x = x; this.y = y; this.w = w; this.h = h; }
-      intersects(o) {
-        return (
-          this.x < o.x + o.w &&
-          this.x + this.w > o.x &&
-          this.y < o.y + o.h &&
-          this.y + this.h > o.y
-        );
-      }
-    }
+const MODE = {
+  easy:{label:'簡易模式', questionCount:8, lives:5, time:430, enemyMul:.75, trapMul:.65, scoreMul:1, wrongPenalty:90, damagePenalty:75},
+  hard:{label:'困難模式', questionCount:12, lives:3, time:330, enemyMul:1.15, trapMul:1.15, scoreMul:1.25, wrongPenalty:180, damagePenalty:130}
+};
 
-    class Platform {
-      constructor(x, y, w, h, type = "ground") { this.x = x; this.y = y; this.w = w; this.h = h; this.type = type; }
-      get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
-      draw(ctx, camX, scale) {
-        const sx = (this.x - camX) | 0;
-        const sy = this.y | 0;
+const QUESTIONS = [
+  {d:'easy',type:'基本史實',cat:'一戰前因',q:'二十世紀初，哪一項最能反映歐洲列強因民族利益而互相敵視？',o:['極端民族主義','門戶開放政策','聯合國集體安全','經濟全球化'],a:0,e:'極端民族主義使各國過分強調本民族利益，容易忽視甚至排斥其他國家的利益。'},
+  {d:'easy',type:'概念配對',cat:'一戰前因',q:'「一國受攻擊時，盟國需要提供支援」最能說明哪一個概念？',o:['殖民地爭奪','同盟制度','民族自決','綏靖政策'],a:1,e:'同盟制度令國家之間的安全承諾互相連結，局部衝突容易擴大。'},
+  {d:'easy',type:'基本史實',cat:'一戰前因',q:'1907年形成的三國協約包括哪三個國家？',o:['德國、奧匈、意大利','英國、法國、俄國','英國、德國、俄國','法國、奧匈、意大利'],a:1,e:'三國協約由英國、法國、俄國組成，用以抗衡三國同盟。'},
+  {d:'easy',type:'基本史實',cat:'一戰爆發',q:'第一次世界大戰的導火線是甚麼？',o:['柏林封鎖','塞拉耶佛暗殺事件','凡爾賽條約簽訂','經濟大衰退'],a:1,e:'1914年塞拉耶佛暗殺事件觸發奧匈與塞爾維亞衝突，進而引發大戰。'},
+  {d:'easy',type:'是非判斷',cat:'一戰前因',q:'以下哪項說法正確？',o:['軍備競賽減少了列強間的猜疑','軍備競賽使列強面對衝突時更容易採取強硬態度','軍備競賽只發生於亞洲','軍備競賽直接建立了國際聯盟'],a:1,e:'軍備競賽令各國相信軍事力量可作後盾，增加彼此恐懼和強硬態度。'},
+  {d:'easy',type:'時序題',cat:'時序',q:'以下事件的正確時序是哪一項？①塞拉耶佛暗殺事件 ②美國參戰 ③巴黎和會 ④凡爾賽條約簽訂',o:['① → ② → ③ → ④','② → ① → ③ → ④','① → ③ → ② → ④','③ → ① → ② → ④'],a:0,e:'1914暗殺事件，1917美國參戰，1919巴黎和會，1919凡爾賽條約。'},
+  {d:'easy',type:'基本史實',cat:'巴黎和會',q:'巴黎和會的三巨頭不包括以下哪一位？',o:['威爾遜','勞萊喬治','克里孟梭','史太林'],a:3,e:'巴黎和會三巨頭是美國威爾遜、英國勞萊喬治、法國克里孟梭。'},
+  {d:'easy',type:'基本史實',cat:'凡爾賽條約',q:'《凡爾賽條約》中，德國被要求承擔甚麼？',o:['全部戰爭罪責','成為國際聯盟常任理事國','取得阿爾薩斯和洛林','與奧地利立即合併'],a:0,e:'戰爭罪責條款令德國人極度不滿，是戰後怨恨的重要來源。'},
+  {d:'easy',type:'概念配對',cat:'巴黎和會',q:'「由各國集體合作維持和平、抵抗侵略」最接近哪個概念？',o:['門羅主義','集體安全','泛斯拉夫主義','軍國主義'],a:1,e:'集體安全強調以國際合作和共同制裁處理侵略。'},
+  {d:'easy',type:'是非判斷',cat:'國際聯盟',q:'以下哪項是國際聯盟的弱點？',o:['擁有獨立世界軍隊','美國拒絕加入','所有決議都能即時執行','沒有任何成員國'],a:1,e:'美國沒有加入國聯，加上國聯沒有自設軍隊，削弱執行力。'},
+  {d:'easy',type:'基本史實',cat:'凡爾賽條約',q:'《凡爾賽條約》把阿爾薩斯和洛林歸還給哪一國？',o:['法國','德國','意大利','俄國'],a:0,e:'阿爾薩斯和洛林在1871年被德國取得，1919年歸還法國。'},
+  {d:'easy',type:'時序題',cat:'時序',q:'以下哪項時序正確？',o:['三國同盟 → 三國協約 → 塞拉耶佛暗殺 → 凡爾賽條約','凡爾賽條約 → 三國同盟 → 美國參戰 → 巴黎和會','美國參戰 → 塞拉耶佛暗殺 → 三國協約 → 巴黎和會','巴黎和會 → 巴爾幹戰爭 → 凡爾賽條約 → 一戰爆發'],a:0,e:'三國同盟1882、三國協約1907、塞拉耶佛暗殺1914、凡爾賽條約1919。'},
+  {d:'easy',type:'基本史實',cat:'國際危機',q:'哪一地區常被形容為「歐洲火藥庫」？',o:['巴爾幹半島','北美洲','斯堪的納維亞','西伯利亞'],a:0,e:'巴爾幹半島民族和列強利益衝突複雜，是一戰前危機核心之一。'},
+  {d:'easy',type:'基本史實',cat:'1917轉捩點',q:'1917年哪一事件加強了協約國力量？',o:['美國參戰','國際聯盟成立','希特拉上台','柏林圍牆倒塌'],a:0,e:'美國參戰為協約國提供新力量，是一戰後期的重要轉捩點。'},
+  {d:'easy',type:'基本史實',cat:'巴黎和會',q:'威爾遜提出的戰後和平構想通常稱為甚麼？',o:['十四點和平原則','鐵幕演說','馬歇爾計劃','門戶開放政策'],a:0,e:'十四點和平原則包括民族自決和建立國際組織等理想。'},
+  {d:'easy',type:'影響題',cat:'凡爾賽條約',q:'以下哪項最能解釋德國人不滿《凡爾賽條約》的原因？',o:['德國獲得大量殖民地','德國被要求支付巨額賠款及承擔戰爭責任','德國成為巴黎和會主席國','德國海軍被大幅擴充'],a:1,e:'賠款、軍事限制、領土損失及戰爭罪責都加深德國人的怨恨。'},
 
-        if (this.type === "ground") {
-          const tileW = SPRITES.brick[0].length * scale;
-          const tileH = SPRITES.brick.length * scale;
-          for (let yy = sy; yy < sy + this.h; yy += tileH) {
-            for (let xx = sx; xx < sx + this.w; xx += tileW) drawSprite(ctx, SPRITES.brick, xx, yy, scale);
-          }
+  {d:'hard',type:'因果題',cat:'一戰前因',q:'同盟制度如何加劇第一次世界大戰爆發的風險？',o:['令各國完全放棄軍備','令局部衝突容易擴大為陣營對抗','令所有殖民地獨立','令德國立即加入國聯'],a:1,e:'同盟制度把個別國家的衝突連接到整個陣營，增加全面戰爭風險。'},
+  {d:'hard',type:'比較題',cat:'一戰前因',q:'軍備競賽與殖民地爭奪相比，軍備競賽較直接加劇戰爭危機的原因是甚麼？',o:['它令列強實際準備作戰並強化動員計劃','它完全消除了外交矛盾','它只涉及文化競爭','它令國際聯盟更有效'],a:0,e:'軍備競賽不只是矛盾來源，更令各國在心理和行動上為戰爭作準備。'},
+  {d:'hard',type:'評價題',cat:'一戰前因',q:'「塞拉耶佛暗殺事件只是導火線，不是根本原因。」哪項最能支持此說？',o:['一戰前已存在極端民族主義、同盟制度和軍備競賽等長期矛盾','暗殺事件發生於1919年','塞爾維亞沒有涉及事件','歐洲列強當時沒有任何同盟'],a:0,e:'導火線引爆戰爭，但根本原因在於長期累積的結構性矛盾。'},
+  {d:'hard',type:'史料理解',cat:'一戰前因',q:'若一幅漫畫顯示歐洲列強彼此拉扯盟友，最可能用來說明甚麼？',o:['同盟制度令局勢連鎖升級','國聯成功阻止戰爭','美國孤立主義完全結束','巴黎和會公平對待所有國家'],a:0,e:'互相拉扯盟友的圖像通常反映同盟制度的連鎖效應。'},
+  {d:'hard',type:'時序題',cat:'時序',q:'以下事件的正確時序是哪一項？①第一次摩洛哥危機 ②波斯尼亞危機 ③巴爾幹戰爭 ④塞拉耶佛暗殺事件',o:['① → ② → ③ → ④','② → ① → ③ → ④','③ → ① → ② → ④','① → ③ → ② → ④'],a:0,e:'第一次摩洛哥危機1905–06，波斯尼亞危機1908，巴爾幹戰爭1912–13，暗殺事件1914。'},
+  {d:'hard',type:'因果題',cat:'國際危機',q:'波斯尼亞危機對一戰爆發有何影響？',o:['改善奧匈與塞爾維亞關係','加深日耳曼與斯拉夫民族矛盾，並刺激反奧情緒','令德國退出三國同盟','令國際聯盟成立'],a:1,e:'奧匈兼併波斯尼亞引起塞爾維亞和俄國不滿，加深巴爾幹緊張。'},
+  {d:'hard',type:'比較題',cat:'巴黎和會',q:'三巨頭中，哪一組立場配對較準確？',o:['威爾遜較寬容、克里孟梭主張嚴懲德國','克里孟梭主張完全寬恕德國、威爾遜主張瓜分德國','勞萊喬治完全反對制裁德國','三人完全沒有分歧'],a:0,e:'威爾遜較強調理想和平；法國因安全憂慮，克里孟梭要求嚴厲削弱德國。'},
+  {d:'hard',type:'影響題',cat:'凡爾賽條約',q:'《凡爾賽條約》如何可能種下第二次世界大戰的禍根？',o:['它完全滿足德國民族情緒','它激起德國怨恨，給極端政治勢力宣傳空間','它令國聯擁有強大軍隊','它讓德國立即成為歐洲霸主'],a:1,e:'苛刻條款、賠款和戰爭罪責令德國人不滿，後來被極端政治力量利用。'},
+  {d:'hard',type:'評價題',cat:'國際聯盟',q:'國際聯盟為何難以有效維持和平？',o:['缺乏美國支持及獨立軍事力量','所有強國都積極服從國聯','國聯只處理教育問題','國聯成立於二戰後'],a:0,e:'國聯的弱點包括美國缺席、沒有自設軍隊、決策效率低和制裁不徹底。'},
+  {d:'hard',type:'時序題',cat:'時序',q:'以下哪項時序最能反映「戰爭到和平安排」的過程？',o:['塞拉耶佛暗殺 → 美國參戰 → 停戰 → 巴黎和會 → 凡爾賽條約','巴黎和會 → 塞拉耶佛暗殺 → 停戰 → 美國參戰 → 凡爾賽條約','凡爾賽條約 → 美國參戰 → 塞拉耶佛暗殺 → 巴黎和會','美國參戰 → 三國同盟 → 巴黎和會 → 暗殺事件'],a:0,e:'這條線索由1914危機開始，經1917轉捩點、1918停戰、1919和會與條約。'},
+  {d:'hard',type:'史料理解',cat:'凡爾賽條約',q:'若德國報章形容《凡爾賽條約》是「強加於德國」的條約，最能反映哪種態度？',o:['德國人普遍感到屈辱和不滿','德國人完全接受條約','德國認為條約太寬鬆','德國從此放棄修約要求'],a:0,e:'「強加」等用語反映德國人視條約為不公平、屈辱和外力壓迫。'},
+  {d:'hard',type:'因果題',cat:'戰後影響',q:'為何意大利雖為戰勝國，仍可能不滿巴黎和會？',o:['意大利認為所得利益少於戰前承諾','意大利被要求承擔全部戰爭責任','意大利失去所有本土','意大利被禁止加入任何國際組織'],a:0,e:'意大利認為戰爭犧牲巨大，但和會回報不足，產生「被背叛」感。'},
+  {d:'hard',type:'比較題',cat:'戰後影響',q:'德國納粹主義與意大利法西斯主義興起的共同背景包括甚麼？',o:['戰後不滿、經濟困難、政局不穩及對強人政治的渴求','兩國都因國聯軍隊入侵而崩潰','兩國都完全滿意巴黎和會','兩國都長期由穩定民主政府有效管治'],a:0,e:'兩國極權主義興起均與戰後不滿、經濟社會問題及民主政府軟弱有關。'},
+  {d:'hard',type:'評價題',cat:'巴黎和會',q:'「巴黎和會既嘗試建立和平，也製造新的不滿。」哪項最能支持此評價？',o:['它成立國聯，但凡爾賽條約亦激起德國和意大利不滿','它沒有任何和平理想','它完全沒有處理戰敗國','它令所有國家都滿意'],a:0,e:'巴黎和會一方面建立國聯和新秩序，另一方面對戰敗國和部分戰勝國造成不滿。'},
+  {d:'hard',type:'概念配對',cat:'戰後和平',q:'《凱格—白里安公約》的主要局限是甚麼？',o:['缺乏有效執行方法，且自衛可被不同解釋','直接建立北約','成功禁止所有軍備','令德國立即支付賠款'],a:0,e:'公約譴責戰爭，但執行力有限，且「自衛」可成為侵略藉口。'},
+  {d:'hard',type:'評價題',cat:'戰後和平',q:'華盛頓會議等裁軍嘗試的局限何在？',o:['多限制海軍主力艦，未能全面限制其他軍備及缺乏有效監督','完全禁止所有陸海空軍','由國聯軍隊直接執法','令所有國家互信大增'],a:0,e:'裁軍會議有局部成就，但沒有全面限制軍備，也缺乏強力監督機制。'},
+  {d:'hard',type:'因果題',cat:'戰後影響',q:'為何《凡爾賽條約》中的軍事限制未必能長期阻止德國復興？',o:['條約仍與一個統一的德國締結，執行亦需要德國政府合作','德國被永久分裂為五十國','國聯擁有龐大常備軍','德國完全失去人口和工業基礎'],a:0,e:'德國仍是統一國家，若國際監督不足或德國拒絕合作，條約限制便會削弱。'}
+];
+
+const game = {
+  state:'menu', mode:null, cfg:null, t:0, camera:0, worldW:4200,
+  player:null, platforms:[], enemies:[], gunners:[], bullets:[], archives:[], qnodes:[], hazards:[], particles:[],
+  lives:5, timeLeft:400, score:0, files:0, correct:0, wrong:0, asked:0, questionSet:[], qIndex:0, currentQ:null,
+  inv:0, gasMask:0, finished:false, lastShot:0, msg:'', msgT:0, runStart:0, elapsed:0
+};
+
+function rects(a,b){return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function rand(a,b){return a + Math.random()*(b-a);}
+function choice(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function shuffle(arr){return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);}
+function show(el){el.classList.remove('hidden')} function hide(el){el.classList.add('hidden')}
+
+class Player{
+  constructor(){this.x=48;this.y=370;this.w=26;this.h=38;this.vx=0;this.vy=0;this.grounded=false;this.facing=1;}
+  update(dt){
+    const accel=950, max=210, friction=840;
+    if(keys.left){this.vx-=accel*dt;this.facing=-1}
+    if(keys.right){this.vx+=accel*dt;this.facing=1}
+    if(!keys.left&&!keys.right){ if(this.vx>0) this.vx=Math.max(0,this.vx-friction*dt); else this.vx=Math.min(0,this.vx+friction*dt); }
+    this.vx=clamp(this.vx,-max,max);
+    if(keys.jump && this.grounded){this.vy=-430;this.grounded=false;}
+    this.vy += 980*dt;
+    this.x += this.vx*dt;
+    this.collide('x');
+    this.y += this.vy*dt;
+    this.grounded=false;
+    this.collide('y');
+    this.x=clamp(this.x,0,game.worldW-this.w);
+    if(this.y>H+240){damage(1,'跌落炸彈坑，任務受阻。'); respawn();}
+  }
+  collide(axis){
+    for(const p of game.platforms){
+      if(rects(this,p)){
+        if(axis==='x'){
+          if(this.vx>0) this.x=p.x-this.w; else if(this.vx<0) this.x=p.x+p.w;
+          this.vx=0;
         } else {
-          const sprW = SPRITES.beam[0].length * scale;
-          for (let xx = sx; xx < sx + this.w; xx += sprW) drawSprite(ctx, SPRITES.beam, xx, sy, scale);
-          ctx.fillStyle = "rgba(0,0,0,0.18)";
-          ctx.fillRect(sx, sy + SPRITES.beam.length * scale, this.w, 3);
+          if(this.vy>0){this.y=p.y-this.h; this.vy=0; this.grounded=true;}
+          else if(this.vy<0){this.y=p.y+p.h; this.vy=0;}
         }
       }
     }
-
-    class Item {
-      constructor(x, y) { this.x = x; this.y = y; this.w = 18; this.h = 14; this.collected = false; this.bob = 0; }
-      get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
-      update(dt) { this.bob += dt * 6; }
-      draw(ctx, camX, scale) {
-        if (this.collected) return;
-        const bobY = Math.sin(this.bob) * 3;
-        drawSprite(ctx, SPRITES.doc, (this.x - camX) | 0, (this.y + bobY) | 0, scale);
-      }
-    }
-
-    class StarTrigger {
-      constructor(x, y, qIndex) { this.x = x; this.y = y; this.w = 22; this.h = 22; this.used = false; this.qIndex = qIndex; this.bob = 0; }
-      get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
-      update(dt) { this.bob += dt * 6; }
-      draw(ctx, camX, scale) {
-        if (this.used) return;
-        const bobY = Math.sin(this.bob) * 3;
-        drawSprite(ctx, SPRITES.star, (this.x - camX) | 0, (this.y + bobY) | 0, scale);
-      }
-    }
-
-    class Bullet {
-      constructor(x, y, vx, vy = 0) {
-        this.x = x; this.y = y;
-        this.vx = vx; this.vy = vy;
-        this.w = 10; this.h = 10;
-        this.dead = false;
-        this.life = 2.6;
-      }
-      get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
-      update(dt, game) {
-        if (this.dead) return;
-        this.life -= dt;
-        if (this.life <= 0) { this.dead = true; return; }
-        this.x += this.vx * dt;
-        this.y += this.vy * dt;
-
-        const a = this.aabb;
-        for (const p of game.platforms) if (a.intersects(p.aabb)) { this.dead = true; return; }
-
-        if (this.x < -200 || this.x > game.levelWidth + 200 || this.y < -200 || this.y > game.H + 300) this.dead = true;
-      }
-      draw(ctx, camX, scale) {
-        if (this.dead) return;
-        drawSprite(ctx, SPRITES.bullet, (this.x - camX) | 0, this.y | 0, Math.max(2, scale - 1));
-      }
-    }
-
-    class Enemy {
-      constructor(x, y, patrolMin, patrolMax) {
-        this.x = x; this.y = y;
-        this.w = 22; this.h = 30;
-        this.vx = 35; this.vy = 0;
-        this.patrolMin = patrolMin; this.patrolMax = patrolMax;
-        this.alive = true;
-        this.anim = 0;
-        this.face = 1;
-        this.standOnBeams = true;
-      }
-      get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
-      update(dt, game) {
-        if (!this.alive) return;
-        this.anim += dt * 8;
-
-        this.x += this.vx * dt;
-        this.face = this.vx >= 0 ? 1 : -1;
-        if (this.x < this.patrolMin) { this.x = this.patrolMin; this.vx = Math.abs(this.vx); }
-        if (this.x + this.w > this.patrolMax) { this.x = this.patrolMax - this.w; this.vx = -Math.abs(this.vx); }
-
-        this.vy += game.physics.gravity * dt;
-        this.y += this.vy * dt;
-
-        for (const p of game.platforms) {
-          if (!this.standOnBeams && p.type === "beam") continue;
-          const a = this.aabb, b = p.aabb;
-          if (!a.intersects(b)) continue;
-          const wasAbove = (a.y + a.h) - b.y < 14 && this.vy >= 0;
-          if (wasAbove) { this.y = b.y - this.h; this.vy = 0; }
-        }
-      }
-      draw(ctx, camX, scale) {
-        if (!this.alive) return;
-        const frame = (Math.floor(this.anim) % 2 === 0) ? SPRITES.enemy1 : SPRITES.enemy2;
-        drawSprite(ctx, frame, (this.x - camX) | 0, this.y | 0, scale, this.face < 0);
-      }
-    }
-
-    class ShooterEnemy extends Enemy {
-      constructor(x, y, patrolMin, patrolMax, opts = {}) {
-        super(x, y, patrolMin, patrolMax);
-        this.patrol = !!opts.patrol;
-        this.vx = this.patrol ? (opts.vx ?? 22) : 0;
-        this.cooldown = 0.9 + Math.random() * 0.6;
-        this.minCD = 1.15;
-        this.maxCD = 2.05;
-        this.range = opts.range ?? 480;
-        this.bulletSpeed = opts.bulletSpeed ?? 380;
-      }
-      update(dt, game) {
-        if (!this.alive) return;
-
-        if (this.patrol) super.update(dt, game);
-        else {
-          this.anim += dt * 6;
-          this.vy += game.physics.gravity * dt;
-          this.y += this.vy * dt;
-          for (const p of game.platforms) {
-            const a = this.aabb, b = p.aabb;
-            if (!a.intersects(b)) continue;
-            const wasAbove = (a.y + a.h) - b.y < 14 && this.vy >= 0;
-            if (wasAbove) { this.y = b.y - this.h; this.vy = 0; }
-          }
-        }
-
-        const px = game.player.x + game.player.w * 0.5;
-        const ex = this.x + this.w * 0.5;
-        const dx = px - ex;
-        this.face = dx >= 0 ? 1 : -1;
-
-        const onScreen = (this.x - game.cameraX) > -220 && (this.x - game.cameraX) < game.W + 220;
-        const near = Math.abs(dx) <= this.range && Math.abs((game.player.y - this.y)) < 180;
-
-        this.cooldown -= dt;
-        if (onScreen && near && this.cooldown <= 0) {
-          this.cooldown = this.minCD + Math.random() * (this.maxCD - this.minCD);
-          const bx = this.face > 0 ? (this.x + this.w + 2) : (this.x - 12);
-          const by = this.y + 14;
-
-          // 0° / -30° / -45°（斜射）
-          const angles = [0, -30, -45];
-          const deg = angles[(Math.random() * angles.length) | 0];
-          const rad = deg * Math.PI / 180;
-          const spd = this.bulletSpeed;
-          const vx = Math.cos(rad) * spd * this.face;
-          const vy = Math.sin(rad) * spd;
-
-          game.bullets.push(new Bullet(bx, by, vx, vy));
-        }
-      }
-      draw(ctx, camX, scale) {
-        if (!this.alive) return;
-        const frame = (Math.floor(this.anim) % 2 === 0) ? SPRITES.shooter1 : SPRITES.shooter2;
-        drawSprite(ctx, frame, (this.x - camX) | 0, this.y | 0, scale, this.face < 0);
-      }
-    }
-
-    class Player {
-      constructor(x, y) {
-        this.x = x; this.y = y;
-        this.w = 22; this.h = 30;
-        this.vx = 0; this.vy = 0;
-        this.onGround = false;
-        this.face = 1;
-        this.anim = 0;
-        this.invuln = 0;
-        this.coyote = 0;
-        this.jumpBuf = 0;
-        this.jumpHold = 0;
-        this.jumping = false;
-        this.coyoteMax = 0.10;
-        this.jumpBufMax = 0.12;
-        this.jumpHoldMax = 0.18;
-        this.jumpCut = 0.55;
-      }
-      get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
-      update(dt, game) {
-        const input = game.input;
-        const inverted = game.effects.invertTimer > 0;
-        const LEFT = inverted ? input.right : input.left;
-        const RIGHT = inverted ? input.left : input.right;
-
-        this.invuln = Math.max(0, this.invuln - dt);
-        this.coyote = Math.max(0, this.coyote - dt);
-        this.jumpBuf = Math.max(0, this.jumpBuf - dt);
-        if (input.jumpPressed) this.jumpBuf = this.jumpBufMax;
-
-        const accel = game.physics.accel;
-        if (LEFT)  { this.vx -= accel * dt; this.face = -1; }
-        if (RIGHT) { this.vx += accel * dt; this.face =  1; }
-        if (!LEFT && !RIGHT) {
-          const f = this.onGround ? game.physics.frictionGround : game.physics.frictionAir;
-          this.vx *= Math.pow(f, dt * 60);
-        }
-        this.vx = clamp(this.vx, -game.physics.maxSpeed, game.physics.maxSpeed);
-
-        const prevX = this.x;
-        const prevY = this.y;
-
-        const canJump = this.onGround || this.coyote > 0;
-        if (this.jumpBuf > 0 && canJump) {
-          this.vy = -game.physics.jumpVel;
-          this.onGround = false;
-          this.coyote = 0;
-          this.jumpBuf = 0;
-          this.jumping = true;
-          this.jumpHold = 0;
-        }
-
-        this.vy += game.physics.gravity * dt;
-        if (this.jumping && input.jump && this.vy < 0 && this.jumpHold < this.jumpHoldMax) {
-          this.vy -= game.physics.gravity * dt * 0.55;
-          this.jumpHold += dt;
-        }
-        if (this.jumping && !input.jump && this.vy < 0) {
-          this.vy *= this.jumpCut;
-          this.jumping = false;
-        }
-
-        this.x += this.vx * dt;
-        this.resolveCollisionsX(game, prevX);
-        this.y += this.vy * dt;
-        this.onGround = false;
-        this.resolveCollisionsY(game, prevY);
-        if (this.onGround) { this.coyote = this.coyoteMax; this.jumping = false; }
-
-        const moving = Math.abs(this.vx) > 20;
-        this.anim += dt * (moving ? 10 : 4);
-
-        if (this.y > game.H + 240) game.playerDie("你跌落坑洞，任務中斷。");
-      }
-      resolveCollisionsX(game, prevX) {
-        for (const p of game.platforms) {
-          if (p.type === "beam") continue;
-          const a = this.aabb, b = p.aabb;
-          if (!a.intersects(b)) continue;
-          if (prevX + this.w <= b.x) this.x = b.x - this.w;
-          else if (prevX >= b.x + b.w) this.x = b.x + b.w;
-          this.vx = 0;
-        }
-        this.x = clamp(this.x, 0, game.levelWidth - this.w);
-      }
-      resolveCollisionsY(game, prevY) {
-        for (const p of game.platforms) {
-          const a = this.aabb, b = p.aabb;
-          if (!a.intersects(b)) continue;
-          const wasAbove = (prevY + this.h) <= b.y + 4;
-          const wasBelow = prevY >= (b.y + b.h - 4);
-          if (this.vy >= 0 && wasAbove) {
-            this.y = b.y - this.h; this.vy = 0; this.onGround = true;
-          } else if (this.vy < 0 && wasBelow) {
-            this.y = b.y + b.h; this.vy = 0;
-          } else {
-            const overlapTop = (a.y + a.h) - b.y;
-            const overlapBottom = (b.y + b.h) - a.y;
-            if (overlapTop < overlapBottom) { this.y -= overlapTop; this.vy = 0; this.onGround = true; }
-            else { this.y += overlapBottom; this.vy = 0; }
-          }
-        }
-      }
-      hurt(game, fromDir) {
-        if (this.invuln > 0) return;
-        game.lives -= 1;
-        this.invuln = 1.0;
-        this.vy = -220;
-        this.vx = (fromDir || -this.face) * 220;
-        if (game.lives <= 0) game.setState("gameover", "你失去所有生命，任務失敗。");
-      }
-      draw(ctx, camX, scale, invertBlink) {
-        const moving = Math.abs(this.vx) > 20;
-        const sprite = moving
-          ? ((Math.floor(this.anim) % 2 === 0) ? SPRITES.playerWalk1 : SPRITES.playerWalk2)
-          : SPRITES.playerIdle;
-
-        const invFlicker = (this.invuln > 0 && Math.floor(this.invuln * 12) % 2 === 0);
-        const invertFlicker = invertBlink && (Math.floor(performance.now() / 1000 * 12) % 2 === 0);
-        if (invFlicker || invertFlicker) ctx.globalAlpha = 0.35;
-
-        drawSprite(ctx, sprite, (this.x - camX) | 0, this.y | 0, scale, this.face < 0);
-        ctx.globalAlpha = 1;
-      }
-    }
-
-    class Game {
-      constructor(canvas) {
-        this.canvas = canvas;
-        this.ctx = canvas.getContext("2d", { alpha: false });
-        this.ctx.imageSmoothingEnabled = false;
-
-        this.W = 960; this.H = 540;
-        this.state = "intro";
-        this.score = 0; this.lives = 3;
-        this.timeLimit = 150; this.timeLeft = this.timeLimit;
-
-        this.scale = 3;
-        this.levelWidth = 3000;
-        this.cameraX = 0; this.cameraSmooth = 0.12;
-
-        this.physics = {
-          gravity: 1100, accel: 2200, maxSpeed: 220, jumpVel: 420,
-          frictionGround: 0.78, frictionAir: 0.92
-        };
-
-        this.effects = { invertTimer: 0 };
-        this.input = { left: false, right: false, jump: false, jumpPressed: false };
-
-        this.platforms = [];
-        this.items = [];
-        this.enemies = [];
-        this.stars = [];
-        this.bullets = [];
-
-        this.player = new Player(70, 340);
-        this.goal = { x: this.levelWidth - 140, y: 0, w: 36, h: 60 };
-        this.goalAABB = () => new AABB(this.goal.x, this.goal.y, this.goal.w, this.goal.h);
-
-        this.quiz = { title: "", source: null, idx: 0, selected: -1, feedback: "", optionRects: [], lock: 0, onCorrect: null, onWrong: null };
-
-        this.bgBuildings = this.generateBuildings(84);
-        this.bgClouds = this.generateClouds(10);
-
-        this.fixedDt = 1 / 120;
-        this.accum = 0;
-        this.last = performance.now() / 1000;
-
-        this.buildLevel();
-        this.bindKeyboard();
-        this.bindPointerStart();
-        this.bindQuizPointer();
-        this.setupTouchControls();
-        this.setupResize();
-
-        requestAnimationFrame(() => this.loop());
-      }
-
-      setupResize() {
-        const apply = () => {
-          const dpr = Math.min(2, window.devicePixelRatio || 1);
-          this.canvas.width  = Math.floor(this.W * dpr);
-          this.canvas.height = Math.floor(this.H * dpr);
-          this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-          this.ctx.scale(dpr, dpr);
-          this.ctx.imageSmoothingEnabled = false;
-          this.canvas.style.width = "100vw";
-          this.canvas.style.height = "100dvh";
-        };
-        apply();
-        window.addEventListener("resize", apply, { passive: true });
-        window.addEventListener("orientationchange", () => setTimeout(apply, 80), { passive: true });
-        document.addEventListener("visibilitychange", () => { if (!document.hidden) apply(); }, { passive: true });
-      }
-
-      setupTouchControls() {
-        const isMobile =
-          matchMedia("(pointer: coarse)").matches ||
-          /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-        const touchUI = document.getElementById("touchUI");
-        if (!touchUI) return;
-        touchUI.style.display = isMobile ? "block" : "none";
-        if (!isMobile) return;
-
-        const pad = document.getElementById("movePad");
-        const btnJump = document.getElementById("btnJump");
-
-        let padActive = false;
-        let centerX = 0;
-
-        const updateCenter = () => {
-          if (!pad) return;
-          const r = pad.getBoundingClientRect();
-          centerX = r.left + r.width / 2;
-        };
-
-        if (pad) {
-          updateCenter();
-          window.addEventListener("resize", updateCenter, { passive: true });
-          window.addEventListener("orientationchange", () => setTimeout(updateCenter, 80), { passive: true });
-
-          pad.addEventListener("pointerdown", (e) => {
-            e.preventDefault();
-            if (this.state !== "playing") return;
-            padActive = true;
-            pad.setPointerCapture(e.pointerId);
-          }, { passive: false });
-
-          pad.addEventListener("pointermove", (e) => {
-            if (!padActive || this.state !== "playing") return;
-            const dx = e.clientX - centerX;
-            const dead = 12;
-
-            if (dx < -dead) { this.input.left = true;  this.input.right = false; }
-            else if (dx > dead) { this.input.right = true; this.input.left = false; }
-            else { this.input.left = false; this.input.right = false; }
-          });
-
-          const release = (e) => {
-            padActive = false;
-            this.input.left = false;
-            this.input.right = false;
-            try { pad.releasePointerCapture(e.pointerId); } catch {}
-          };
-
-          pad.addEventListener("pointerup", release);
-          pad.addEventListener("pointercancel", release);
-          pad.addEventListener("pointerleave", release);
-        }
-
-        if (btnJump) {
-          btnJump.addEventListener("pointerdown", (e) => {
-            e.preventDefault();
-            if (this.state !== "playing") return;
-            if (!this.input.jump) this.input.jumpPressed = true;
-            this.input.jump = true;
-          }, { passive: false });
-
-          const up = (e) => { e.preventDefault(); this.input.jump = false; };
-          btnJump.addEventListener("pointerup", up, { passive: false });
-          btnJump.addEventListener("pointercancel", up, { passive: false });
-        }
-      }
-
-      clearInput() { this.input.left = this.input.right = this.input.jump = this.input.jumpPressed = false; }
-
-      setState(s, reason = "") {
-        this.state = s;
-        if (s === "gameover") this.gameOverReason = reason || "任務失敗。";
-      }
-
-      resetAll() {
-        this.state = "intro";
-        this.score = 0; this.lives = 3; this.timeLeft = this.timeLimit;
-        this.effects.invertTimer = 0;
-        this.cameraX = 0;
-        this.player = new Player(70, 340);
-        this.bullets.length = 0;
-        this.clearInput();
-        this.buildLevel();
-      }
-
-      playerDie(reason) {
-        if (this.state !== "playing") return;
-        this.lives -= 1;
-        if (this.lives <= 0) { this.setState("gameover", reason || "任務失敗。"); return; }
-        this.player.x = 70; this.player.y = 340;
-        this.player.vx = 0; this.player.vy = 0;
-        this.player.invuln = 1.2;
-        this.cameraX = 0;
-        this.bullets.length = 0;
-        this.clearInput();
-      }
-
-      buildLevel() {
-        this.platforms.length = 0;
-        this.items.length = 0;
-        this.enemies.length = 0;
-        this.stars.length = 0;
-        this.bullets.length = 0;
-
-        const groundY = 430;
-        this.platforms.push(new Platform(0, groundY, 520, 120, "ground"));
-        this.platforms.push(new Platform(560, groundY, 380, 120, "ground"));
-        this.platforms.push(new Platform(980, groundY, 360, 120, "ground"));
-        this.platforms.push(new Platform(1380, groundY, 320, 120, "ground"));
-        this.platforms.push(new Platform(1740, groundY, 280, 120, "ground"));
-        this.platforms.push(new Platform(2060, groundY, 320, 120, "ground"));
-        this.platforms.push(new Platform(2420, groundY, 220, 120, "ground"));
-        this.platforms.push(new Platform(2700, groundY, 200, 120, "ground"));
-        this.platforms.push(new Platform(2920, groundY, 320, 120, "ground"));
-
-        this.platforms.push(new Platform(640, 350, 180, 18, "beam"));
-        this.platforms.push(new Platform(840, 300, 180, 18, "beam"));
-        this.platforms.push(new Platform(820, 250, 140, 18, "beam"));
-        this.platforms.push(new Platform(1060, 330, 220, 18, "beam"));
-        this.platforms.push(new Platform(1240, 280, 160, 18, "beam"));
-        this.platforms.push(new Platform(1460, 360, 160, 18, "beam"));
-        this.platforms.push(new Platform(1640, 320, 160, 18, "beam"));
-        this.platforms.push(new Platform(1680, 240, 140, 18, "beam"));
-        this.platforms.push(new Platform(1820, 280, 160, 18, "beam"));
-        this.platforms.push(new Platform(2000, 320, 160, 18, "beam"));
-        this.platforms.push(new Platform(2140, 270, 160, 18, "beam"));
-        this.platforms.push(new Platform(2860, 360, 160, 18, "beam"));
-        this.platforms.push(new Platform(3040, 320, 160, 18, "beam"));
-
-        this.goal.y = groundY - 60;
-        this.goal.x = this.levelWidth - 140;
-
-        const addDoc = (x, y) => this.items.push(new Item(x, y));
-        addDoc(300, groundY - 70);
-        addDoc(720, 320);
-        addDoc(910, 270);
-        addDoc(1160, 300);
-        addDoc(1520, 330);
-        addDoc(1760, groundY - 70);
-        addDoc(1880, 250);
-        addDoc(2140, groundY - 70);
-        addDoc(2480, groundY - 70);
-        addDoc(2885, 330);
-        addDoc(2940, groundY - 70);
-
-        this.stars.push(new StarTrigger(1080, 260, 0));
-        this.stars.push(new StarTrigger(1880, 210, 1));
-
-        const addEnemy = (x, y, min, max) => this.enemies.push(new Enemy(x, y, min, max));
-        const addShooter = (x, y, min, max, opts) => this.enemies.push(new ShooterEnemy(x, y, min, max, opts));
-
-        addEnemy(650,  groundY - 30, 560,  940);
-        addEnemy(1120, groundY - 30, 980,  1340);
-        addEnemy(1600, groundY - 30, 1380, 1700);
-        addEnemy(2520, groundY - 30, 2420, 2640);
-        addEnemy(2820, groundY - 30, 2700, 2920);
-
-        addEnemy(860,  270, 840,  1010);
-        addEnemy(1860, 250, 1820, 1980);
-
-        addShooter(1280, groundY - 30, 1240, 1340, { patrol: false, range: 460, bulletSpeed: 380 });
-        addShooter(2065, 240,          2000, 2160, { patrol: true,  vx: 22, range: 520, bulletSpeed: 360 });
-        addShooter(2925, groundY - 30, 2920, 3240, { patrol: false, range: 520, bulletSpeed: 420 });
-        addShooter(1560, 210, 1500, 1700, { patrol: false, range: 520, bulletSpeed: 360 });
-        addShooter(2320, 190, 2260, 2460, { patrol: false, range: 520, bulletSpeed: 380 });
-      }
-
-      generateBuildings(n) {
-        const arr = [];
-        let x = 0;
-        for (let i = 0; i < n; i++) {
-          const w = 40 + Math.floor(Math.random() * 70);
-          const h = 60 + Math.floor(Math.random() * 160);
-          const style = Math.random();
-          const roof = style < 0.55 ? "gable" : (style < 0.8 ? "flat" : "saw");
-          const windows = 2 + Math.floor(Math.random() * 4);
-          const chimney = Math.random() < 0.35;
-          arr.push({ x, w, h, roof, windows, chimney, tone: Math.random() });
-          x += w + (10 + Math.floor(Math.random() * 20));
-        }
-        return arr;
-      }
-
-      generateClouds(n) {
-        const arr = [];
-        for (let i = 0; i < n; i++) {
-          arr.push({ x: Math.random() * this.levelWidth, y: 40 + Math.random() * 120, s: 2 + Math.floor(Math.random() * 2), spd: 4 + Math.random() * 8 });
-        }
-        return arr;
-      }
-
-      beginQuiz({ title, source, idx, onCorrect, onWrong }) {
-        this.state = "quiz";
-        this.quiz.title = title;
-        this.quiz.source = source;
-        this.quiz.idx = idx;
-        this.quiz.selected = -1;
-        this.quiz.feedback = "";
-        this.quiz.optionRects = [];
-        this.quiz.lock = 0;
-        this.quiz.onCorrect = onCorrect;
-        this.quiz.onWrong = onWrong;
-        this.player.vx = 0; this.player.vy = 0;
-        this.clearInput();
-      }
-
-      answerQuiz(choice) {
-        if (this.quiz.lock > 0) return;
-        this.quiz.selected = choice;
-        const item = this.quiz.source[this.quiz.idx];
-        const correct = choice === item.answer;
-        this.quiz.lock = 0.9;
-        this.quiz.feedback = correct ? `✅ 答啱！${item.explain}` : `❌ 答錯！${item.explain}`;
-        if (correct && typeof this.quiz.onCorrect === "function") this.quiz.onCorrect();
-        if (!correct && typeof this.quiz.onWrong === "function") this.quiz.onWrong();
-      }
-
-      bindQuizPointer() {
-        this.canvas.addEventListener("pointerdown", (e) => {
-          if (this.state !== "quiz") return;
-          const r = this.canvas.getBoundingClientRect();
-          const mx = (e.clientX - r.left) * (this.W / r.width);
-          const my = (e.clientY - r.top) * (this.H / r.height);
-          for (const b of this.quiz.optionRects) {
-            if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
-              this.answerQuiz(b.idx); break;
-            }
-          }
-        }, { passive: true });
-      }
-
-      bindKeyboard() {
-        window.addEventListener("keydown", (e) => {
-          const blocks = ["ArrowLeft","ArrowRight","ArrowUp","Space","Enter","Digit1","Digit2","Digit3","Digit4"];
-          if (blocks.includes(e.code)) e.preventDefault();
-
-          if (this.state === "quiz") {
-            if (e.code === "Digit1") this.answerQuiz(0);
-            if (e.code === "Digit2") this.answerQuiz(1);
-            if (e.code === "Digit3") this.answerQuiz(2);
-            if (e.code === "Digit4") this.answerQuiz(3);
-            return;
-          }
-          if ((this.state === "intro" || this.state === "rules") && (e.code === "Space" || e.code === "Enter")) {
-            this.state = this.state === "intro" ? "rules" : "playing"; this.clearInput(); return;
-          }
-          if ((this.state === "win" || this.state === "gameover") && (e.code === "Space" || e.code === "Enter")) {
-            this.resetAll(); return;
-          }
-          if (this.state !== "playing") return;
-          if (e.code === "ArrowLeft") this.input.left = true;
-          if (e.code === "ArrowRight") this.input.right = true;
-          if (e.code === "Space" || e.code === "ArrowUp") {
-            if (!this.input.jump) this.input.jumpPressed = true;
-            this.input.jump = true;
-          }
-        }, { passive: false });
-
-        window.addEventListener("keyup", (e) => {
-          if (this.state !== "playing") return;
-          if (e.code === "ArrowLeft") this.input.left = false;
-          if (e.code === "ArrowRight") this.input.right = false;
-          if (e.code === "Space" || e.code === "ArrowUp") this.input.jump = false;
-        });
-      }
-
-      bindPointerStart() {
-        this.canvas.addEventListener("pointerdown", () => {
-          if (this.state === "quiz") return;
-          if (this.state === "intro") { this.state = "rules"; this.clearInput(); return; }
-          if (this.state === "rules") { this.state = "playing"; this.clearInput(); return; }
-          if (this.state === "win" || this.state === "gameover") { this.resetAll(); return; }
-        }, { passive: true });
-      }
-
-      loop() {
-        const now = performance.now() / 1000;
-        const frameDt = Math.min(0.05, now - this.last);
-        this.last = now;
-        this.accum += frameDt;
-        while (this.accum >= this.fixedDt) { this.step(this.fixedDt); this.accum -= this.fixedDt; }
-        this.render();
-        requestAnimationFrame(() => this.loop());
-      }
-
-      step(dt) {
-        for (const c of this.bgClouds) {
-          c.x += c.spd * dt;
-          if (c.x > this.levelWidth + 200) c.x = -200;
-        }
-
-        if (this.state === "quiz") { this.quiz.lock = Math.max(0, this.quiz.lock - dt); this.input.jumpPressed = false; return; }
-        if (this.state !== "playing") { this.input.jumpPressed = false; return; }
-
-        this.effects.invertTimer = Math.max(0, this.effects.invertTimer - dt);
-        this.timeLeft -= dt;
-        if (this.timeLeft <= 0) { this.timeLeft = 0; this.setState("gameover", T.timeUp); this.clearInput(); return; }
-
-        this.player.update(dt, this);
-
-        for (let i = this.bullets.length - 1; i >= 0; i--) {
-          const b = this.bullets[i];
-          b.update(dt, this);
-          if (!b.dead && this.player.invuln <= 0 && this.player.aabb.intersects(b.aabb)) {
-            b.dead = true;
-            const fromDir = b.vx > 0 ? 1 : -1;
-            this.player.hurt(this, fromDir);
-          }
-          if (b.dead) this.bullets.splice(i, 1);
-        }
-
-        for (const it of this.items) {
-          it.update(dt);
-          if (!it.collected && this.player.aabb.intersects(it.aabb)) {
-            it.collected = true;
-            this.score += 150;
-            this.timeLeft = Math.min(this.timeLimit, this.timeLeft + 2.0);
-          }
-        }
-
-        for (const st of this.stars) {
-          st.update(dt);
-          if (!st.used && this.player.aabb.intersects(st.aabb)) {
-            st.used = true;
-            const idx = st.qIndex % QUIZ_STARS.length;
-            this.beginQuiz({
-              title: T.quizStarTitle, source: QUIZ_STARS, idx,
-              onCorrect: () => { this.score += 200; setTimeout(() => { this.clearInput(); this.state = "playing"; }, 600); },
-              onWrong:   () => { this.effects.invertTimer = 10; setTimeout(() => { this.clearInput(); this.state = "playing"; }, 600); }
-            });
-            return;
-          }
-        }
-
-        for (const en of this.enemies) {
-          en.update(dt, this);
-          if (!en.alive) continue;
-          if (this.player.aabb.intersects(en.aabb)) {
-            const playerBottom = this.player.y + this.player.h;
-            const enemyTop = en.y;
-            const falling = this.player.vy > 50;
-            const stomp = falling && (playerBottom - enemyTop) < 14 && (this.player.y < en.y);
-            if (stomp) {
-              en.alive = false;
-              this.player.vy = -260;
-              this.beginQuiz({
-                title: T.quizWWITitle, source: QUIZ_WWI, idx: (Math.random() * QUIZ_WWI.length) | 0,
-                onCorrect: () => { this.score += 150; setTimeout(() => { this.clearInput(); this.state = "playing"; }, 600); },
-                onWrong:   () => {
-                  this.lives -= 1;
-                  if (this.lives <= 0) setTimeout(() => { this.setState("gameover", "你答錯第一次世界大戰題目，任務失敗。"); }, 600);
-                  else setTimeout(() => { this.clearInput(); this.state = "playing"; }, 600);
-                }
-              });
-              return;
-            } else {
-              const fromDir = (this.player.x + this.player.w * 0.5) < (en.x + en.w * 0.5) ? -1 : 1;
-              this.player.hurt(this, fromDir);
-            }
-          }
-        }
-
-        if (this.player.aabb.intersects(this.goalAABB())) {
-          this.beginQuiz({
-            title: T.quizDoorTitle, source: QUIZ_TELEGRAM, idx: (Math.random() * QUIZ_TELEGRAM.length) | 0,
-            onCorrect: () => { this.score += 300; setTimeout(() => { this.clearInput(); this.state = "win"; }, 650); },
-            onWrong:   () => {
-              this.lives -= 1;
-              if (this.lives <= 0) setTimeout(() => { this.setState("gameover", "你答錯史料題，任務失敗。"); }, 650);
-              else setTimeout(() => {
-                this.clearInput();
-                this.state = "playing";
-                this.player.x = this.goal.x - 220;
-                this.player.y = this.goal.y - 40;
-                this.player.vx = 0; this.player.vy = 0;
-              }, 650);
-            }
-          });
-          return;
-        }
-
-        const target = clamp(this.player.x - this.W * 0.40, 0, this.levelWidth - this.W);
-        this.cameraX = lerp(this.cameraX, target, this.cameraSmooth);
-        this.score += Math.max(0, this.player.vx) * dt * 0.02;
-        this.input.jumpPressed = false;
-      }
-
-      render() {
-        const ctx = this.ctx, w = this.W, h = this.H;
-
-        ctx.fillStyle = "#0b1020"; ctx.fillRect(0, 0, w, h);
-        ctx.fillStyle = "rgba(185,199,230,0.10)"; ctx.fillRect(0, 0, w, h * 0.55);
-        ctx.fillStyle = "rgba(185,199,230,0.06)"; ctx.fillRect(0, h * 0.35, w, h * 0.35);
-
-        this.drawBackground(ctx);
-        this.drawClouds(ctx);
-
-        for (const p of this.platforms) {
-          if (p.x - this.cameraX > w + 240 || p.x + p.w - this.cameraX < -240) continue;
-          p.draw(ctx, this.cameraX, this.scale);
-        }
-
-        this.drawGoal(ctx);
-
-        for (const it of this.items) {
-          if (it.x - this.cameraX > w + 240 || it.x - this.cameraX < -240) continue;
-          it.draw(ctx, this.cameraX, this.scale);
-        }
-        for (const st of this.stars) {
-          if (st.x - this.cameraX > w + 240 || st.x - this.cameraX < -240) continue;
-          st.draw(ctx, this.cameraX, this.scale);
-        }
-        for (const en of this.enemies) {
-          if (en.x - this.cameraX > w + 240 || en.x - this.cameraX < -240) continue;
-          en.draw(ctx, this.cameraX, this.scale);
-        }
-        for (const b of this.bullets) {
-          if (b.x - this.cameraX > w + 260 || b.x - this.cameraX < -260) continue;
-          b.draw(ctx, this.cameraX, this.scale);
-        }
-
-        this.player.draw(ctx, this.cameraX, this.scale, this.effects.invertTimer > 0);
-        this.drawHUD(ctx);
-
-        if (this.state === "intro") this.drawPanel(ctx, T.introTitle, T.introLines, T.pressToContinue);
-        if (this.state === "rules") this.drawPanel(ctx, T.rulesTitle, T.rulesLines, T.pressToContinue);
-        if (this.state === "win") this.drawPanel(ctx, T.winTitle, T.winLines, "點畫面或按 SPACE/ENTER 重新開始");
-        if (this.state === "gameover") this.drawPanel(ctx, T.loseTitle, [this.gameOverReason || "任務失敗。"], "點畫面或按 SPACE/ENTER 重新開始");
-        if (this.state === "quiz") this.drawQuiz(ctx);
-      }
-
-      drawBackground(ctx) {
-        const w = this.W, far = 0.25;
-        ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.fillRect(0, 250, w, 160);
-        const baseY = 410;
-        for (const b of this.bgBuildings) {
-          const x = (b.x - this.cameraX * far) | 0;
-          if (x > w + 120 || x + b.w < -120) continue;
-          const y = baseY - b.h;
-          const bodyCol =
-            b.tone < 0.33 ? "rgba(44,45,52,0.75)" :
-            b.tone < 0.66 ? "rgba(75,86,110,0.65)" :
-            "rgba(122,59,46,0.55)";
-          ctx.fillStyle = bodyCol; ctx.fillRect(x, y, b.w, b.h);
-          ctx.fillStyle = "rgba(139,47,42,0.55)";
-          if (b.roof === "flat") ctx.fillRect(x, y - 6, b.w, 6);
-          else if (b.roof === "gable") {
-            for (let i = 0; i < 8; i++) {
-              const rw = b.w - i * 6; if (rw <= 0) break;
-              ctx.fillRect(x + i * 3, y - 6 - i * 3, rw, 3);
-            }
-          } else { for (let i = 0; i < b.w; i += 12) ctx.fillRect(x + i, y - 12, 10, 12); }
-          ctx.fillStyle = "rgba(243,199,75,0.18)";
-          const rows = Math.max(2, Math.floor(b.h / 40));
-          for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < b.windows; c++) {
-              const wx = x + 10 + c * Math.floor((b.w - 20) / b.windows);
-              const wy = y + 12 + r * Math.floor((b.h - 20) / rows);
-              ctx.fillRect(wx, wy, 6, 8);
-            }
-          }
-          if (b.chimney) {
-            ctx.fillStyle = "rgba(27,31,46,0.55)";
-            ctx.fillRect(x + b.w - 18, y - 26, 10, 20);
-            ctx.fillStyle = "rgba(0,0,0,0.18)";
-            ctx.fillRect(x + b.w - 20, y - 30, 14, 6);
-          }
-        }
-      }
-
-      drawClouds(ctx) {
-        for (const c of this.bgClouds) {
-          const x = (c.x - this.cameraX * 0.18) | 0;
-          const y = c.y | 0;
-          if (x > this.W + 120 || x < -160) continue;
-          drawSprite(ctx, SPRITES.cloud, x, y, c.s);
-        }
-      }
-
-      drawGoal(ctx) {
-        const sx = (this.goal.x - this.cameraX) | 0;
-        const sy = this.goal.y | 0;
-        drawSprite(ctx, SPRITES.door, sx, sy, this.scale);
-        ctx.font = "12px system-ui, sans-serif";
-        ctx.fillStyle = "rgba(255,255,255,0.70)";
-        ctx.fillText("10", sx + 10, sy - 6);
-      }
-
-      drawHUD(ctx) {
-        const pad = 14, panelW = 430, panelH = 64;
-        ctx.fillStyle = "rgba(10,14,26,0.65)";
-        ctx.fillRect(pad, pad, panelW, panelH);
-        ctx.strokeStyle = "rgba(255,255,255,0.10)";
-        ctx.strokeRect(pad + 0.5, pad + 0.5, panelW - 1, panelH - 1);
-
-        const score = Math.floor(this.score);
-        const time = Math.ceil(this.timeLeft);
-
-        ctx.fillStyle = "rgba(232,229,216,0.95)";
-        ctx.font = "bold 16px system-ui, sans-serif";
-        ctx.fillText(T.title, pad + 12, pad + 22);
-
-        ctx.font = "14px system-ui, sans-serif";
-        ctx.fillStyle = "rgba(232,229,216,0.90)";
-        ctx.fillText(`${T.hudScore}：${score}`, pad + 12, pad + 44);
-        ctx.fillStyle = "rgba(255,90,106,0.95)";
-        ctx.fillText(`${T.hudLives}：${this.lives}`, pad + 165, pad + 44);
-        ctx.fillStyle = time <= 15 ? "rgba(255,90,106,0.95)" : "rgba(243,199,75,0.95)";
-        ctx.fillText(`${T.hudTime}：${time}s`, pad + 285, pad + 44);
-
-        if (this.effects.invertTimer > 0) {
-          ctx.fillStyle = "rgba(255,90,106,0.95)";
-          ctx.font = "800 14px system-ui, sans-serif";
-          ctx.fillText(`⚠ 左右反轉：${Math.ceil(this.effects.invertTimer)}s`, pad + 12, pad + 62);
-
-          const sec = Math.ceil(this.effects.invertTimer);
-          ctx.save();
-          ctx.fillStyle = "rgba(0,0,0,0.35)";
-          ctx.fillRect(0, 0, this.W, this.H);
-          ctx.textAlign = "center"; ctx.textBaseline = "middle";
-          ctx.fillStyle = "#ff5a6a";
-          ctx.font = "900 52px system-ui, sans-serif";
-          ctx.fillText("⚠ 操作反轉！", this.W / 2, this.H / 2 - 30);
-          ctx.fillStyle = "#ffd166";
-          ctx.font = "800 30px system-ui, sans-serif";
-          ctx.fillText(`剩餘 ${sec} 秒`, this.W / 2, this.H / 2 + 30);
-          ctx.restore();
-        }
-      }
-
-      drawPanel(ctx, title, lines, footer) {
-        const w = this.W, h = this.H;
-        ctx.fillStyle = "rgba(10,14,26,0.78)"; ctx.fillRect(0, 0, w, h);
-        const cw = Math.min(860, w - 60), ch = Math.min(460, h - 60);
-        const cx = (w - cw) / 2, cy = (h - ch) / 2;
-        ctx.fillStyle = "rgba(255,255,255,0.06)"; ctx.fillRect(cx, cy, cw, ch);
-        ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.strokeRect(cx + 0.5, cy + 0.5, cw - 1, ch - 1);
-        ctx.fillStyle = "rgba(232,229,216,0.96)";
-        ctx.font = "800 26px system-ui, sans-serif"; ctx.fillText(title, cx + 24, cy + 52);
-        ctx.font = "15px system-ui, sans-serif"; ctx.fillStyle = "rgba(232,229,216,0.92)";
-        let yy = cy + 88; for (const ln of lines) { ctx.fillText(ln, cx + 24, yy); yy += 22; }
-        ctx.fillStyle = "rgba(243,199,75,0.95)";
-        ctx.font = "800 16px system-ui, sans-serif";
-        ctx.fillText(footer, cx + 24, cy + ch - 26);
-      }
-
-      drawQuiz(ctx) {
-        const w = this.W, h = this.H;
-        const item = this.quiz.source[this.quiz.idx];
-        ctx.fillStyle = "rgba(10,14,26,0.82)"; ctx.fillRect(0, 0, w, h);
-        const cw = Math.min(860, w - 80), ch = Math.min(420, h - 80);
-        const cx = (w - cw) / 2, cy = (h - ch) / 2;
-        ctx.fillStyle = "rgba(255,255,255,0.06)"; ctx.fillRect(cx, cy, cw, ch);
-        ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.strokeRect(cx + 0.5, cy + 0.5, cw - 1, ch - 1);
-
-        ctx.fillStyle = "rgba(232,229,216,0.96)";
-        ctx.font = "800 22px system-ui, sans-serif"; ctx.fillText(this.quiz.title, cx + 22, cy + 42);
-
-        ctx.font = "16px system-ui, sans-serif"; ctx.fillStyle = "rgba(232,229,216,0.94)";
-        ctx.fillText(item.q, cx + 22, cy + 74);
-
-        this.quiz.optionRects = [];
-        const btnH = 44, gap = 10; let by = cy + 100;
-        for (let i = 0; i < item.options.length; i++) {
-          const bx = cx + 22, bw = cw - 44;
-          const chosen = this.quiz.selected === i;
-
-          ctx.fillStyle = chosen ? "rgba(243,199,75,0.22)" : "rgba(255,255,255,0.08)";
-          ctx.fillRect(bx, by, bw, btnH);
-          ctx.strokeStyle = "rgba(255,255,255,0.14)";
-          ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, btnH - 1);
-
-          ctx.fillStyle = "rgba(232,229,216,0.95)";
-          ctx.font = "16px system-ui, sans-serif";
-          ctx.fillText(`${i + 1}) ${item.options[i]}`, bx + 14, by + 28);
-
-          this.quiz.optionRects.push({ x: bx, y: by, w: bw, h: btnH, idx: i });
-          by += btnH + gap;
-        }
-
-        ctx.fillStyle = "rgba(243,199,75,0.95)";
-        ctx.font = "700 14px system-ui, sans-serif";
-        ctx.fillText(T.quizHint, cx + 22, cy + ch - 50);
-
-        if (this.quiz.feedback) {
-          ctx.fillStyle = "rgba(232,229,216,0.95)";
-          ctx.font = "700 14px system-ui, sans-serif";
-          ctx.fillText(this.quiz.feedback, cx + 22, cy + ch - 26);
-        }
-      }
-    }
-
-    const canvas = document.getElementById("game");
-    if (!canvas) throw new Error('Missing <canvas id="game">');
-    new Game(canvas);
-  })();
-  </script>
+  }
+}
+
+class Enemy{
+  constructor(x,y,min,max,type='crisis',speed=45){this.x=x;this.y=y;this.w=28;this.h=34;this.min=min;this.max=max;this.vx=speed;this.type=type;}
+  update(dt){this.x+=this.vx*dt;if(this.x<this.min||this.x>this.max){this.vx*=-1;this.x=clamp(this.x,this.min,this.max)}}
+}
+class Gunner{
+  constructor(x,y,range=470,cool=1.6){this.x=x;this.y=y;this.w=30;this.h=36;this.range=range;this.cool=cool;this.t=rand(.2,1.2);}
+  update(dt){this.t-=dt;const dx=(game.player.x-this.x), dy=(game.player.y-this.y); if(this.t<=0 && Math.abs(dx)<this.range && Math.abs(dy)<185){this.t=this.cool; const dir=dx>=0?1:-1; game.bullets.push({x:this.x+15,y:this.y+14,w:10,h:8,vx:dir*380,vy:choice([0,-80,-120]),life:2.7,type:'bullet'});}}
+}
+class Hazard{
+  constructor(kind,x,y,w,h,phase=0){this.kind=kind;this.x=x;this.y=y;this.w=w;this.h=h;this.t=phase;this.active=true;}
+  update(dt){this.t+=dt;if(this.kind==='gas'){this.active=(Math.sin(this.t*1.55)>-.2)} if(this.kind==='artillery'){const cycle=this.t%3.2;this.active=cycle>1.1&&cycle<1.75;}}
+}
+
+function buildLevel(){
+  game.platforms=[]; game.enemies=[]; game.gunners=[]; game.bullets=[]; game.archives=[]; game.qnodes=[]; game.hazards=[]; game.particles=[];
+  const ground=[[0,520],[560,940],[990,1350],[1390,1740],[1790,2150],[2200,2600],[2660,3090],[3150,3600],[3660,4200]];
+  for(const [x2,x3] of ground) game.platforms.push({x:x2,y:455,w:x3-x2,h:85,type:'mud'});
+  const plats=[
+    [380,360,170,18],[760,320,180,18],[1040,270,160,18],[1430,340,200,18],[1680,250,170,18],
+    [1990,310,220,18],[2350,245,180,18],[2700,330,230,18],[3060,260,190,18],[3420,345,200,18],[3780,280,190,18]
+  ];
+  for(const p of plats) game.platforms.push({x:p[0],y:p[1],w:p[2],h:p[3],type:'wood'});
+  const m=game.cfg.enemyMul;
+  const enemyData=[[640,421,585,760],[1180,421,1050,1280],[1580,421,1440,1680],[2050,276,1990,2170],[2480,421,2260,2550],[2890,421,2720,3030],[3300,421,3180,3520]];
+  for(let i=0;i<Math.round(enemyData.length*m);i++){const e=enemyData[i]; game.enemies.push(new Enemy(e[0],e[1],e[2],e[3],'crisis',42+8*m));}
+  const gunData=[[1280,419,470,1.8],[1880,419,500,1.55],[2320,209,500,1.45],[2920,419,520,1.3],[3560,419,520,1.25]];
+  for(let i=0;i<Math.round(gunData.length*m);i++){const g=gunData[i]; game.gunners.push(new Gunner(g[0],g[1],g[2],g[3]/m));}
+  const archivePos=[260,470,820,1085,1505,1715,2055,2415,2780,3105,3475,3820,4020];
+  for(const x of archivePos){game.archives.push({x,y: (x%2?410:300),w:24,h:28,type:'archive',got:false});}
+  game.archives[1].y=315; game.archives[3].y=225; game.archives[5].y=205; game.archives[8].y=285; game.archives[10].y=215; game.archives[11].y=235;
+  game.archives.push({x:1320,y:415,w:26,h:26,type:'med',got:false});
+  game.archives.push({x:2620,y:405,w:26,h:26,type:'mask',got:false});
+  game.archives.push({x:3350,y:300,w:26,h:26,type:'dove',got:false});
+  const qxs = game.mode==='easy' ? [520,980,1420,1840,2260,2700,3200,3700] : [420,760,1080,1400,1680,1980,2280,2580,2880,3180,3500,3860];
+  for(let i=0;i<qxs.length;i++){game.qnodes.push({x:qxs[i],y:390-(i%3)*65,w:30,h:30,used:false});}
+  const trapMul=game.cfg.trapMul;
+  const wires=[[600,435,70,20],[1480,435,90,20],[2240,435,85,20],[2860,435,70,20],[3740,435,95,20]];
+  for(let i=0;i<Math.round(wires.length*trapMul);i++){const w=wires[i];game.hazards.push(new Hazard('wire',w[0],w[1],w[2],w[3]));}
+  const gases=[[1120,405,105,50,.3],[2020,405,120,50,1.4],[3060,405,130,50,2.1]];
+  for(let i=0;i<Math.round(gases.length*trapMul);i++){const g=gases[i];game.hazards.push(new Hazard('gas',g[0],g[1],g[2],g[3],g[4]));}
+  const arts=[[1640,335,110,120,0],[2520,335,120,120,.9],[3420,335,120,120,1.6]];
+  for(let i=0;i<Math.round(arts.length*trapMul);i++){const a=arts[i];game.hazards.push(new Hazard('artillery',a[0],a[1],a[2],a[3],a[4]));}
+}
+
+function selectQuestions(){
+  const easy = shuffle(QUESTIONS.filter(q=>q.d==='easy'));
+  const hard = shuffle(QUESTIONS.filter(q=>q.d==='hard'));
+  if(game.mode==='easy') return shuffle([...easy.slice(0,6),...hard.filter(q=>['時序題','因果題','評價題'].includes(q.type)).slice(0,2)]).slice(0,8);
+  return shuffle([...hard.slice(0,10),...easy.filter(q=>q.type==='時序題').slice(0,2)]).slice(0,12);
+}
+
+function startGame(mode){
+  game.mode=mode; game.cfg=MODE[mode]; game.state='playing'; game.t=0; game.camera=0; game.player=new Player();
+  game.lives=game.cfg.lives; game.timeLeft=game.cfg.time; game.score=0; game.files=0; game.correct=0; game.wrong=0; game.asked=0; game.qIndex=0; game.finished=false; game.inv=0; game.gasMask=0; game.msg=''; game.msgT=0; game.elapsed=0; game.runStart=performance.now();
+  game.questionSet=selectQuestions(); buildLevel(); hide(UI.menu); hide(UI.report); hide(UI.quiz); hide(UI.how);
+  loop(performance.now());
+}
+function finish(reason='完成任務'){
+  game.state='report'; game.finished=true; game.elapsed=Math.round((performance.now()-game.runStart)/1000);
+  cancelAnimationFrame(raf);
+  const total=game.questionSet.length;
+  const acc = total? Math.round(game.correct/total*100):0;
+  const title = acc>=92 && game.files>=10 ? '凡爾賽首席談判員' : acc>=80 ? '歷史策略家' : acc>=60 ? '和平會議代表' : acc>=40 ? '戰地觀察員' : '歷史新兵';
+  const points = keyTakeaways();
+  $('reportBody').innerHTML = `<p><b>${reason}</b></p><table><tr><th>模式</th><td>${game.cfg.label}</td></tr><tr><th>稱號</th><td>${title}</td></tr><tr><th>分數</th><td>${Math.max(0,Math.round(game.score))}</td></tr><tr><th>答對題數</th><td>${game.correct} / ${total}</td></tr><tr><th>收集檔案</th><td>${game.files}</td></tr><tr><th>用時</th><td>${game.elapsed} 秒</td></tr></table><h3 style="margin-top:14px">重點回顧</h3><ul>${points.map(p=>`<li>${p}</li>`).join('')}</ul>`;
+  $('submitMsg').textContent=''; $('playerName').value=''; show(UI.report);
+}
+function keyTakeaways(){
+  const list=[
+    '極端民族主義、同盟制度、軍備競賽和殖民地爭奪共同令一戰前歐洲局勢惡化。',
+    '塞拉耶佛暗殺事件是導火線；長期矛盾才是戰爭爆發的深層原因。',
+    '同盟制度令奧塞衝突有機會擴大成兩大陣營的全面戰爭。',
+    '巴黎和會嘗試建立新秩序，但《凡爾賽條約》亦激起德國強烈不滿。',
+    '國際聯盟有維持和平的理想，但因美國缺席、缺乏軍事力量及執行力不足而受限制。'
+  ];
+  return shuffle(list).slice(0,4);
+}
+function damage(n,msg){
+  if(game.inv>0) return;
+  game.lives-=n; game.inv=1.2; game.score-=game.cfg.damagePenalty*n; flashMsg(msg||'任務受損。');
+  if(game.lives<=0) finish('任務失敗：穩定度歸零。');
+}
+function respawn(){game.player.x=Math.max(30,game.camera+40); game.player.y=360; game.player.vx=0; game.player.vy=0;}
+function flashMsg(m){game.msg=m;game.msgT=2.2;}
+
+function shoot(){
+  const now=game.t; if(now-game.lastShot<.28) return; game.lastShot=now;
+  const p=game.player; game.bullets.push({x:p.x+p.w/2,y:p.y+18,w:13,h:7,vx:p.facing*520,vy:0,life:1.2,type:'player'});
+}
+
+function update(dt){
+  if(game.state!=='playing') return;
+  game.t+=dt; game.elapsed=Math.round((performance.now()-game.runStart)/1000);
+  game.timeLeft-=dt; if(game.timeLeft<=0){finish('任務失敗：時間耗盡。'); return;}
+  if(keys.shoot) shoot();
+  if(game.inv>0) game.inv-=dt; if(game.gasMask>0) game.gasMask-=dt; if(game.msgT>0) game.msgT-=dt;
+  game.player.update(dt);
+  game.camera=clamp(game.player.x-W*.38,0,game.worldW-W);
+  for(const e of game.enemies){e.update(dt); if(rects(game.player,e)) damage(1,'接觸戰爭危機，任務穩定度下降。');}
+  for(const g of game.gunners){g.update(dt); if(rects(game.player,g)) damage(1,'撞上機槍陣地。');}
+  for(const h of game.hazards){h.update(dt); if(h.active && rects(game.player,h)){ if(h.kind==='gas' && game.gasMask>0){} else damage(1,h.kind==='wire'?'碰到鐵絲網。':h.kind==='gas'?'吸入毒氣，行動受阻。':'遭炮火擊中。'); }}
+  for(const b of game.bullets){b.x+=b.vx*dt; b.y+=b.vy*dt; b.vy+= b.type==='bullet'? 120*dt:0; b.life-=dt; for(const p of game.platforms){if(rects(b,p)) b.life=0;} if(b.type==='bullet'&&rects(b,game.player)){b.life=0;damage(1,'被機槍火線擊中。');}}
+  for(const b of game.bullets.filter(b=>b.type==='player')){
+    for(const e of [...game.enemies,...game.gunners]){ if(rects(b,e)){ b.life=0; e.dead=true; game.score+=80*game.cfg.scoreMul; addPop(e.x,e.y,'+80'); } }
+  }
+  game.enemies=game.enemies.filter(e=>!e.dead); game.gunners=game.gunners.filter(e=>!e.dead); game.bullets=game.bullets.filter(b=>b.life>0 && b.x>-60 && b.x<game.worldW+60);
+  for(const it of game.archives){ if(!it.got && rects(game.player,it)){it.got=true; if(it.type==='archive'){game.files++;game.score+=100*game.cfg.scoreMul;flashMsg('取得戰地檔案 +100');} if(it.type==='med'){game.lives=Math.min(game.cfg.lives,game.lives+1);flashMsg('取得急救包，穩定度回復。');} if(it.type==='mask'){game.gasMask=10;flashMsg('取得防毒面具，短時間免疫毒氣。');} if(it.type==='dove'){game.score+=250*game.cfg.scoreMul;game.timeLeft+=20;flashMsg('取得和平鴿章，加分及延長時間。');}} }
+  for(const qn of game.qnodes){ if(!qn.used && rects(game.player,qn)){qn.used=true; openQuiz(); return;} }
+  if(game.player.x>game.worldW-90){ finish('任務完成：成功抵達巴黎和會。'); }
+  for(const p of game.particles){p.y-=30*dt;p.life-=dt;} game.particles=game.particles.filter(p=>p.life>0);
+}
+function addPop(x,y,text){game.particles.push({x,y,text,life:1});}
+
+function openQuiz(){
+  if(game.qIndex>=game.questionSet.length){flashMsg('已完成所有歷史考點。');return;}
+  game.state='quiz'; game.currentQ=game.questionSet[game.qIndex]; game.asked++;
+  const q=game.currentQ; $('qType').textContent=q.type; $('qCat').textContent=q.cat; $('qProgress').textContent=`第 ${game.qIndex+1} / ${game.questionSet.length} 題`; $('qText').textContent=q.q;
+  const box=$('qOptions'); box.innerHTML=''; hide($('qFeedback')); hide($('continueBtn'));
+  q.o.forEach((opt,i)=>{const btn=document.createElement('button');btn.className='option';btn.textContent=String.fromCharCode(65+i)+'. '+opt;btn.onclick=()=>answerQuiz(i,btn);box.appendChild(btn);});
+  show(UI.quiz);
+}
+function answerQuiz(i,btn){
+  const q=game.currentQ; const buttons=[...document.querySelectorAll('.option')]; buttons.forEach(b=>b.disabled=true);
+  if(i===q.a){game.correct++; game.score += 300*game.cfg.scoreMul; btn.classList.add('correct'); $('qFeedback').innerHTML=`<b>答對。</b> ${q.e}`;}
+  else{game.wrong++; game.score -= game.cfg.wrongPenalty; btn.classList.add('wrong'); buttons[q.a].classList.add('correct'); $('qFeedback').innerHTML=`<b>答錯。</b> 正確答案是 ${String.fromCharCode(65+q.a)}。${q.e}`; if(game.mode==='hard'){game.timeLeft-=8; spawnPenaltyTrap();}}
+  game.qIndex++; show($('qFeedback')); show($('continueBtn'));
+}
+function spawnPenaltyTrap(){const x=game.player.x+180; game.hazards.push(new Hazard('wire',x,435,70,20)); flashMsg('錯題懲罰：前方增加鐵絲網。');}
+$('continueBtn').onclick=()=>{hide(UI.quiz);game.state='playing'; if(game.qIndex>=game.questionSet.length) flashMsg('歷史考點已完成，前往終點。'); loop(performance.now());};
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  drawBackground();
+  ctx.save(); ctx.translate(-game.camera,0);
+  drawWorld();
+  ctx.restore();
+  drawHUD();
+}
+function drawBackground(){
+  const grd=ctx.createLinearGradient(0,0,0,H); grd.addColorStop(0,'#2a271f'); grd.addColorStop(.55,'#4b3b29'); grd.addColorStop(1,'#1a130d'); ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
+  ctx.globalAlpha=.28; ctx.strokeStyle='#c8a86d'; ctx.lineWidth=1;
+  for(let x=-80;x<W+120;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+160,H);ctx.stroke();}
+  for(let y=40;y<H;y+=60){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y+rand(-2,2));ctx.stroke();}
+  ctx.globalAlpha=1;
+  ctx.fillStyle='rgba(0,0,0,.18)'; for(let i=0;i<10;i++){ctx.beginPath();ctx.ellipse((i*137-game.camera*.12)%W,430+Math.sin(i)*14,90,18,0,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle='rgba(235,220,180,.18)'; ctx.font='bold 40px serif'; ctx.fillText('EUROPE 1914',38,92); ctx.font='18px serif'; ctx.fillText('WAR · PEACE · TREATY',43,120);
+}
+function drawWorld(){
+  for(const p of game.platforms){
+    ctx.fillStyle=p.type==='wood'?'#6a4a2d':'#3d2a1c'; ctx.fillRect(p.x,p.y,p.w,p.h); ctx.fillStyle=p.type==='wood'?'#8b6339':'#5a3c24'; ctx.fillRect(p.x,p.y,p.w,5);
+    if(p.type==='mud'){ctx.strokeStyle='rgba(20,10,5,.45)'; for(let x=p.x;x<p.x+p.w;x+=22){ctx.beginPath();ctx.moveTo(x,p.y+10);ctx.lineTo(x+12,p.y+18);ctx.stroke();}}
+  }
+  drawGoal();
+  for(const h of game.hazards) drawHazard(h);
+  for(const it of game.archives) if(!it.got) drawItem(it);
+  for(const qn of game.qnodes) if(!qn.used) drawQNode(qn);
+  for(const e of game.enemies) drawEnemy(e);
+  for(const g of game.gunners) drawGunner(g);
+  for(const b of game.bullets) drawBullet(b);
+  drawPlayer(game.player);
+  for(const p of game.particles){ctx.globalAlpha=p.life;ctx.fillStyle='#ffe69b';ctx.font='bold 18px sans-serif';ctx.fillText(p.text,p.x,p.y);ctx.globalAlpha=1;}
+}
+function drawGoal(){
+  const x=4105; ctx.fillStyle='#251912'; ctx.fillRect(x,320,70,135); ctx.fillStyle='#d8bc78'; ctx.fillRect(x+8,330,54,115); ctx.fillStyle='#5d2d24'; ctx.fillRect(x+19,355,32,90); ctx.fillStyle='#ffe5a0'; ctx.font='bold 13px sans-serif'; ctx.fillText('PARIS',x+12,350); ctx.fillText('1919',x+19,374);
+}
+function drawHazard(h){
+  if(h.kind==='wire'){
+    ctx.strokeStyle='#b8b8b8';ctx.lineWidth=2; for(let y=0;y<3;y++){ctx.beginPath(); for(let x=0;x<h.w;x+=12){ctx.lineTo(h.x+x,h.y+y*7+Math.sin(x*.5)*3);} ctx.stroke();}
+    ctx.fillStyle='#3c3026'; ctx.fillRect(h.x,h.y+h.h-4,h.w,4);
+  } else if(h.kind==='gas'){
+    ctx.globalAlpha=h.active?.62:.18; ctx.fillStyle='#8fae63'; for(let i=0;i<6;i++){ctx.beginPath();ctx.ellipse(h.x+15+i*18,h.y+20+Math.sin(game.t*2+i)*8,28,20,0,0,Math.PI*2);ctx.fill();} ctx.globalAlpha=1;
+  } else if(h.kind==='artillery'){
+    const cyc=h.t%3.2; if(h.active){ctx.fillStyle='rgba(210,60,45,.65)';ctx.fillRect(h.x,h.y,h.w,h.h);ctx.fillStyle='#ffdc82';ctx.beginPath();ctx.arc(h.x+h.w/2,h.y+h.h-22,32,0,Math.PI*2);ctx.fill();} else {ctx.strokeStyle=cyc<1.1?'rgba(255,70,50,.75)':'rgba(255,70,50,.25)';ctx.setLineDash([8,6]);ctx.strokeRect(h.x,h.y,h.w,h.h);ctx.setLineDash([]);}
+  }
+}
+function drawItem(it){
+  if(it.type==='archive'){ctx.fillStyle='#d7bd76';ctx.fillRect(it.x,it.y,it.w,it.h);ctx.fillStyle='#744';ctx.fillRect(it.x+3,it.y+5,it.w-6,3);ctx.fillRect(it.x+3,it.y+12,it.w-8,3);}
+  if(it.type==='med'){ctx.fillStyle='#f2eee0';ctx.fillRect(it.x,it.y,it.w,it.h);ctx.fillStyle='#b33';ctx.fillRect(it.x+10,it.y+4,6,18);ctx.fillRect(it.x+4,it.y+10,18,6);}
+  if(it.type==='mask'){ctx.fillStyle='#6e8d68';ctx.beginPath();ctx.arc(it.x+13,it.y+13,13,0,Math.PI*2);ctx.fill();ctx.fillStyle='#1d2a1b';ctx.fillRect(it.x+6,it.y+9,14,7);}
+  if(it.type==='dove'){ctx.fillStyle='#eee';ctx.beginPath();ctx.arc(it.x+12,it.y+13,11,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f4d17e';ctx.fillText('✦',it.x+7,it.y+20);}
+}
+function drawQNode(q){ctx.fillStyle='#f0c45a';ctx.beginPath();ctx.arc(q.x+15,q.y+15,15+Math.sin(game.t*4)*2,0,Math.PI*2);ctx.fill();ctx.fillStyle='#2a1b0d';ctx.font='bold 23px sans-serif';ctx.fillText('?',q.x+8,q.y+23);}
+function drawEnemy(e){ctx.fillStyle='#7b2f29';ctx.fillRect(e.x,e.y,e.w,e.h);ctx.fillStyle='#d1b070';ctx.fillRect(e.x+5,e.y-7,18,8);ctx.fillStyle='#111';ctx.fillRect(e.x+5,e.y+8,18,5);}
+function drawGunner(g){ctx.fillStyle='#35332d';ctx.fillRect(g.x,g.y,g.w,g.h);ctx.fillStyle='#999';ctx.fillRect(g.x-8,g.y+12,46,6);ctx.fillStyle='#9d7a3a';ctx.fillRect(g.x+7,g.y-6,16,8);}
+function drawBullet(b){ctx.fillStyle=b.type==='player'?'#ffe28a':'#e54b3f';ctx.fillRect(b.x,b.y,b.w,b.h);}
+function drawPlayer(p){if(game.inv>0 && Math.floor(game.t*12)%2===0) return; ctx.fillStyle='#294e6b';ctx.fillRect(p.x,p.y,p.w,p.h);ctx.fillStyle='#d8b283';ctx.fillRect(p.x+6,p.y-8,15,10);ctx.fillStyle='#1d1b17';ctx.fillRect(p.x+4,p.y+10,20,6);ctx.fillStyle='#d6b25f';ctx.fillRect(p.x+(p.facing>0?20:-10),p.y+16,16,5);}
+function drawHUD(){
+  ctx.fillStyle='rgba(20,14,8,.78)';ctx.fillRect(12,10,936,58);ctx.strokeStyle='rgba(217,180,95,.6)';ctx.strokeRect(12,10,936,58);
+  ctx.fillStyle='#f3d98a';ctx.font='bold 18px sans-serif';ctx.fillText(game.cfg?game.cfg.label:'',26,34);ctx.font='15px sans-serif';
+  ctx.fillText(`穩定度 ${game.lives}`,170,34);ctx.fillText(`分數 ${Math.max(0,Math.round(game.score))}`,270,34);ctx.fillText(`檔案 ${game.files}`,390,34);ctx.fillText(`題目 ${game.correct}/${game.questionSet.length}`,485,34);ctx.fillText(`時間 ${Math.max(0,Math.ceil(game.timeLeft))}s`,600,34);
+  if(game.gasMask>0){ctx.fillStyle='#bfe6a2';ctx.fillText(`防毒 ${Math.ceil(game.gasMask)}s`,710,34)}
+  const pct=game.player? game.player.x/(game.worldW-90):0; ctx.fillStyle='rgba(255,255,255,.2)';ctx.fillRect(26,50,880,8);ctx.fillStyle='#d9b45f';ctx.fillRect(26,50,880*pct,8);ctx.fillStyle='#f3d98a';ctx.fillText('巴黎和會',865,45);
+  if(game.msgT>0){ctx.fillStyle='rgba(0,0,0,.68)';ctx.fillRect(280,76,400,34);ctx.fillStyle='#fff1c8';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText(game.msg,480,98);ctx.textAlign='left';}
+}
+function loop(ts){
+  if(game.state!=='playing') return;
+  const dt=Math.min(.033,(ts-lastT)/1000||0); lastT=ts; update(dt); draw(); raf=requestAnimationFrame(loop);
+}
+function idleDraw(){ if(game.state==='menu'){ctx.clearRect(0,0,W,H);drawBackground();ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(0,0,W,H);} requestAnimationFrame(idleDraw); }
+
+window.addEventListener('keydown',e=>{if(['ArrowLeft','KeyA'].includes(e.code))keys.left=true;if(['ArrowRight','KeyD'].includes(e.code))keys.right=true;if(['Space','ArrowUp','KeyW'].includes(e.code)){keys.jump=true;e.preventDefault()}if(['KeyJ','KeyX'].includes(e.code))keys.shoot=true;});
+window.addEventListener('keyup',e=>{if(['ArrowLeft','KeyA'].includes(e.code))keys.left=false;if(['ArrowRight','KeyD'].includes(e.code))keys.right=false;if(['Space','ArrowUp','KeyW'].includes(e.code))keys.jump=false;if(['KeyJ','KeyX'].includes(e.code))keys.shoot=false;});
+document.querySelectorAll('.touchBtn').forEach(btn=>{const k=btn.dataset.key; const on=e=>{e.preventDefault();keys[k]=true}; const off=e=>{e.preventDefault();keys[k]=false}; btn.addEventListener('touchstart',on,{passive:false});btn.addEventListener('touchend',off,{passive:false});btn.addEventListener('touchcancel',off,{passive:false});btn.addEventListener('mousedown',on);btn.addEventListener('mouseup',off);btn.addEventListener('mouseleave',off);});
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('dblclick',e=>e.preventDefault());
+
+$('startEasy').onclick=()=>startGame('easy'); $('startHard').onclick=()=>startGame('hard'); $('refreshBoard').onclick=loadBoards; $('showHow').onclick=()=>show(UI.how); $('closeHow').onclick=()=>hide(UI.how); $('backMenu').onclick=()=>{hide(UI.report);show(UI.menu);game.state='menu';loadBoards();}; $('restartSame').onclick=()=>startGame(game.mode||'easy');
+$('submitScore').onclick=submitScore;
+
+function cleanName(s){
+  s=(s||'').trim().replace(/[<>"'`]/g,'').slice(0,12);
+  const bad=['仆街','屌','屌你','on9','傻閪','撚','柒','fuck','shit','bitch'];
+  for(const b of bad) s=s.replaceAll(b,'*');
+  if(!s || /^[\W_]+$/u.test(s)) s='無名情報員';
+  return s;
+}
+async function submitScore(){
+  const data={name:cleanName($('playerName').value),mode:game.mode,score:Math.max(0,Math.round(game.score)),correct:game.correct,total:game.questionSet.length,time:game.elapsed,files:game.files};
+  $('submitMsg').textContent='提交中……';
+  try{
+    if(LEADERBOARD_URL){await fetch(LEADERBOARD_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(data)});} else {saveLocal(data);}
+    $('submitMsg').textContent='已提交。'; await loadBoards();
+  }catch(e){saveLocal(data); $('submitMsg').textContent='網上榜提交失敗，已暫存本機榜。';}
+}
+function saveLocal(row){const k='ww1_leaderboard_v2';const arr=JSON.parse(localStorage.getItem(k)||'[]');arr.push({...row,timestamp:new Date().toISOString()});localStorage.setItem(k,JSON.stringify(arr).slice(0,60000));}
+async function loadBoards(){
+  let rows=[];
+  try{ if(LEADERBOARD_URL){const r=await fetch(LEADERBOARD_URL+'?top=20&v='+Date.now()); rows=await r.json();} }
+  catch(e){rows=[];}
+  if(!rows || !rows.length) rows=JSON.parse(localStorage.getItem('ww1_leaderboard_v2')||'[]');
+  renderBoard('easy',rows); renderBoard('hard',rows);
+}
+function renderBoard(mode,rows){
+  const box=mode==='easy'?UI.easyBoard:UI.hardBoard;
+  const top=rows.filter(r=>r.mode===mode).sort((a,b)=>(b.score-a.score)||(b.correct-a.correct)||(a.time-b.time)).slice(0,5);
+  box.innerHTML='<tr><th>#</th><th>名稱</th><th>分</th><th>答對</th><th>秒</th></tr>'+(top.length?top.map((r,i)=>`<tr><td>${i+1}</td><td>${r.name}</td><td>${r.score}</td><td>${r.correct}/${r.total}</td><td>${r.time}</td></tr>`).join(''):'<tr><td colspan="5">暫無紀錄</td></tr>');
+}
+loadBoards(); idleDraw();
+</script>
 </body>
 </html>
