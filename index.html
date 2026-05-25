@@ -59,20 +59,36 @@
   #rotateHint .panel{max-width:520px;}
   @media (pointer:coarse){#touchControls{display:block}.panel{padding:16px}.grid,.leaderGrid,.modeBox{grid-template-columns:1fr}.touchBtn{width:66px;height:66px}.wideBtn{width:86px}}
   @media (max-width:740px) and (orientation:portrait){#rotateHint{display:flex}}
+
+  .panel.startPanel{background:linear-gradient(135deg,rgba(30,18,11,.98),rgba(10,10,9,.98));position:relative;overflow:hidden;}
+  .panel.startPanel:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 18% 22%,rgba(180,72,30,.35),transparent 22%),radial-gradient(circle at 78% 18%,rgba(210,170,70,.16),transparent 18%),linear-gradient(115deg,transparent 0 48%,rgba(217,180,95,.08) 49% 51%,transparent 52%);pointer-events:none;}
+  .panel.startPanel>*{position:relative;z-index:1;}
+  .warTop{border:1px solid rgba(217,180,95,.42);border-radius:16px;padding:14px;background:linear-gradient(90deg,rgba(65,34,18,.8),rgba(20,18,14,.72));margin-bottom:14px;box-shadow:inset 0 0 35px rgba(0,0,0,.45)}
+  .heroTitle{font-size:clamp(32px,5.6vw,62px);line-height:1.05;letter-spacing:.02em;color:#ffe09a;text-shadow:0 4px 0 #000,0 0 18px rgba(255,160,75,.25)}
+  .heroSub{font-weight:800;color:#e7c06c;letter-spacing:.16em;margin-top:6px}
+  .intelStamp{display:inline-block;border:2px solid rgba(207,59,47,.72);color:#ff9b79;border-radius:8px;padding:5px 10px;transform:rotate(-4deg);font-weight:900;margin:6px 0;background:rgba(55,16,12,.38)}
+  .modeBox .card{min-height:178px;background:linear-gradient(135deg,rgba(105,70,35,.22),rgba(0,0,0,.16));}
+  .modeBox .card:nth-child(2){background:linear-gradient(135deg,rgba(112,38,30,.25),rgba(0,0,0,.18));}
+  .kbd{display:inline-block;min-width:26px;text-align:center;border:1px solid rgba(238,207,131,.5);border-radius:6px;padding:2px 6px;background:rgba(0,0,0,.28);font-weight:800;color:#ffe5a0}
+
 </style>
 </head>
 <body>
 <div id="wrap"><canvas id="game" width="960" height="540"></canvas></div>
 
 <div id="menu" class="overlay">
-  <div class="panel">
+  <div class="panel startPanel">
+    <div class="warTop">
+      <div class="intelStamp">CONFIDENTIAL · 戰時情報檔案</div>
+      <div class="heroTitle">1914–1919：戰爭與和平任務</div>
+      <div class="heroSub">FROM EUROPEAN CRISIS TO VERSAILLES</div>
+    </div>
     <div class="grid">
       <div>
-        <h1>1914–1919：戰爭與和平任務</h1>
         <div class="card">
           <h3>任務背景</h3>
-          <p>歐洲列強由競爭走向戰爭，再由戰爭走向巴黎和會。你要穿越戰壕、收集戰地檔案、破解歷史考點，理解第一次世界大戰的成因、爆發、戰後安排及其影響。</p>
-          <p class="small">操作：電腦用 ← → / A D 移動，Space / W / ↑ 跳躍，J / X 射擊。短按=小跳，長按=高跳；手機請橫向，使用畫面下方按鈕。</p>
+          <p>歐洲列強由競爭走向戰爭，再由戰爭走向巴黎和會。你是戰地情報員，要穿越壕溝、炮火、毒氣與鐵絲網，收集戰地檔案，破解歷史考點，理解第一次世界大戰的成因、爆發、戰後安排及其影響。</p>
+          <p class="small">操作：<span class="kbd">←</span> <span class="kbd">→</span> / <span class="kbd">A</span> <span class="kbd">D</span> 移動，<span class="kbd">Space</span> / <span class="kbd">↑</span> 跳躍，<span class="kbd">J</span> 射擊。<b>短按小跳，長按高跳；撞到危機會被彈後，請向相反方向修正。</b></p>
         </div>
         <div class="modeBox">
           <div class="card">
@@ -221,7 +237,7 @@ const game = {
   state:'menu', mode:null, cfg:null, t:0, camera:0, worldW:4200,
   player:null, platforms:[], enemies:[], gunners:[], bullets:[], archives:[], qnodes:[], hazards:[], particles:[],
   lives:5, timeLeft:400, score:0, files:0, correct:0, wrong:0, asked:0, questionSet:[], qIndex:0, currentQ:null,
-  inv:0, gasMask:0, finished:false, lastShot:0, msg:'', msgT:0, runStart:0, elapsed:0
+  inv:0, gasMask:0, finished:false, lastShot:0, msg:'', msgT:0, runStart:0, elapsed:0, hitFreeze:0, screenShake:0, redFlash:0, quizTimeout:null
 };
 
 function rects(a,b){return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;}
@@ -232,13 +248,19 @@ function shuffle(arr){return arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]
 function show(el){el.classList.remove('hidden')} function hide(el){el.classList.add('hidden')}
 
 class Player{
-  constructor(){this.x=48;this.y=370;this.w=26;this.h=38;this.vx=0;this.vy=0;this.grounded=false;this.facing=1;this.coyote=0;this.jumpBuffer=0;this.jumpHold=0;}
+  constructor(){this.x=48;this.y=370;this.w=26;this.h=38;this.vx=0;this.vy=0;this.grounded=false;this.facing=1;this.coyote=0;this.jumpBuffer=0;this.jumpHold=0;this.stun=0;}
   update(dt){
-    const accel=1180, max=265, friction=940;
-    if(keys.left){this.vx-=accel*dt;this.facing=-1}
-    if(keys.right){this.vx+=accel*dt;this.facing=1}
-    if(!keys.left&&!keys.right){ if(this.vx>0) this.vx=Math.max(0,this.vx-friction*dt); else this.vx=Math.min(0,this.vx+friction*dt); }
-    this.vx=clamp(this.vx,-max,max);
+    const accel=1260, max=285, friction=1020;
+    if(this.stun>0){
+      this.stun-=dt;
+      // 受傷硬直時保留彈後慣性，但不接受前進輸入，避免硬衝穿過陷阱。
+      this.vx *= Math.pow(.88, dt*60);
+    }else{
+      if(keys.left){this.vx-=accel*dt;this.facing=-1}
+      if(keys.right){this.vx+=accel*dt;this.facing=1}
+      if(!keys.left&&!keys.right){ if(this.vx>0) this.vx=Math.max(0,this.vx-friction*dt); else this.vx=Math.min(0,this.vx+friction*dt); }
+      this.vx=clamp(this.vx,-max,max);
+    }
 
     if(keys.jumpPressed){this.jumpBuffer=.14; keys.jumpPressed=false;}
     if(this.grounded) this.coyote=.10; else this.coyote-=dt;
@@ -297,8 +319,8 @@ function buildLevel(){
   ];
   for(const p of plats) game.platforms.push({x:p[0],y:p[1],w:p[2],h:p[3],type:'wood'});
   const m=game.cfg.enemyMul;
-  const enemyData=[[640,421,585,760],[1180,421,1050,1280],[1580,421,1440,1680],[2050,276,1990,2170],[2480,421,2260,2550],[2890,421,2720,3030],[3300,421,3180,3520]];
-  for(let i=0;i<Math.round(enemyData.length*m);i++){const e=enemyData[i]; game.enemies.push(new Enemy(e[0],e[1],e[2],e[3],'crisis',42+8*m));}
+  const enemyData=[[640,421,585,760,'austria'],[1180,421,1050,1280,'german'],[1580,421,1440,1680,'crisis'],[2050,276,1990,2170,'storm'],[2480,421,2260,2550,'austria'],[2890,421,2720,3030,'german'],[3300,421,3180,3520,'storm']];
+  for(let i=0;i<Math.round(enemyData.length*m);i++){const e=enemyData[i]; game.enemies.push(new Enemy(e[0],e[1],e[2],e[3],e[4],42+8*m));}
   const gunData=[[1280,419,470,1.8],[1880,419,500,1.55],[2320,209,500,1.45],[2920,419,520,1.3],[3560,419,520,1.25]];
   for(let i=0;i<Math.round(gunData.length*m);i++){const g=gunData[i]; game.gunners.push(new Gunner(g[0],g[1],g[2],g[3]/m));}
   const archivePos=[260,470,820,1085,1505,1715,2055,2415,2780,3105,3475,3820,4020];
@@ -327,7 +349,7 @@ function selectQuestions(){
 
 function startGame(mode){
   game.mode=mode; game.cfg=MODE[mode]; game.state='playing'; game.t=0; game.camera=0; game.player=new Player();
-  game.lives=game.cfg.lives; game.timeLeft=game.cfg.time; game.score=0; game.files=0; game.correct=0; game.wrong=0; game.asked=0; game.qIndex=0; game.finished=false; game.inv=0; game.gasMask=0; game.msg=''; game.msgT=0; game.elapsed=0; game.runStart=performance.now();
+  game.lives=game.cfg.lives; game.timeLeft=game.cfg.time; game.score=0; game.files=0; game.correct=0; game.wrong=0; game.asked=0; game.qIndex=0; game.finished=false; game.inv=0; game.gasMask=0; game.msg=''; game.msgT=0; game.elapsed=0; game.hitFreeze=0; game.screenShake=0; game.redFlash=0; if(game.quizTimeout){clearTimeout(game.quizTimeout);game.quizTimeout=null;} game.runStart=performance.now();
   game.questionSet=selectQuestions(); buildLevel(); hide(UI.menu); hide(UI.report); hide(UI.quiz); hide(UI.how);
   flashMsg('短按小跳，長按高跳。收集檔案並觸發考點。');
   loop(performance.now());
@@ -352,9 +374,16 @@ function keyTakeaways(){
   ];
   return shuffle(list).slice(0,4);
 }
-function damage(n,msg){
-  if(game.inv>0) return;
-  game.lives-=n; game.inv=1.2; game.score-=game.cfg.damagePenalty*n; flashMsg(msg||'任務受損。');
+function damage(n,msg,sourceX=null,kind='hit'){
+  if(game.inv>0 || game.state!=='playing') return;
+  game.lives-=n; game.inv=.95; game.hitFreeze=.06; game.screenShake=.32; game.redFlash=.28; game.score-=game.cfg.damagePenalty*n;
+  const p=game.player;
+  let dir = sourceX==null ? -p.facing : (p.x+p.w/2 < sourceX ? -1 : 1);
+  let power = kind==='wire' ? 390 : kind==='artillery' ? 330 : kind==='bullet' ? 240 : kind==='gas' ? 130 : 310;
+  p.vx = dir * power;
+  if(kind==='artillery') p.vy = -360; else if(kind==='wire') p.vy = -230; else if(kind==='gas') p.vy = Math.min(p.vy,-80); else p.vy = -180;
+  p.stun = kind==='gas' ? .12 : .26;
+  flashMsg((msg||'任務受損。')+' 被擊退，向相反方向調整！');
   if(game.lives<=0) finish('任務失敗：穩定度歸零。');
 }
 function respawn(){game.player.x=Math.max(30,game.camera+40); game.player.y=360; game.player.vx=0; game.player.vy=0;}
@@ -367,16 +396,17 @@ function shoot(){
 
 function update(dt){
   if(game.state!=='playing') return;
+  if(game.hitFreeze>0){game.hitFreeze-=dt; dt=Math.min(dt,.008);}
   game.t+=dt; game.elapsed=Math.round((performance.now()-game.runStart)/1000);
   game.timeLeft-=dt; if(game.timeLeft<=0){finish('任務失敗：時間耗盡。'); return;}
   if(keys.shoot) shoot();
   if(game.inv>0) game.inv-=dt; if(game.gasMask>0) game.gasMask-=dt; if(game.msgT>0) game.msgT-=dt;
   game.player.update(dt);
   game.camera=clamp(game.player.x-W*.38,0,game.worldW-W);
-  for(const e of game.enemies){e.update(dt); if(rects(game.player,e)) damage(1,'接觸戰爭危機，任務穩定度下降。');}
-  for(const g of game.gunners){g.update(dt); if(rects(game.player,g)) damage(1,'撞上機槍陣地。');}
-  for(const h of game.hazards){h.update(dt); if(h.active && rects(game.player,h)){ if(h.kind==='gas' && game.gasMask>0){} else damage(1,h.kind==='wire'?'碰到鐵絲網。':h.kind==='gas'?'吸入毒氣，行動受阻。':'遭炮火擊中。'); }}
-  for(const b of game.bullets){b.x+=b.vx*dt; b.y+=b.vy*dt; b.vy+= b.type==='bullet'? 120*dt:0; b.life-=dt; for(const p of game.platforms){if(rects(b,p)) b.life=0;} if(b.type==='bullet'&&rects(b,game.player)){b.life=0;damage(1,'被機槍火線擊中。');}}
+  for(const e of game.enemies){e.update(dt); if(rects(game.player,e)) damage(1,'接觸戰爭危機，任務穩定度下降。', e.x+e.w/2, 'enemy');}
+  for(const g of game.gunners){g.update(dt); if(rects(game.player,g)) damage(1,'撞上機槍陣地。', g.x+g.w/2, 'enemy');}
+  for(const h of game.hazards){h.update(dt); if(h.active && rects(game.player,h)){ if(h.kind==='gas' && game.gasMask>0){} else damage(1,h.kind==='wire'?'碰到鐵絲網。':h.kind==='gas'?'吸入毒氣，行動受阻。':'遭炮火擊中。', h.x+h.w/2, h.kind); }}
+  for(const b of game.bullets){b.x+=b.vx*dt; b.y+=b.vy*dt; b.vy+= b.type==='bullet'? 120*dt:0; b.life-=dt; for(const p of game.platforms){if(rects(b,p)) b.life=0;} if(b.type==='bullet'&&rects(b,game.player)){b.life=0;damage(1,'被機槍火線擊中。', b.x+b.w/2, 'bullet');}}
   for(const b of game.bullets.filter(b=>b.type==='player')){
     for(const e of [...game.enemies,...game.gunners]){ if(rects(b,e)){ b.life=0; e.dead=true; game.score+=80*game.cfg.scoreMul; addPop(e.x,e.y,'+80'); } }
   }
@@ -401,43 +431,83 @@ function answerQuiz(i,btn){
   if(i===q.a){game.correct++; game.score += 300*game.cfg.scoreMul; btn.classList.add('correct'); $('qFeedback').innerHTML=`<b>答對。</b> ${q.e}`;}
   else{game.wrong++; game.score -= game.cfg.wrongPenalty; btn.classList.add('wrong'); buttons[q.a].classList.add('correct'); $('qFeedback').innerHTML=`<b>答錯。</b> 正確答案是 ${String.fromCharCode(65+q.a)}。${q.e}`; if(game.mode==='hard'){game.timeLeft-=8; spawnPenaltyTrap();}}
   game.qIndex++; show($('qFeedback')); show($('continueBtn'));
+  $('continueBtn').textContent='繼續任務（5秒後自動）';
+  if(game.quizTimeout) clearTimeout(game.quizTimeout);
+  game.quizTimeout=setTimeout(()=>{ if(game.state==='quiz') continueQuiz(); },5000);
 }
 function spawnPenaltyTrap(){const x=game.player.x+180; game.hazards.push(new Hazard('wire',x,435,70,20)); flashMsg('錯題懲罰：前方增加鐵絲網。');}
-$('continueBtn').onclick=()=>{hide(UI.quiz);game.state='playing'; if(game.qIndex>=game.questionSet.length) flashMsg('歷史考點已完成，前往終點。'); loop(performance.now());};
+function continueQuiz(){ if(game.quizTimeout){clearTimeout(game.quizTimeout);game.quizTimeout=null;} hide(UI.quiz);game.state='playing'; if(game.qIndex>=game.questionSet.length) flashMsg('歷史考點已完成，前往終點。'); loop(performance.now()); }
+$('continueBtn').onclick=continueQuiz;
 
 function draw(){
   ctx.clearRect(0,0,W,H);
+  const sx = game.screenShake>0 ? Math.sin(game.t*80)*6*game.screenShake : 0;
+  const sy = game.screenShake>0 ? Math.cos(game.t*70)*4*game.screenShake : 0;
+  if(game.screenShake>0) game.screenShake=Math.max(0,game.screenShake-.025);
+  ctx.save(); ctx.translate(sx,sy);
   drawBackground();
   ctx.save(); ctx.translate(-game.camera,0);
   drawWorld();
   ctx.restore();
   drawHUD();
+  ctx.restore();
+  if(game.redFlash>0){ctx.fillStyle='rgba(200,25,20,'+(game.redFlash*.32)+')';ctx.fillRect(0,0,W,H);game.redFlash=Math.max(0,game.redFlash-.025);}
 }
 function drawBackground(){
-  const grd=ctx.createLinearGradient(0,0,0,H); grd.addColorStop(0,'#2a271f'); grd.addColorStop(.55,'#4b3b29'); grd.addColorStop(1,'#1a130d'); ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
-  ctx.globalAlpha=.28; ctx.strokeStyle='#c8a86d'; ctx.lineWidth=1;
-  for(let x=-80;x<W+120;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+160,H);ctx.stroke();}
-  for(let y=40;y<H;y+=60){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y+rand(-2,2));ctx.stroke();}
+  const grd=ctx.createLinearGradient(0,0,0,H); grd.addColorStop(0,'#171816'); grd.addColorStop(.42,'#413522'); grd.addColorStop(1,'#130d08'); ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
+  // 暗紅爆炸光、煙霧、戰地地圖網格
+  ctx.fillStyle='rgba(120,38,20,.22)'; ctx.beginPath(); ctx.arc(160,105,110,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(196,132,58,.14)'; ctx.beginPath(); ctx.arc(790,90,130,0,Math.PI*2); ctx.fill();
+  ctx.globalAlpha=.22; ctx.strokeStyle='#d0b56b'; ctx.lineWidth=1;
+  for(let x=-100;x<W+140;x+=76){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+150,H);ctx.stroke();}
+  for(let y=44;y<H;y+=58){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
   ctx.globalAlpha=1;
-  ctx.fillStyle='rgba(0,0,0,.18)'; for(let i=0;i<10;i++){ctx.beginPath();ctx.ellipse((i*137-game.camera*.12)%W,430+Math.sin(i)*14,90,18,0,0,Math.PI*2);ctx.fill();}
-  ctx.fillStyle='rgba(235,220,180,.18)'; ctx.font='bold 40px serif'; ctx.fillText('EUROPE 1914',38,92); ctx.font='18px serif'; ctx.fillText('WAR · PEACE · TREATY',43,120);
+  // 遠景壕溝剪影、枯樹、煙雲，避免背景空洞
+  ctx.fillStyle='rgba(0,0,0,.34)';
+  for(let i=0;i<9;i++){const x=(i*145-game.camera*.09)%1050-80;ctx.beginPath();ctx.ellipse(x,420+Math.sin(i)*15,95,24,0,0,Math.PI*2);ctx.fill();}
+  ctx.strokeStyle='rgba(18,13,9,.72)'; ctx.lineWidth=5;
+  for(let i=0;i<7;i++){let x=(i*170-game.camera*.05)%1050; ctx.beginPath();ctx.moveTo(x,396);ctx.lineTo(x+8,330);ctx.moveTo(x+8,350);ctx.lineTo(x-18,370);ctx.moveTo(x+8,355);ctx.lineTo(x+35,374);ctx.stroke();}
+  ctx.fillStyle='rgba(235,220,180,.13)'; ctx.font='bold 46px serif'; ctx.fillText('EUROPE 1914',38,92); ctx.font='20px serif'; ctx.fillText('WAR · PEACE · TREATY',43,122);
+  // 前景暗邊
+  const vign=ctx.createRadialGradient(W/2,H/2,180,W/2,H/2,620);vign.addColorStop(0,'rgba(0,0,0,0)');vign.addColorStop(1,'rgba(0,0,0,.38)');ctx.fillStyle=vign;ctx.fillRect(0,0,W,H);
 }
 
 function drawZoneBackdrop(){
   for(let i=0;i<ZONES.length;i++){
     const z=ZONES[i];
-    ctx.fillStyle = i%2===0 ? 'rgba(88,65,36,.22)' : 'rgba(36,56,64,.18)';
-    ctx.fillRect(z.x,78,z.w,377);
-    ctx.strokeStyle='rgba(217,180,95,.28)'; ctx.lineWidth=2; ctx.strokeRect(z.x+6,92,z.w-12,342);
-    ctx.fillStyle='rgba(0,0,0,.28)'; ctx.fillRect(z.x+26,112,310,76);
-    ctx.fillStyle='#f0d58b'; ctx.font='bold 28px "Microsoft JhengHei", sans-serif'; ctx.fillText(z.title,z.x+42,145);
-    ctx.fillStyle='#d9c69a'; ctx.font='bold 15px "Microsoft JhengHei", sans-serif'; ctx.fillText(z.sub,z.x+44,171);
-    // 每區加入明顯歷史符號，避免畫面只有平台。
-    ctx.globalAlpha=.22; ctx.fillStyle='#f1d89a'; ctx.font='bold 82px serif';
-    const icon = ['1914','⚔','壕溝','1917','PARIS','1919'][i] || 'HIST';
-    ctx.fillText(icon,z.x+z.w-250,205);
-    ctx.globalAlpha=1;
+    const pal=[['rgba(72,55,32,.30)','1914','同盟線'],['rgba(80,44,31,.34)','危機','摩洛哥 · 巴爾幹'],['rgba(54,48,39,.42)','壕溝','炮火 · 毒氣'],['rgba(45,58,64,.34)','1917','電報 · 潛艇'],['rgba(92,72,40,.30)','PARIS','和會桌'],['rgba(68,44,42,.34)','1919','條約 · 不滿']][i];
+    ctx.fillStyle=pal[0]; ctx.fillRect(z.x,78,z.w,377);
+    ctx.strokeStyle='rgba(217,180,95,.30)'; ctx.lineWidth=2; ctx.strokeRect(z.x+6,92,z.w-12,342);
+    ctx.fillStyle='rgba(0,0,0,.36)'; ctx.fillRect(z.x+24,112,340,78);
+    ctx.fillStyle='#f6dc91'; ctx.font='bold 30px "Microsoft JhengHei", sans-serif'; ctx.fillText(z.title,z.x+42,146);
+    ctx.fillStyle='#d9c69a'; ctx.font='bold 15px "Microsoft JhengHei", sans-serif'; ctx.fillText(z.sub,z.x+44,173);
+    ctx.globalAlpha=.23; ctx.fillStyle='#f1d89a'; ctx.font='bold 88px serif'; ctx.fillText(pal[1],z.x+z.w-285,210); ctx.globalAlpha=1;
+    drawZoneProps(i,z);
   }
+}
+function drawZoneProps(i,z){
+  ctx.save();
+  // 每區專屬戰爭元素，讓畫面不只靠文字。
+  if(i===0){ // 外交地圖、同盟線
+    ctx.strokeStyle='rgba(245,205,112,.28)'; ctx.lineWidth=3;
+    const pts=[[z.x+110,260],[z.x+210,230],[z.x+330,270],[z.x+470,230],[z.x+590,275]];
+    for(let a=0;a<pts.length-1;a++){ctx.beginPath();ctx.moveTo(...pts[a]);ctx.lineTo(...pts[a+1]);ctx.stroke();}
+    ctx.fillStyle='rgba(245,205,112,.55)'; for(const [x,y] of pts){ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.fill();}
+  }else if(i===1){ // 危機火藥桶
+    ctx.fillStyle='rgba(50,24,16,.7)'; ctx.fillRect(z.x+500,350,70,82); ctx.fillStyle='#6e2f24'; ctx.fillRect(z.x+510,338,50,20); ctx.fillStyle='#e3bd65'; ctx.font='bold 18px serif'; ctx.fillText('BALKAN',z.x+496,330);
+    ctx.strokeStyle='rgba(255,96,60,.65)'; ctx.lineWidth=2; for(let k=0;k<5;k++){ctx.beginPath();ctx.moveTo(z.x+535,336);ctx.lineTo(z.x+500+k*18,285+Math.sin(k)*18);ctx.stroke();}
+  }else if(i===2){ // 戰壕、沙包、鐵絲網遠景
+    ctx.strokeStyle='rgba(190,190,180,.38)'; ctx.lineWidth=2; for(let r=0;r<3;r++){ctx.beginPath();for(let x=z.x+70;x<z.x+z.w-50;x+=22)ctx.lineTo(x,355+r*12+Math.sin(x*.08)*5);ctx.stroke();}
+    ctx.fillStyle='rgba(83,60,34,.72)'; for(let k=0;k<9;k++){ctx.beginPath();ctx.ellipse(z.x+120+k*55,410,34,12,0,0,Math.PI*2);ctx.fill();}
+  }else if(i===3){ // 電報、潛艇剪影
+    ctx.fillStyle='rgba(215,190,120,.32)'; ctx.fillRect(z.x+120,245,210,70); ctx.strokeStyle='rgba(60,40,25,.6)';ctx.strokeRect(z.x+120,245,210,70); ctx.fillStyle='rgba(20,20,18,.42)'; ctx.fillRect(z.x+470,385,170,20); ctx.beginPath();ctx.arc(z.x+555,385,45,Math.PI,0);ctx.fill();
+    ctx.fillStyle='rgba(230,210,150,.7)';ctx.font='bold 16px serif';ctx.fillText('TELEGRAM',z.x+145,285);
+  }else if(i===4){ // 和會桌、文件
+    ctx.fillStyle='rgba(92,56,28,.75)';ctx.fillRect(z.x+145,360,420,38);ctx.fillStyle='rgba(230,210,150,.8)';for(let k=0;k<5;k++)ctx.fillRect(z.x+175+k*72,336+(k%2)*8,45,30);
+  }else if(i===5){ // 條約、陰影
+    ctx.fillStyle='rgba(230,210,150,.38)';ctx.fillRect(z.x+120,230,150,190);ctx.fillStyle='rgba(90,30,24,.55)';ctx.fillRect(z.x+135,258,120,10);ctx.fillRect(z.x+135,282,100,8);ctx.fillRect(z.x+135,306,110,8);ctx.font='bold 26px serif';ctx.fillStyle='rgba(255,210,120,.45)';ctx.fillText('VERSAILLES',z.x+92,455);
+  }
+  ctx.restore();
 }
 function drawWorld(){
   drawZoneBackdrop();
@@ -460,12 +530,16 @@ function drawGoal(){
 }
 function drawHazard(h){
   if(h.kind==='wire'){
-    ctx.strokeStyle='#b8b8b8';ctx.lineWidth=2; for(let y=0;y<3;y++){ctx.beginPath(); for(let x=0;x<h.w;x+=12){ctx.lineTo(h.x+x,h.y+y*7+Math.sin(x*.5)*3);} ctx.stroke();}
-    ctx.fillStyle='#3c3026'; ctx.fillRect(h.x,h.y+h.h-4,h.w,4);
+    ctx.fillStyle='rgba(40,25,15,.55)';ctx.fillRect(h.x-4,h.y+h.h-3,h.w+8,6);
+    ctx.strokeStyle='#c9c2b0';ctx.lineWidth=2;
+    for(let y=0;y<3;y++){ctx.beginPath(); for(let x=0;x<h.w;x+=10){const yy=h.y+y*8+Math.sin((x+game.t*30)*.4)*2; if(x===0)ctx.moveTo(h.x+x,yy); else ctx.lineTo(h.x+x,yy);} ctx.stroke();}
+    ctx.strokeStyle='rgba(230,230,220,.9)';ctx.lineWidth=1; for(let x=4;x<h.w;x+=14){ctx.beginPath();ctx.moveTo(h.x+x,h.y-3);ctx.lineTo(h.x+x+7,h.y+22);ctx.moveTo(h.x+x+7,h.y-3);ctx.lineTo(h.x+x,h.y+22);ctx.stroke();}
   } else if(h.kind==='gas'){
-    ctx.globalAlpha=h.active?.62:.18; ctx.fillStyle='#8fae63'; for(let i=0;i<6;i++){ctx.beginPath();ctx.ellipse(h.x+15+i*18,h.y+20+Math.sin(game.t*2+i)*8,28,20,0,0,Math.PI*2);ctx.fill();} ctx.globalAlpha=1;
+    ctx.globalAlpha=h.active?.72:.20; const g=ctx.createRadialGradient(h.x+h.w/2,h.y+20,10,h.x+h.w/2,h.y+22,90);g.addColorStop(0,'#b6d57a');g.addColorStop(1,'rgba(96,130,55,.05)');ctx.fillStyle=g;
+    for(let i=0;i<8;i++){ctx.beginPath();ctx.ellipse(h.x+12+i*(h.w/7),h.y+21+Math.sin(game.t*2.2+i)*10,32,22,0,0,Math.PI*2);ctx.fill();}
+    ctx.globalAlpha=1; ctx.fillStyle='rgba(205,235,155,.75)';ctx.font='bold 11px sans-serif';if(h.active)ctx.fillText('毒氣',h.x+h.w/2-15,h.y-6);
   } else if(h.kind==='artillery'){
-    const cyc=h.t%3.2; if(h.active){ctx.fillStyle='rgba(210,60,45,.65)';ctx.fillRect(h.x,h.y,h.w,h.h);ctx.fillStyle='#ffdc82';ctx.beginPath();ctx.arc(h.x+h.w/2,h.y+h.h-22,32,0,Math.PI*2);ctx.fill();} else {ctx.strokeStyle=cyc<1.1?'rgba(255,70,50,.75)':'rgba(255,70,50,.25)';ctx.setLineDash([8,6]);ctx.strokeRect(h.x,h.y,h.w,h.h);ctx.setLineDash([]);}
+    const cyc=h.t%3.2; if(h.active){ctx.fillStyle='rgba(210,60,45,.55)';ctx.fillRect(h.x,h.y,h.w,h.h);ctx.fillStyle='rgba(255,222,124,.85)';ctx.beginPath();ctx.arc(h.x+h.w/2,h.y+h.h-22,34,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.arc(h.x+h.w/2,h.y+h.h-22,16,0,Math.PI*2);ctx.fill();} else {ctx.strokeStyle=cyc<1.1?'rgba(255,70,50,.85)':'rgba(255,70,50,.28)';ctx.setLineDash([8,6]);ctx.lineWidth=3;ctx.strokeRect(h.x,h.y,h.w,h.h);ctx.setLineDash([]);ctx.fillStyle='rgba(255,100,70,.75)';ctx.font='bold 12px sans-serif';ctx.fillText('炮火警告',h.x+8,h.y+18);}
   }
 }
 function drawItem(it){
@@ -475,16 +549,45 @@ function drawItem(it){
   if(it.type==='dove'){ctx.fillStyle='#eee';ctx.beginPath();ctx.arc(it.x+12,it.y+13,11,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f4d17e';ctx.fillText('✦',it.x+7,it.y+20);}
 }
 function drawQNode(q){ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(q.x-18,q.y+34,70,22);ctx.fillStyle='#f0c45a';ctx.beginPath();ctx.arc(q.x+17,q.y+17,17+Math.sin(game.t*4)*2,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#6b4616';ctx.lineWidth=3;ctx.stroke();ctx.fillStyle='#2a1b0d';ctx.font='bold 26px sans-serif';ctx.fillText('?',q.x+9,q.y+27);ctx.fillStyle='#ffe7a6';ctx.font='bold 12px sans-serif';ctx.fillText('考點',q.x-4,q.y+50);}
-function drawEnemy(e){ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(e.x+14,e.y+36,20,7,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#7b2f29';ctx.fillRect(e.x,e.y,e.w,e.h);ctx.fillStyle='#d1b070';ctx.fillRect(e.x+5,e.y-7,18,8);ctx.fillStyle='#111';ctx.fillRect(e.x+5,e.y+8,18,5);ctx.fillStyle='#f4d990';ctx.font='10px sans-serif';ctx.fillText('危機',e.x+1,e.y-11);}
-function drawGunner(g){ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(g.x-10,g.y+31,52,10);ctx.fillStyle='#35332d';ctx.fillRect(g.x,g.y,g.w,g.h);ctx.fillStyle='#b9b9b9';ctx.fillRect(g.x-12,g.y+12,50,6);ctx.fillStyle='#9d7a3a';ctx.fillRect(g.x+7,g.y-6,16,8);ctx.fillStyle='#f4d990';ctx.font='10px sans-serif';ctx.fillText('機槍',g.x+1,g.y-11);}
-function drawBullet(b){ctx.fillStyle=b.type==='player'?'#ffe28a':'#e54b3f';ctx.fillRect(b.x,b.y,b.w,b.h);}
-function drawPlayer(p){if(game.inv>0 && Math.floor(game.t*12)%2===0) return; ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(p.x+13,p.y+p.h+4,19,6,0,0,Math.PI*2);ctx.fill(); ctx.fillStyle='#294e6b';ctx.fillRect(p.x,p.y,p.w,p.h);ctx.fillStyle='#d8b283';ctx.fillRect(p.x+6,p.y-8,15,10);ctx.fillStyle='#1d1b17';ctx.fillRect(p.x+4,p.y+10,20,6);ctx.fillStyle='#d6b25f';ctx.fillRect(p.x+(p.facing>0?20:-10),p.y+16,16,5);ctx.fillStyle='#f4d990';ctx.font='10px sans-serif';ctx.fillText('情報員',p.x-4,p.y-14);}
+function drawEnemy(e){
+  ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(e.x+14,e.y+36,22,7,0,0,Math.PI*2);ctx.fill();
+  const type=e.type||'crisis';
+  if(type==='german'){
+    // 鋼盔兵
+    ctx.fillStyle='#4c5a4b';ctx.fillRect(e.x+3,e.y+8,22,26);ctx.fillStyle='#2d332c';ctx.beginPath();ctx.ellipse(e.x+14,e.y+3,16,8,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#151515';ctx.fillRect(e.x+6,e.y+15,16,4);ctx.strokeStyle='#b6b0a0';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(e.x+24,e.y+22);ctx.lineTo(e.x+42,e.y+17);ctx.stroke();
+  }else if(type==='austria'){
+    // 奧匈巡邏兵
+    ctx.fillStyle='#78332d';ctx.fillRect(e.x+2,e.y+7,24,27);ctx.fillStyle='#d1b070';ctx.fillRect(e.x+5,e.y-5,18,8);ctx.fillStyle='#20130f';ctx.fillRect(e.x+5,e.y+14,18,5);ctx.fillStyle='#d8b36d';ctx.fillRect(e.x+23,e.y+18,12,4);
+  }else if(type==='storm'){
+    // 突擊危機：深色剪影和紅眼
+    ctx.fillStyle='#2a2521';ctx.fillRect(e.x+1,e.y+5,26,29);ctx.fillStyle='#111';ctx.beginPath();ctx.arc(e.x+14,e.y+2,12,0,Math.PI*2);ctx.fill();ctx.fillStyle='#d84b38';ctx.fillRect(e.x+7,e.y+6,16,3);ctx.strokeStyle='#d84b38';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(e.x+2,e.y+27);ctx.lineTo(e.x-12,e.y+34);ctx.stroke();
+  }else{
+    ctx.fillStyle='#7b2f29';ctx.fillRect(e.x,e.y,e.w,e.h);ctx.fillStyle='#d1b070';ctx.fillRect(e.x+5,e.y-7,18,8);ctx.fillStyle='#111';ctx.fillRect(e.x+5,e.y+8,18,5);
+  }
+  ctx.fillStyle='#f4d990';ctx.font='10px sans-serif';ctx.fillText(type==='german'?'德軍':type==='austria'?'奧匈':type==='storm'?'突擊':'危機',e.x-1,e.y-12);
+}
+function drawGunner(g){
+  ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(g.x-18,g.y+30,70,12);
+  // 沙包
+  ctx.fillStyle='#6b5435';for(let i=0;i<4;i++){ctx.beginPath();ctx.ellipse(g.x-12+i*16,g.y+33,14,7,0,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle='#37332a';ctx.fillRect(g.x+2,g.y+4,g.w-4,g.h-4);ctx.fillStyle='#9d7a3a';ctx.fillRect(g.x+7,g.y-6,16,8);
+  ctx.strokeStyle='#c8c8c8';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(g.x+10,g.y+16);ctx.lineTo(g.x-26,g.y+15);ctx.stroke();ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(g.x+4,g.y+28);ctx.lineTo(g.x-8,g.y+42);ctx.moveTo(g.x+24,g.y+28);ctx.lineTo(g.x+38,g.y+42);ctx.stroke();
+  ctx.fillStyle='#f4d990';ctx.font='10px sans-serif';ctx.fillText('機槍陣地',g.x-10,g.y-11);
+}
+function drawBullet(b){ctx.fillStyle=b.type==='player'?'#ffe28a':'#e54b3f';ctx.beginPath();ctx.ellipse(b.x+b.w/2,b.y+b.h/2,b.w/2+2,b.h/2,0,0,Math.PI*2);ctx.fill();}
+function drawPlayer(p){
+  if(game.inv>0 && Math.floor(game.t*12)%2===0) return; ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(p.x+13,p.y+p.h+4,21,6,0,0,Math.PI*2);ctx.fill();
+  // trench-coat intelligence agent with satchel and cap
+  ctx.fillStyle='#244864';ctx.fillRect(p.x+2,p.y+7,p.w-4,p.h-7);ctx.fillStyle='#18344d';ctx.fillRect(p.x+5,p.y+18,p.w-10,p.h-18);ctx.fillStyle='#d8b283';ctx.fillRect(p.x+6,p.y-8,15,11);ctx.fillStyle='#2a241e';ctx.fillRect(p.x+2,p.y-12,23,6);ctx.fillRect(p.x+9,p.y-17,11,6);
+  ctx.fillStyle='#1d1b17';ctx.fillRect(p.x+4,p.y+10,20,5);ctx.fillStyle='#8a5a2e';ctx.fillRect(p.x-5,p.y+19,10,13);ctx.fillStyle='#d6b25f';ctx.fillRect(p.x+(p.facing>0?20:-11),p.y+16,17,5);
+  ctx.fillStyle='#f4d990';ctx.font='10px sans-serif';ctx.fillText('情報員',p.x-4,p.y-17);
+}
 function drawHUD(){
   ctx.fillStyle='rgba(20,14,8,.83)';ctx.fillRect(12,10,936,74);ctx.strokeStyle='rgba(217,180,95,.7)';ctx.strokeRect(12,10,936,74);
   const current = ZONES.find(z=>game.player && game.player.x>=z.x && game.player.x<z.x+z.w) || ZONES[0];
   ctx.fillStyle='#f3d98a';ctx.font='bold 18px sans-serif';ctx.fillText(game.cfg?game.cfg.label:'',26,34);ctx.font='15px sans-serif';
   ctx.fillText(`區域：${current.title}`,26,60);ctx.fillText(`穩定度 ${game.lives}`,190,34);ctx.fillText(`分數 ${Math.max(0,Math.round(game.score))}`,290,34);ctx.fillText(`檔案 ${game.files}`,410,34);ctx.fillText(`題目 ${game.correct}/${game.questionSet.length}`,505,34);ctx.fillText(`時間 ${Math.max(0,Math.ceil(game.timeLeft))}s`,620,34);
-  ctx.fillStyle='#d8c79e';ctx.font='12px sans-serif';ctx.fillText('跳躍：短按小跳，長按高跳',190,60);
+  ctx.fillStyle='#d8c79e';ctx.font='12px sans-serif';ctx.fillText('跳躍：短按小跳，長按高跳｜受傷會彈後，向相反方向修正',190,60);
   if(game.gasMask>0){ctx.fillStyle='#bfe6a2';ctx.fillText(`防毒 ${Math.ceil(game.gasMask)}s`,735,34)}
   const pct=game.player? game.player.x/(game.worldW-90):0; ctx.fillStyle='rgba(255,255,255,.2)';ctx.fillRect(26,72,880,7);ctx.fillStyle='#d9b45f';ctx.fillRect(26,72,880*pct,7);ctx.fillStyle='#f3d98a';ctx.fillText('巴黎和會',865,61);
   if(game.msgT>0){ctx.fillStyle='rgba(0,0,0,.72)';ctx.fillRect(280,90,400,34);ctx.fillStyle='#fff1c8';ctx.font='bold 16px sans-serif';ctx.textAlign='center';ctx.fillText(game.msg,480,112);ctx.textAlign='left';}
@@ -497,7 +600,7 @@ function idleDraw(){ if(game.state==='menu'){ctx.clearRect(0,0,W,H);drawBackgrou
 
 function pressKey(k){ if(k==='jump' && !keys.jump) keys.jumpPressed=true; keys[k]=true; }
 function releaseKey(k){ keys[k]=false; }
-window.addEventListener('keydown',e=>{if(['ArrowLeft','KeyA'].includes(e.code))pressKey('left');if(['ArrowRight','KeyD'].includes(e.code))pressKey('right');if(['Space','ArrowUp','KeyW'].includes(e.code)){pressKey('jump');e.preventDefault()}if(['KeyJ','KeyX'].includes(e.code))pressKey('shoot');});
+window.addEventListener('keydown',e=>{ if(game.state==='quiz' && !$('continueBtn').classList.contains('hidden') && ['Enter','Space'].includes(e.code)){e.preventDefault();continueQuiz();return;} if(['ArrowLeft','KeyA'].includes(e.code))pressKey('left');if(['ArrowRight','KeyD'].includes(e.code))pressKey('right');if(['Space','ArrowUp','KeyW'].includes(e.code)){pressKey('jump');e.preventDefault()}if(['KeyJ','KeyX'].includes(e.code))pressKey('shoot');});
 window.addEventListener('keyup',e=>{if(['ArrowLeft','KeyA'].includes(e.code))releaseKey('left');if(['ArrowRight','KeyD'].includes(e.code))releaseKey('right');if(['Space','ArrowUp','KeyW'].includes(e.code))releaseKey('jump');if(['KeyJ','KeyX'].includes(e.code))releaseKey('shoot');});
 document.querySelectorAll('.touchBtn').forEach(btn=>{const k=btn.dataset.key; const on=e=>{e.preventDefault();pressKey(k)}; const off=e=>{e.preventDefault();releaseKey(k)}; btn.addEventListener('touchstart',on,{passive:false});btn.addEventListener('touchend',off,{passive:false});btn.addEventListener('touchcancel',off,{passive:false});btn.addEventListener('mousedown',on);btn.addEventListener('mouseup',off);btn.addEventListener('mouseleave',off);});
 document.addEventListener('gesturestart',e=>e.preventDefault());
