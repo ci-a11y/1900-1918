@@ -1,97 +1,1620 @@
 <!DOCTYPE html>
-<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>1914-1919 戰爭與和平任務 V8</title>
-<style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#090805;color:#f5e7a8;font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;touch-action:none;overscroll-behavior:none}#wrap{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(circle at 40% 10%,#2b2415,#080705 65%)}canvas{width:100vw;height:100dvh;display:block;background:#15130d}.overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(4,4,3,.64);backdrop-filter:blur(2px)}.panel{width:min(1100px,94vw);max-height:92dvh;border:2px solid #b99a3a;border-radius:16px;background:linear-gradient(135deg,rgba(24,22,13,.96),rgba(9,9,7,.96));box-shadow:0 0 40px rgba(0,0,0,.85), inset 0 0 80px rgba(190,150,40,.08);padding:22px;overflow:hidden}.menuGrid{display:grid;grid-template-columns:1.08fr .92fr;gap:18px}.title{font-size:42px;font-weight:900;letter-spacing:1px;margin:0 0 8px;color:#ffe892;text-shadow:0 2px 0 #4a3310}.stamp{display:inline-block;border:2px solid #b43629;color:#ffb0a5;padding:5px 10px;transform:rotate(-4deg);font-weight:900;letter-spacing:2px;margin-bottom:8px}.sub{font-size:18px;line-height:1.6;color:#e5d7a4}.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{border:1px solid #8e772e;background:rgba(255,232,146,.06);border-radius:14px;padding:14px;cursor:pointer}.card:hover{background:rgba(255,232,146,.14)}.card h3{margin:0 0 8px;font-size:24px}.input{width:100%;height:44px;border:1px solid #b99a3a;background:#0e0c08;color:#ffe892;border-radius:10px;padding:0 14px;font-size:18px;user-select:text}.btn{border:1px solid #caa64a;background:#6b4d13;color:#fff1b4;border-radius:10px;padding:11px 18px;font-weight:800;font-size:16px;cursor:pointer}.btn.secondary{background:#252317}.mini{font-size:13px;color:#cfc08a}.leader{margin-top:14px;border:1px solid #6e5b24;border-radius:12px;padding:12px;background:rgba(0,0,0,.18)}.leader h4{margin:0 0 8px}.row{display:grid;grid-template-columns:34px 1fr 70px 58px;gap:8px;border-bottom:1px solid rgba(255,230,140,.12);padding:4px 0;font-size:14px}.hidden{display:none!important}#quiz .panel{max-width:820px}.qtitle{font-size:22px;font-weight:900;margin-bottom:10px}.choice{display:block;width:100%;text-align:left;margin:8px 0;border:1px solid #8e772e;background:#17150d;color:#f6e7ae;border-radius:12px;padding:12px;font-size:17px;cursor:pointer}.choice:hover{background:#282414}.feedback{border:1px solid #8e772e;background:rgba(255,232,146,.08);padding:12px;border-radius:12px;margin-top:12px;line-height:1.55}.reportGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.stat{display:grid;grid-template-columns:130px 1fr;border-bottom:1px solid rgba(255,230,140,.15);padding:8px 0}.mobile{position:fixed;bottom:20px;left:0;right:0;display:none;justify-content:space-between;padding:0 22px;pointer-events:none}.mobGroup{display:flex;gap:12px}.touchBtn{pointer-events:auto;width:68px;height:68px;border-radius:50%;border:2px solid rgba(255,232,146,.6);background:rgba(20,18,10,.58);color:#ffe892;font-size:24px;font-weight:900}.land{position:fixed;inset:0;display:none;align-items:center;justify-content:center;text-align:center;background:#070604;color:#ffe892;z-index:20;font-size:26px;font-weight:900;padding:30px}@media(pointer:coarse){.mobile{display:flex}}@media(max-width:760px) and (orientation:portrait){.land{display:flex}}
-</style></head><body><div id="wrap"><canvas id="game" width="960" height="540"></canvas></div><div class="land">請將手機橫向使用<br><span style="font-size:16px;color:#d5c385">橫屏後可使用觸控按鈕操作</span></div>
-<div id="menu" class="overlay"><div class="panel"><div class="menuGrid"><div><div class="stamp">WAR FILE / CONFIDENTIAL</div><h1 class="title">1914–1919<br>戰爭與和平任務</h1><p class="sub">穿越戰前歐洲、壕溝戰場、1917 轉捩點及巴黎和會，收集情報、進入情報站破解史實，情報越完整，越有助達成巴黎和會協定。</p><p class="mini">操作：← → 移動｜Space / ↑ 跳躍｜短按小跳，長按高跳｜受傷會被彈後，向相反方向修正。</p><label class="mini">開始前輸入名稱；完成遊戲後將自動上載 Google Sheet 龍虎榜。</label><input id="playerName" class="input" maxlength="12" placeholder="輸入名稱，例如 3A Chan / 歷史情報員" value=""></div><div><div class="cards"><div class="card" onclick="startGame('easy')"><h3>簡易模式</h3><p>8個情報站｜較多穩定度｜教學路線較安全</p><button class="btn">開始簡易任務</button></div><div class="card" onclick="startGame('hard')"><h3>困難模式</h3><p>12個情報站｜較少穩定度｜敵人與陷阱較密</p><button class="btn">開始困難任務</button></div></div><div class="leader"><h4>龍虎榜 Top 5</h4><div id="leaderRows" class="mini">載入中...</div></div></div></div></div></div>
-<div id="quiz" class="overlay hidden"><div class="panel"><div class="qtitle" id="qText"></div><div id="qChoices"></div><div id="qFeedback" class="feedback hidden"></div></div></div>
-<div id="report" class="overlay hidden"><div class="panel"><h1 style="margin:0 0 10px;color:#ffe892">任務報告</h1><div class="reportGrid"><div id="reportStats"></div><div><h3 id="reportStatus"></h3><div id="reportReview" class="sub"></div><p class="mini" id="uploadState">成績將自動上載...</p></div></div><div style="margin-top:14px;display:flex;gap:12px"><button class="btn" onclick="showMenu()">返回主畫面</button><button class="btn secondary" onclick="startGame(game.mode)">再玩一次</button></div></div></div>
-<div class="mobile"><div class="mobGroup"><button class="touchBtn" data-k="left">←</button><button class="touchBtn" data-k="right">→</button></div><button class="touchBtn" data-k="jump">跳</button></div>
-<script>
-const LEADERBOARD_URL="https://script.google.com/macros/s/AKfycbznfJMNPGJqktjMsqBKZCiE5BAdZxafipeEflXFWBd9KxHRWAqyAgWH1yfXbk_W_GkN/exec";
-const QUESTIONS=[{"t": "二十世紀初英國最重視維持哪方面的優勢？", "type": "fact", "cat": "一戰前因", "choices": ["陸軍霸權", "海上霸權", "東歐控制權", "巴爾幹領導權"], "ans": 1, "exp": "英國擁有世界第一海軍，不能容許德國挑戰海上霸權。", "diff": "easy"}, {"t": "法國在普法戰爭後最希望收回哪兩地？", "type": "fact", "cat": "一戰前因", "choices": ["阿爾薩斯和洛林", "波森和西普魯士", "薩爾和但澤", "阜姆和達爾馬西亞"], "ans": 0, "exp": "法國在1871年失去阿爾薩斯和洛林，復仇情緒成為重要背景。", "diff": "easy"}, {"t": "下列哪項最能概括「極端民族主義」？", "type": "concept", "cat": "一戰前因", "choices": ["主張各國公平合作", "只重視民族利益，甚至不惜用武力排斥他國利益", "反對所有殖民地擴張", "主張完全裁軍"], "ans": 1, "exp": "極端民族主義是一種狹隘而具破壞性的民族優越思想。", "diff": "easy"}, {"t": "「泛日耳曼主義」主要與哪個國家有關？", "type": "fact", "cat": "一戰前因", "choices": ["法國", "德國", "英國", "俄國"], "ans": 1, "exp": "德國推行泛日耳曼主義，希望擴大日耳曼民族勢力。", "diff": "easy"}, {"t": "「泛斯拉夫主義」主要與哪個國家支持巴爾幹斯拉夫民族有關？", "type": "fact", "cat": "一戰前因", "choices": ["俄國", "英國", "意大利", "德國"], "ans": 0, "exp": "俄國以斯拉夫民族保護者自居，支持塞爾維亞等斯拉夫民族。", "diff": "easy"}, {"t": "三國同盟包括德國、奧匈和哪一國？", "type": "fact", "cat": "同盟制度", "choices": ["英國", "法國", "意大利", "俄國"], "ans": 2, "exp": "1882年三國同盟由德國、奧匈和意大利組成。", "diff": "easy"}, {"t": "三國協約包括英國、法國和哪一國？", "type": "fact", "cat": "同盟制度", "choices": ["德國", "俄國", "奧匈", "意大利"], "ans": 1, "exp": "1907年英、法、俄形成三國協約。", "diff": "easy"}, {"t": "同盟制度為何容易令局部衝突擴大？", "type": "cause", "cat": "同盟制度", "choices": ["盟國有軍事支援義務，容易連鎖參戰", "各國會立即裁軍", "殖民地會自動獨立", "國聯會即時介入"], "ans": 0, "exp": "同盟義務令一國衝突可能牽動整個陣營。", "diff": "both"}, {"t": "英德海軍軍備競賽主要圍繞哪類戰艦？", "type": "fact", "cat": "軍備競賽", "choices": ["無畏艦", "潛水艇", "航空母艦", "鐵甲列車"], "ans": 0, "exp": "英德在無畏艦建造方面競爭激烈。", "diff": "easy"}, {"t": "軍備競賽如何加劇歐洲緊張？", "type": "cause", "cat": "軍備競賽", "choices": ["增加猜疑和恐懼", "令各國放棄殖民地", "令民族自決完全落實", "令國聯成立"], "ans": 0, "exp": "軍備增加使列強更恐懼對方，降低互信。", "diff": "both"}, {"t": "列強爭奪殖民地的主要原因不包括哪一項？", "type": "compare", "cat": "殖民地爭奪", "choices": ["原料", "市場", "安置過剩人口", "推動完全平等的民族自決"], "ans": 3, "exp": "殖民地爭奪主要關乎資源、市場和勢力，不是平等民族自決。", "diff": "hard"}, {"t": "第一次摩洛哥危機發生於哪一年？", "type": "fact", "cat": "國際危機", "choices": ["1905年", "1908年", "1912年", "1914年"], "ans": 0, "exp": "第一次摩洛哥危機由德皇1905年出訪丹吉爾引發。", "diff": "easy"}, {"t": "波斯尼亞危機發生於哪一年？", "type": "fact", "cat": "國際危機", "choices": ["1905年", "1908年", "1911年", "1919年"], "ans": 1, "exp": "1908年奧匈兼併波斯尼亞和黑塞哥維那，引起塞爾維亞和俄國不滿。", "diff": "easy"}, {"t": "巴爾幹半島被稱為「歐洲火藥庫」主要因為甚麼？", "type": "cause", "cat": "國際危機", "choices": ["民族問題複雜，加上列強干預", "完全沒有國家競爭", "只有英國控制當地", "國聯已完全失效"], "ans": 0, "exp": "巴爾幹民族衝突與列強利益交織，容易觸發危機。", "diff": "both"}, {"t": "塞拉耶佛暗殺事件中遇刺的是誰？", "type": "fact", "cat": "一戰爆發", "choices": ["威爾遜", "斐迪南大公", "克里孟梭", "尼古拉二世"], "ans": 1, "exp": "奧匈皇儲斐迪南大公於1914年在塞拉耶佛遇刺。", "diff": "easy"}, {"t": "塞拉耶佛暗殺事件的刺客普林西普與哪個組織有關？", "type": "fact", "cat": "一戰爆發", "choices": ["黑手", "國際聯盟", "法西斯黨", "共產國際"], "ans": 0, "exp": "普林西普與塞爾維亞民族主義組織「黑手」有關。", "diff": "both"}, {"t": "第一次世界大戰的導火線是甚麼？", "type": "fact", "cat": "一戰爆發", "choices": ["柏林封鎖", "塞拉耶佛暗殺事件", "凡爾賽條約", "大蕭條"], "ans": 1, "exp": "塞拉耶佛事件直接觸發奧塞衝突，成為一戰導火線。", "diff": "easy"}, {"t": "以下事件的正確時序是哪一項？①波斯尼亞危機 ②巴爾幹戰爭 ③塞拉耶佛事件", "type": "sequence", "cat": "時序", "choices": ["①→②→③", "②→①→③", "③→①→②", "①→③→②"], "ans": 0, "exp": "波斯尼亞危機1908年，巴爾幹戰爭1912–13年，塞拉耶佛事件1914年。", "diff": "both"}, {"t": "以下事件正確時序是？①三國同盟 ②英法摯誠協定 ③三國協約", "type": "sequence", "cat": "時序", "choices": ["①→②→③", "②→①→③", "③→②→①", "①→③→②"], "ans": 0, "exp": "三國同盟1882年，英法摯誠協定1904年，三國協約1907年。", "diff": "hard"}, {"t": "一戰中壕溝戰反映甚麼戰爭特點？", "type": "concept", "cat": "戰爭發展", "choices": ["快速決戰", "長期僵持和消耗", "完全沒有新武器", "只有海戰"], "ans": 1, "exp": "壕溝戰令西線長期僵持，造成巨大消耗。", "diff": "easy"}, {"t": "總體戰的意思較接近下列哪項？", "type": "concept", "cat": "戰爭發展", "choices": ["只有士兵參與戰爭", "國家動員經濟、工業和人民支持戰爭", "只靠外交談判", "完全禁止宣傳"], "ans": 1, "exp": "總體戰指整個國家資源被動員以支持戰爭。", "diff": "both"}, {"t": "下列哪項不是一戰常見的新式武器或戰法？", "type": "fact", "cat": "戰爭發展", "choices": ["毒氣", "坦克", "機槍", "洲際導彈"], "ans": 3, "exp": "洲際導彈是冷戰時期武器，並非一戰武器。", "diff": "easy"}, {"t": "美國於哪一年加入第一次世界大戰？", "type": "fact", "cat": "1917轉捩點", "choices": ["1914年", "1916年", "1917年", "1919年"], "ans": 2, "exp": "美國於1917年加入協約國一方。", "diff": "easy"}, {"t": "俄國於1917年後逐步退出戰爭，主要與哪一事件有關？", "type": "fact", "cat": "1917轉捩點", "choices": ["俄國革命", "巴黎和會", "柏林封鎖", "阿比西尼亞事件"], "ans": 0, "exp": "1917年俄國革命導致俄國退出一戰。", "diff": "easy"}, {"t": "1917年對一戰而言為何是轉捩點？", "type": "cause", "cat": "1917轉捩點", "choices": ["美國參戰和俄國退出改變戰局", "英國退出三國協約", "德國加入國聯", "凡爾賽條約簽訂"], "ans": 0, "exp": "1917年美國加入增強協約國力量，同時俄國退出改變戰場形勢。", "diff": "both"}, {"t": "巴黎和會於哪一年召開？", "type": "fact", "cat": "巴黎和會", "choices": ["1914年", "1917年", "1919年", "1929年"], "ans": 2, "exp": "巴黎和會於1919年召開。", "diff": "easy"}, {"t": "巴黎和會中主要決策由哪三國領袖主導？", "type": "fact", "cat": "巴黎和會", "choices": ["美英法", "德奧意", "美蘇英", "英法俄"], "ans": 0, "exp": "美國威爾遜、英國勞萊喬治、法國克里孟梭主導巴黎和會。", "diff": "easy"}, {"t": "威爾遜在巴黎和會中較傾向怎樣對待德國？", "type": "fact", "cat": "巴黎和會", "choices": ["完全摧毀德國", "較寬容，以維持長久和平", "將德國交給俄國", "拒絕成立國際組織"], "ans": 1, "exp": "威爾遜提出十四項建議，較重視公正和平。", "diff": "both"}, {"t": "克里孟梭主張嚴懲德國，主要因為甚麼？", "type": "cause", "cat": "巴黎和會", "choices": ["法國曾受德國侵略，擔心德國復仇", "法國沒有參與一戰", "法國希望加入三國同盟", "法國支持德國擴軍"], "ans": 0, "exp": "法國兩次遭德國侵犯，克里孟梭希望削弱德國。", "diff": "both"}, {"t": "勞萊喬治的立場較接近哪一項？", "type": "compare", "cat": "巴黎和會", "choices": ["在威爾遜寬容與克里孟梭嚴懲之間取折衷", "完全支持德國復仇", "要求取消所有賠款", "反對任何和約"], "ans": 0, "exp": "英國既有報復壓力，又不想德國過弱影響貿易。", "diff": "hard"}, {"t": "《凡爾賽條約》主要針對哪一戰敗國？", "type": "fact", "cat": "凡爾賽條約", "choices": ["德國", "俄國", "美國", "塞爾維亞"], "ans": 0, "exp": "《凡爾賽條約》是對德國的和約。", "diff": "easy"}, {"t": "《凡爾賽條約》中德國須承擔甚麼罪責？", "type": "fact", "cat": "凡爾賽條約", "choices": ["戰爭全部罪責", "只承認海戰責任", "沒有任何責任", "只承認殖民責任"], "ans": 0, "exp": "戰爭罪責條款要求德國承擔戰爭責任。", "diff": "easy"}, {"t": "《凡爾賽條約》限制德國軍隊約多少人？", "type": "fact", "cat": "凡爾賽條約", "choices": ["10萬人", "50萬人", "100萬人", "完全無軍隊"], "ans": 0, "exp": "德國只准保留約10萬陸軍。", "diff": "hard"}, {"t": "德國為何痛恨《凡爾賽條約》？", "type": "cause", "cat": "凡爾賽條約", "choices": ["領土、軍備、賠款和罪責條款沉重", "條約令德國成為戰勝國", "條約完全符合德國要求", "條約容許德奧合併"], "ans": 0, "exp": "凡爾賽條約削弱德國並傷害其民族自尊。", "diff": "both"}, {"t": "「波蘭走廊」的設立造成甚麼結果？", "type": "fact", "cat": "凡爾賽條約", "choices": ["把東普魯士和德國本土分開", "令德國得到更多殖民地", "令法國失去洛林", "令俄國加入國聯"], "ans": 0, "exp": "波蘭走廊讓波蘭通往波羅的海，但分隔德國本土和東普魯士。", "diff": "hard"}, {"t": "德國在《凡爾賽條約》中被禁止使用哪種軍備？", "type": "fact", "cat": "凡爾賽條約", "choices": ["潛艇和軍用飛機", "步槍", "制服", "警察"], "ans": 0, "exp": "條約禁止德國使用潛艇和軍用飛機。", "diff": "easy"}, {"t": "國際聯盟的成立與威爾遜哪項主張有關？", "type": "fact", "cat": "國聯", "choices": ["十四項建議", "門羅主義", "杜魯門主義", "馬歇爾計劃"], "ans": 0, "exp": "威爾遜十四項建議包括建立國際組織維護和平。", "diff": "easy"}, {"t": "國際聯盟最大弱點之一是甚麼？", "type": "concept", "cat": "國聯", "choices": ["美國沒有加入", "擁有過多軍隊", "只准德國加入", "完全沒有會員國"], "ans": 0, "exp": "美國沒有加入削弱國聯威信和制裁力量。", "diff": "both"}, {"t": "國聯沒有自設軍隊會帶來甚麼問題？", "type": "cause", "cat": "國聯", "choices": ["難以強制阻止侵略", "使其過度強大", "令美國立即加入", "令德國放棄復仇"], "ans": 0, "exp": "國聯缺乏獨立軍力，執行決議能力有限。", "diff": "both"}, {"t": "集體安全的基本意思是甚麼？", "type": "concept", "cat": "國聯", "choices": ["各國共同抵抗侵略者以維持和平", "各國秘密結盟準備戰爭", "由一國統治全世界", "只靠戰敗國承擔責任"], "ans": 0, "exp": "集體安全強調國際共同合作維持和平。", "diff": "easy"}, {"t": "《羅加諾公約》主要有助改善哪兩國關係？", "type": "fact", "cat": "和平嘗試", "choices": ["法國與德國", "英國與日本", "俄國與奧匈", "美國與蘇聯"], "ans": 0, "exp": "羅加諾公約有助舒緩德法關係。", "diff": "hard"}, {"t": "《凱格—白里安公約》的主要弱點是甚麼？", "type": "concept", "cat": "和平嘗試", "choices": ["沒有有效執行方法", "只限制德國陸軍", "完全禁止各國自衛", "令美國加入國聯"], "ans": 0, "exp": "公約譴責戰爭，但缺乏執行機制。", "diff": "hard"}, {"t": "華盛頓會議主要限制哪方面軍備？", "type": "fact", "cat": "和平嘗試", "choices": ["海軍主力艦", "陸軍步兵", "空軍導彈", "坦克"], "ans": 0, "exp": "華盛頓會議主要限制主力艦建造。", "diff": "hard"}, {"t": "國聯在1920年代曾較能處理哪類問題？", "type": "compare", "cat": "國聯", "choices": ["小國爭端", "強國大規模侵略", "納粹德國擴張", "第二次世界大戰"], "ans": 0, "exp": "國聯較能處理小國爭端，但面對強國侵略乏力。", "diff": "hard"}, {"t": "巴黎和會後意大利不滿的原因是甚麼？", "type": "cause", "cat": "兩戰關係", "choices": ["所得回報少於戰前承諾", "被迫支付66億英鎊賠款", "失去阿爾薩斯", "被完全解除武裝"], "ans": 0, "exp": "意大利認為戰勝後所得太少，形成「被出賣」情緒。", "diff": "both"}, {"t": "意大利法西斯主義興起的一個原因是甚麼？", "type": "fact", "cat": "兩戰關係", "choices": ["戰後社會經濟問題嚴重", "國聯軍隊佔領羅馬", "意大利完全沒有失業問題", "英國要求意大利建立民主"], "ans": 0, "exp": "戰後失業、通脹、罷工等問題助長法西斯支持。", "diff": "easy"}, {"t": "德國納粹主義興起與《凡爾賽條約》有何關係？", "type": "cause", "cat": "兩戰關係", "choices": ["德國不滿條約，復仇情緒被利用", "條約令德國滿意", "條約令德國成為國聯領袖", "條約取消所有賠款"], "ans": 0, "exp": "納粹利用德國人對條約的怨恨爭取支持。", "diff": "both"}, {"t": "極權主義的特徵不包括哪一項？", "type": "concept", "cat": "兩戰關係", "choices": ["一黨專政", "嚴格控制人民生活", "絕對忠誠", "保障多黨自由競爭"], "ans": 3, "exp": "極權主義通常反對民主和多黨競爭。", "diff": "easy"}, {"t": "巴黎和會被視為二戰遠因之一，主要因為甚麼？", "type": "evaluation", "cat": "兩戰關係", "choices": ["部分和約激起不滿並削弱國際秩序", "完全解決所有民族問題", "令國聯有絕對軍力", "令德國永遠無法復興"], "ans": 0, "exp": "苛刻條款與不完整民族自決激起不滿，為二戰埋下伏線。", "diff": "hard"}, {"t": "下列哪項最能說明民族自決在巴黎和會中的局限？", "type": "evaluation", "cat": "巴黎和會", "choices": ["部分少數民族仍被置於新國家之內", "所有民族都完全獨立", "德國得到所有殖民地", "國聯擁有世界政府權力"], "ans": 0, "exp": "新國家建立後仍有少數民族問題，民族自決未能完全貫徹。", "diff": "hard"}, {"t": "如果情報問「同盟制度比軍備競賽更直接導致一戰」，最相關的論點是甚麼？", "type": "evaluation", "cat": "一戰前因", "choices": ["同盟制度令地區危機連鎖擴大", "軍備競賽完全不存在", "殖民地爭奪只在亞洲發生", "巴黎和會已經結束"], "ans": 0, "exp": "同盟制度的連帶義務可把局部衝突擴大為全面戰爭。", "diff": "hard"}, {"t": "如果比較「長遠原因」和「導火線」，塞拉耶佛事件應屬於哪一類？", "type": "concept", "cat": "一戰爆發", "choices": ["導火線", "長遠原因", "戰後影響", "和平嘗試"], "ans": 0, "exp": "塞拉耶佛事件直接觸發戰爭，是導火線；長遠原因包括民族主義、同盟等。", "diff": "easy"}, {"t": "以下哪項屬於一戰長遠原因？", "type": "concept", "cat": "一戰前因", "choices": ["軍備競賽", "凡爾賽條約", "國際聯盟成立", "大蕭條"], "ans": 0, "exp": "軍備競賽是一戰前歐洲緊張的長遠原因。", "diff": "easy"}, {"t": "以下哪項不是巴黎和會三大目標？", "type": "fact", "cat": "巴黎和會", "choices": ["處置戰敗國", "成立和平組織", "重劃歐洲版圖", "成立北約"], "ans": 3, "exp": "北約是1949年冷戰產物，不是巴黎和會目標。", "diff": "easy"}, {"t": "以下事件正確時序是？①一戰爆發 ②巴黎和會 ③國聯成立", "type": "sequence", "cat": "時序", "choices": ["①→②→③", "②→①→③", "③→①→②", "①→③→②"], "ans": 0, "exp": "一戰1914爆發，巴黎和會1919召開，國聯1920成立。", "diff": "both"}, {"t": "以下事件正確時序是？①美國參戰 ②德國停戰 ③凡爾賽條約簽訂", "type": "sequence", "cat": "時序", "choices": ["①→②→③", "②→①→③", "③→①→②", "①→③→②"], "ans": 0, "exp": "美國1917參戰，德國1918停戰，凡爾賽條約1919簽訂。", "diff": "both"}, {"t": "第一次世界大戰後，哪個傳統帝國瓦解並被分為多個民族國家？", "type": "fact", "cat": "巴黎和會", "choices": ["奧匈帝國", "美國", "英國", "法國"], "ans": 0, "exp": "奧匈帝國在戰後瓦解，出現奧地利、匈牙利及其他新國家。", "diff": "both"}, {"t": "《聖澤門條約》主要針對哪一國？", "type": "fact", "cat": "巴黎和會", "choices": ["奧地利", "德國", "英國", "美國"], "ans": 0, "exp": "《聖澤門條約》是對奧地利的和約。", "diff": "hard"}, {"t": "下列哪項是《凡爾賽條約》對德國的領土安排？", "type": "fact", "cat": "凡爾賽條約", "choices": ["阿爾薩斯和洛林歸還法國", "法國割讓巴黎予德國", "英國交出倫敦", "俄國取得阿爾薩斯"], "ans": 0, "exp": "阿爾薩斯和洛林歸還法國是條約重要領土條款。", "diff": "easy"}, {"t": "如果學生說「凡爾賽條約完全成功維持和平」，哪項反駁最有力？", "type": "evaluation", "cat": "凡爾賽條約", "choices": ["條約激起德國不滿，長遠助長復仇主義", "條約令美國加入國聯", "德國完全滿意條約", "國聯有強大常備軍"], "ans": 0, "exp": "條約可短期削弱德國，但長期引發復仇情緒。", "diff": "hard"}, {"t": "哪項最能反映「戰勝國和戰敗國都不滿巴黎和會」？", "type": "evaluation", "cat": "巴黎和會", "choices": ["德國痛恨條約，意大利亦認為所得太少", "所有國家完全接受安排", "美國立即加入國聯", "法國完全放棄安全要求"], "ans": 0, "exp": "德國作為戰敗國痛恨條款，意大利作為戰勝國亦不滿回報。", "diff": "hard"}, {"t": "一戰後德國被要求支付巨額賠款，可能造成甚麼後果？", "type": "cause", "cat": "凡爾賽條約", "choices": ["經濟和政治不穩", "德國立即成為世界最富強國", "完全消除復仇情緒", "國聯軍隊壯大"], "ans": 0, "exp": "巨額賠款加重德國經濟負擔，助長不滿。", "diff": "both"}, {"t": "下列哪項可作「國聯執行力不足」的證據？", "type": "evidence", "cat": "國聯", "choices": ["沒有自設軍隊，且重大行動需一致同意", "美國長期主持國聯軍隊", "德國從未反對國聯", "所有侵略者都被立即擊敗"], "ans": 0, "exp": "國聯缺乏軍隊與決策效率，制約其執行力。", "diff": "hard"}, {"t": "何者最能表現一戰前英德矛盾？", "type": "evidence", "cat": "一戰前因", "choices": ["海軍競賽與殖民競爭", "巴黎和會三巨頭", "國聯制裁意大利", "華沙公約成立"], "ans": 0, "exp": "英德在海軍和殖民勢力上競爭，關係惡化。", "diff": "both"}, {"t": "奧匈與塞爾維亞衝突的核心地區主要是哪裡？", "type": "fact", "cat": "國際危機", "choices": ["巴爾幹半島", "北美洲", "西伯利亞", "印度洋"], "ans": 0, "exp": "奧匈與塞爾維亞圍繞巴爾幹民族問題衝突加劇。", "diff": "easy"}, {"t": "塞爾維亞民族主義對奧匈構成威脅，主要因為甚麼？", "type": "cause", "cat": "國際危機", "choices": ["奧匈境內有不少斯拉夫民族", "塞爾維亞控制英國海軍", "塞爾維亞領導國聯", "奧匈希望加入三國協約"], "ans": 0, "exp": "塞爾維亞的大塞爾維亞主義會刺激奧匈境內斯拉夫民族。", "diff": "hard"}, {"t": "德國支持奧匈對抗塞爾維亞，最能反映哪個因素？", "type": "concept", "cat": "同盟制度", "choices": ["同盟制度", "民族自決", "國聯調停", "綏靖政策"], "ans": 0, "exp": "德奧同盟關係使局部衝突有機會擴大。", "diff": "both"}, {"t": "英法摯誠協定的出現對德國有何影響？", "type": "cause", "cat": "同盟制度", "choices": ["德國更感被孤立", "德國立即加入三國協約", "德國放棄海軍", "法國退出歐洲"], "ans": 0, "exp": "英法接近使德國更感受到被包圍和孤立。", "diff": "hard"}, {"t": "摩洛哥危機如何影響英法關係？", "type": "cause", "cat": "國際危機", "choices": ["鞏固英法合作", "令英法立即開戰", "令法國加入三國同盟", "令英國支持德國控制摩洛哥"], "ans": 0, "exp": "摩洛哥危機中英國支持法國，鞏固英法關係。", "diff": "hard"}, {"t": "第二次摩洛哥危機中德國派出哪艘炮艦到阿加迪爾？", "type": "fact", "cat": "國際危機", "choices": ["黑豹號", "無畏號", "俾斯麥號", "大和號"], "ans": 0, "exp": "1911年德國派「黑豹號」到阿加迪爾。", "diff": "hard"}, {"t": "巴爾幹戰爭後哪國版圖擴大，引起奧匈更大憂慮？", "type": "fact", "cat": "國際危機", "choices": ["塞爾維亞", "美國", "英國", "瑞士"], "ans": 0, "exp": "塞爾維亞版圖擴大，令奧匈感到威脅。", "diff": "both"}, {"t": "「短期原因」最接近下列哪項？", "type": "concept", "cat": "史學概念", "choices": ["直接觸發事件", "長期結構性因素", "戰後和平安排", "二十年後的影響"], "ans": 0, "exp": "短期原因通常指直接觸發事件，如塞拉耶佛暗殺。", "diff": "easy"}, {"t": "如果要解釋一戰「不是單一原因造成」，應如何作答較好？", "type": "evaluation", "cat": "史學概念", "choices": ["結合同盟、民族主義、軍備、殖民競爭及塞拉耶佛事件分析", "只寫塞拉耶佛一項", "只寫凡爾賽條約", "只寫國聯失敗"], "ans": 0, "exp": "一戰爆發需綜合長遠因素與導火線。", "diff": "hard"}, {"t": "哪項最能顯示凡爾賽條約傷害德國民族自尊？", "type": "evidence", "cat": "凡爾賽條約", "choices": ["戰爭罪責條款和解除武裝", "德國得到更多殖民地", "美國拒絕加入國聯", "意大利取得阜姆"], "ans": 0, "exp": "罪責條款與軍事限制被德國視為羞辱。", "diff": "hard"}, {"t": "巴黎和會重劃歐洲版圖時採用了哪個原則？", "type": "fact", "cat": "巴黎和會", "choices": ["民族自決", "門戶開放", "圍堵政策", "集體農莊"], "ans": 0, "exp": "威爾遜提出民族自決，影響巴黎和會後歐洲版圖。", "diff": "easy"}, {"t": "民族自決未能完全落實會造成甚麼問題？", "type": "cause", "cat": "巴黎和會", "choices": ["少數民族糾紛與邊界不滿", "所有國家完全穩定", "德國放棄復仇", "國聯取得常備軍"], "ans": 0, "exp": "部分少數民族被置於新國家內，留下衝突根源。", "diff": "hard"}, {"t": "一戰後歐洲經濟困難與極權主義興起有何關係？", "type": "cause", "cat": "兩戰關係", "choices": ["人民渴望強人解決失業和混亂", "人民更信任多黨妥協", "國聯立即提供所有工作", "德國完全沒有通脹"], "ans": 0, "exp": "失業、通脹和社會動盪使強人政治更有吸引力。", "diff": "hard"}, {"t": "意大利法西斯主義其中一項思想是甚麼？", "type": "fact", "cat": "兩戰關係", "choices": ["服從國家和反對民主", "主張多黨輪替", "完全反對戰爭和擴張", "取消國家權力"], "ans": 0, "exp": "法西斯主義強調國家至上、一黨專政和反民主。", "diff": "both"}, {"t": "下列哪項是墨索里尼上台的事件？", "type": "fact", "cat": "兩戰關係", "choices": ["進軍羅馬", "柏林空運", "慕尼黑會議", "諾曼第登陸"], "ans": 0, "exp": "1922年墨索里尼以「進軍羅馬」取得政權。", "diff": "hard"}, {"t": "巴黎和會後建立的和平秩序最大矛盾是甚麼？", "type": "evaluation", "cat": "巴黎和會", "choices": ["追求和平但同時留下戰敗國不滿和執行力不足", "完全公平且無任何衝突", "由德國主導所有決定", "沒有任何國際組織"], "ans": 0, "exp": "巴黎和會既有和平理想，但安排和執行均存在局限。", "diff": "hard"}, {"t": "若情報問「巴黎和會是否種下二戰禍根」，最相關角度不包括哪項？", "type": "evaluation", "cat": "兩戰關係", "choices": ["香港經濟起飛", "德國不滿", "意大利不滿", "國聯弱點"], "ans": 0, "exp": "香港經濟起飛與該題無直接關係。", "diff": "hard"}, {"t": "以下哪項最適合說明「國聯是紙老虎」？", "type": "concept", "cat": "國聯", "choices": ["有理想但缺乏軍事執行力", "擁有全球最強軍隊", "由美國完全控制", "能即時消滅侵略者"], "ans": 0, "exp": "國聯可譴責和制裁，但缺乏有效軍事執行力量。", "diff": "both"}, {"t": "國聯重大決定常需一致通過，會造成甚麼問題？", "type": "cause", "cat": "國聯", "choices": ["行動緩慢且容易受阻", "行動必定更快速", "侵略國會自動退出戰爭", "德國立即滿意和約"], "ans": 0, "exp": "一致通過要求令國聯難以快速有效行動。", "diff": "hard"}, {"t": "以下哪個組合最能概括一戰前歐洲緊張的長遠因素？", "type": "concept", "cat": "一戰前因", "choices": ["民族主義、同盟、軍備、殖民競爭", "國聯、北約、華約、冷戰", "巴黎和會、國聯、凡爾賽、法西斯", "大蕭條、馬歇爾、柏林、韓戰"], "ans": 0, "exp": "一戰前歐洲緊張主要由民族主義、同盟、軍備和殖民競爭推動。", "diff": "both"}, {"t": "完成「一戰前因→一戰爆發→巴黎和會→二戰遠因」的連繫，最重要的歷史思維是甚麼？", "type": "concept", "cat": "史學概念", "choices": ["因果連續性", "單一人物崇拜", "只背年份", "只看地圖顏色"], "ans": 0, "exp": "本單元重點是理解事件之間的因果連續。", "diff": "hard"}, {"t": "如果學生將「凡爾賽條約」說成一戰導火線，問題在哪裡？", "type": "concept", "cat": "時序", "choices": ["時序錯誤，條約是一戰後安排", "條約發生於1914年前", "條約導致塞拉耶佛事件", "條約是三國同盟內容"], "ans": 0, "exp": "凡爾賽條約於1919年簽訂，是一戰後的安排，不是一戰導火線。", "diff": "easy"}, {"t": "如果要判斷某因素是否「重要」，較好方法是甚麼？", "type": "evaluation", "cat": "史學概念", "choices": ["比較其持續時間、影響範圍和直接性", "只看課本先後次序", "只看名稱長短", "只看是否容易背"], "ans": 0, "exp": "歷史評價要比較因素的影響深度、廣度和直接性。", "diff": "hard"}];
-const cvs=document.getElementById('game'),ctx=cvs.getContext('2d');
-const W=960,H=540,HUD=78;let last=0,keys={},mobileKeys={},raf=0,quizInterval=null;
-const zones=[{x:0,w:950,n:'一戰前歐洲',s:'民族主義・同盟',theme:'europe'},{x:950,w:950,n:'國際危機',s:'摩洛哥・巴爾幹',theme:'crisis'},{x:1900,w:1050,n:'壕溝戰場',s:'軍備競賽・總體戰',theme:'trench'},{x:2950,w:950,n:'1917轉捩點',s:'美國參戰・俄國退出',theme:'turning'},{x:3900,w:950,n:'巴黎和會',s:'三巨頭・十四點',theme:'paris'},{x:4850,w:950,n:'凡爾賽條約',s:'賠款・軍事限制',theme:'versailles'}];
-const world={w:5800,ground:462};
-let game={state:'menu',mode:'easy',name:'',score:0,files:0,correct:0,total:8,time:0,timeLimit:430,health:5,startTime:0,questions:[],qIndex:0,answered:[],camera:0,shake:0,flash:0,toast:'',toastT:0,flagScore:0,uploaded:false};
-let player,plats,items,enemies,hazards,bullets,flag;
-function cleanName(s){s=(s||'').trim().replace(/[<>"'`]/g,'').slice(0,12);return s||'無名情報員'}
-function rngShuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function pickQuestions(mode){let pool=QUESTIONS.filter(q=>q.diff==='both'||q.diff===mode);let cats=[...new Set(pool.map(q=>q.cat))];let picked=[];cats.forEach(c=>{let arr=pool.filter(q=>q.cat===c);if(arr.length)picked.push(rngShuffle(arr)[0])});picked=rngShuffle(picked);for(const q of rngShuffle(pool)){if(picked.length>=(mode==='hard'?12:8))break;if(!picked.includes(q))picked.push(q)}return picked.slice(0,mode==='hard'?12:8)}
-function startGame(mode){game.mode=mode;game.name=cleanName(document.getElementById('playerName').value);game.total=mode==='hard'?12:8;game.health=mode==='hard'?3:5;game.timeLimit=mode==='hard'?390:430;game.score=0;game.files=0;game.correct=0;game.qIndex=0;game.answered=[];game.questions=pickQuestions(mode);game.time=0;game.camera=0;game.flagScore=0;game.uploaded=false;game.toast=(mode==='hard'?'困難模式已啟動':'簡易模式已啟動');game.toastT=2.4;document.getElementById('menu').classList.add('hidden');document.getElementById('report').classList.add('hidden');document.getElementById('quiz').classList.add('hidden');buildLevel(mode);game.state='playing';last=performance.now();if(raf)cancelAnimationFrame(raf);raf=requestAnimationFrame(loop)}
-function buildLevel(mode){player={x:80,y:world.ground-50,w:30,h:50,vx:0,vy:0,on:true,face:1,coyote:.1,buffer:0,jumpHold:0,inv:0,stun:0,safeX:80,safeY:world.ground-50};
-// V8：真正兩層路線。底層是連續安全地面；第二層/第三層提供平台路線，不再靠早期坑洞製造難度。
-plats=[{x:0,y:world.ground,w:world.w,h:90}];
-function plat(x,y,w,h=18){plats.push({x,y,w,h})}
-[[360,392,260],[760,392,250],[1160,390,260],[1580,392,260],[2020,390,260],[2440,392,260],[2860,390,260],[3280,392,260],[3700,390,260],[4140,392,260],[4580,390,260],[5020,392,260],[5420,392,230]].forEach(p=>plat(...p));
-[[920,324,210],[1760,320,220],[2700,322,220],[3600,320,220],[4520,322,220]].forEach(p=>plat(...p));
-items=[];function item(x,y,t){items.push({x,y,w:t==='quiz'?44:28,h:t==='quiz'?52:30,t,got:false,phase:Math.random()*6})}
-[180,520,820,1120,1480,1840,2200,2520,2920,3260,3640,4020,4380,4740,5120,5480].forEach((x,i)=>{
-  let y = (i%6===1)?356:(i%6===3?286:world.ground-70); item(x,y,'file');
-});
-item(3060,world.ground-54,'mask'); item(3400,world.ground-54,'med'); item(5080,world.ground-54,'dove');
-enemies=[];function enemy(x,y,type,min,max){enemies.push({x,y,w:type==='shadow'?34:32,h:type==='shadow'?58:48,type,min,max,vx:type==='austro'?45:type==='shadow'?58:38,dir:1,cd:1+Math.random()})}
-enemy(1420,world.ground-48,'german',1320,1640);enemy(2260,world.ground-48,'austro',2140,2480);enemy(3380,world.ground-58,'shadow',3240,3580);enemy(4300,world.ground-48,'german',4160,4560);enemy(5200,world.ground-48,'austro',5020,5360);
-if(mode==='hard'){enemy(1000,324-48,'german',920,1110);enemy(1820,320-48,'german',1760,1960);enemy(2760,322-58,'shadow',2700,2920);enemy(3660,320-48,'german',3600,3800);enemy(4580,322-58,'shadow',4520,4720)}
-hazards=[];function haz(x,y,w,h,t){hazards.push({x,y,w,h,t,phase:Math.random()*4,active:true,hitCd:0})}
-haz(1660,world.ground-18,115,18,'wire');haz(2580,world.ground-18,135,18,'wire');haz(3660,world.ground-18,135,18,'wire');
-haz(3080,world.ground-120,170,120,'gas');haz(4040,world.ground-110,170,110,'gas');
-haz(2100,world.ground-145,135,145,'shell');haz(4560,world.ground-145,160,145,'shell');
-haz(1220,world.ground-155,130,155,'bomber');haz(3900,world.ground-155,150,155,'bomber');
-if(mode==='hard'){haz(1960,world.ground-18,130,18,'wire');haz(2760,world.ground-145,150,145,'shell');haz(5000,world.ground-120,170,120,'gas');haz(4860,world.ground-155,150,155,'bomber')}
-bullets=[];
-let quizXs=[480,1040,1580,2160,2740,3320,3900,4480,5000,5320,5560,5740];let count=game.total;
-for(let i=0;i<count;i++){let y=(i%4===1)?338:(i%4===3?354:world.ground-94);item(quizXs[i],y,'quiz')}
-flag={x:world.w-180,y:world.ground-245,w:18,h:245,done:false};}
-function rect(a,b){return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y}
-function damage(src,kind='hit'){if(player.inv>0)return;game.health--;game.flash=.25;game.shake=10;player.inv=.95;player.stun=.24;let cx=player.x+player.w/2,sc=src.x+(src.w||0)/2;let dir=cx<sc?-1:1;let pow=kind==='wire'?360:kind==='shell'?260:kind==='gas'?80:kind==='bullet'?190:300;player.vx=dir*pow;player.vy=kind==='shell'?-420:kind==='wire'?-240:-180;game.toast=kind==='gas'?'毒氣侵襲，穩定度下降！':'被擊退！向相反方向修正';game.toastT=1.4;if(game.health<=0)endGame(false)}
-function openQuiz(){if(game.qIndex>=game.questions.length)return;game.state='quiz';let q=game.questions[game.qIndex];document.getElementById('quiz').classList.remove('hidden');document.getElementById('qText').textContent=`情報站 ${game.qIndex+1}/${game.total}｜${q.t}`;let box=document.getElementById('qChoices');box.innerHTML='';document.getElementById('qFeedback').classList.add('hidden');q.choices.forEach((c,i)=>{let b=document.createElement('button');b.className='choice';b.textContent=String.fromCharCode(65+i)+'. '+c;b.onclick=()=>answerQuiz(i);box.appendChild(b)})}
-let quizTimer=0;function answerQuiz(i){let q=game.questions[game.qIndex];let ok=i===q.ans;if(ok){game.correct++;game.score+=300}else{game.score=Math.max(0,game.score-90); if(game.mode==='hard')game.time+=8}game.qIndex++;let f=document.getElementById('qFeedback');f.classList.remove('hidden');f.innerHTML=`<b>${ok?'答對！':'答錯。'}</b><br>正確答案：${String.fromCharCode(65+q.ans)}. ${q.choices[q.ans]}<br>${q.exp}<br><span id="countdown">5秒後繼續任務……</span><br><button class="btn" onclick="closeQuiz()">繼續任務</button>`;[...document.querySelectorAll('.choice')].forEach(b=>b.disabled=true);quizTimer=5;if(quizInterval)clearInterval(quizInterval);quizInterval=setInterval(()=>{if(game.state!=='quiz'){clearInterval(quizInterval);quizInterval=null;return}quizTimer-=1;let cd=document.getElementById('countdown');if(cd)cd.textContent=`${Math.max(0,quizTimer)}秒後繼續任務……`;if(quizTimer<=0){clearInterval(quizInterval);quizInterval=null;closeQuiz()}},1000)}
-function closeQuiz(){if(quizInterval){clearInterval(quizInterval);quizInterval=null}document.getElementById('quiz').classList.add('hidden');game.state='playing'}
-window.addEventListener('keydown',e=>{keys[e.code]=true;if(game.state==='quiz'&&(e.code==='Space'||e.code==='Enter'))closeQuiz();if((e.code==='Space'||e.code==='ArrowUp')&&game.state==='playing')player.buffer=.12});window.addEventListener('keyup',e=>keys[e.code]=false);
-document.querySelectorAll('.touchBtn').forEach(b=>{let k=b.dataset.k;b.addEventListener('touchstart',e=>{e.preventDefault();mobileKeys[k]=true;if(k==='jump')player.buffer=.12});b.addEventListener('touchend',e=>{e.preventDefault();mobileKeys[k]=false})});
-function loop(t){let dt=Math.min(.033,(t-last)/1000||.016);last=t;if(game.state==='playing')update(dt);draw();if(game.state!=='menu')raf=requestAnimationFrame(loop);else raf=0}
-function update(dt){game.time+=dt;if(game.time>game.timeLimit)endGame(false);if(game.toastT>0)game.toastT-=dt;if(game.flash>0)game.flash-=dt;if(game.shake>0)game.shake*=.86;if(player.inv>0)player.inv-=dt;if(player.stun>0)player.stun-=dt;let left=keys.ArrowLeft||keys.KeyA||mobileKeys.left,right=keys.ArrowRight||keys.KeyD||mobileKeys.right,jump=keys.Space||keys.ArrowUp||keys.KeyW||mobileKeys.jump;if(player.stun>0){left=right=false}let accel=player.on?2500:1500,max=230;if(left){player.vx-=accel*dt;player.face=-1}if(right){player.vx+=accel*dt;player.face=1}if(!left&&!right&&player.on)player.vx*=Math.pow(.0008,dt);player.vx=Math.max(-max,Math.min(max,player.vx));if(player.on)player.coyote=.1; else player.coyote-=dt;player.buffer-=dt;if(player.buffer>0&&player.coyote>0){player.vy=-470;player.on=false;player.coyote=0;player.buffer=0;player.jumpHold=.18}if(!jump&&player.vy<0)player.vy*=.55;if(jump&&player.jumpHold>0&&player.vy<0){player.vy-=720*dt;player.jumpHold-=dt}let grav=player.vy<0?1200:1700;player.vy+=grav*dt;let old={x:player.x,y:player.y,w:player.w,h:player.h};player.x+=player.vx*dt;player.y+=player.vy*dt;player.on=false;for(let p of plats){let pr={x:p.x,y:p.y,w:p.w,h:p.h};if(rect(player,pr)){if(old.y+old.h<=p.y+6&&player.vy>=0){player.y=p.y-player.h;player.vy=0;player.on=true;player.safeX=player.x;player.safeY=player.y}else if(old.x+old.w<=p.x){player.x=p.x-player.w;player.vx=0}else if(old.x>=p.x+p.w){player.x=p.x+p.w;player.vx=0}else if(old.y>=p.y+p.h){player.y=p.y+p.h;player.vy=10}}}
-if(player.y>H+220){player.x=player.safeX;player.y=player.safeY;player.vx=0;player.vy=0;game.toast='回到最近安全點';game.toastT=1.2}
-player.x=Math.max(0,Math.min(world.w-player.w,player.x));game.camera=Math.max(0,Math.min(world.w-W,player.x-W*0.42));
-for(let it of items){if(it.got)continue;it.phase+=dt;if(rect(player,{x:it.x,y:it.y,w:it.w,h:it.h})){if(it.t==='file'){it.got=true;game.files++;game.score+=100}else if(it.t==='med'){it.got=true;game.health=Math.min(game.mode==='hard'?3:5,game.health+1);game.score+=60}else if(it.t==='mask'){it.got=true;player.inv=2;game.score+=80;game.toast='防毒面具：短暫保護';game.toastT=1.5}else if(it.t==='dove'){it.got=true;game.score+=160}else if(it.t==='quiz'){it.got=true;openQuiz()}}}
-for(let e of enemies){e.x+=e.vx*e.dir*dt;if(e.x<e.min||e.x>e.max){e.dir*=-1;e.x=Math.max(e.min,Math.min(e.max,e.x))}if(e.type==='shadow'&&Math.abs(player.x-e.x)<220)e.dir=player.x<e.x?-1:1;if(rect(player,e))damage(e,'enemy')}
-for(let h of hazards){h.phase+=dt;if(h.t==='gas'){h.active=Math.sin(h.phase*1.2)>-.35}else if(h.t==='shell'){h.active=(h.phase%3.2)>2.25}else if(h.t==='bomber'){h.active=(h.phase%4.0)>3.05}else h.active=true;if(h.active&&rect(player,h))damage(h,h.t==='bomber'?'shell':h.t)}
-// flag
-let flagRect={x:flag.x-8,y:flag.y,w:34,h:flag.h};if(!flag.done&&rect(player,flagRect)){if(game.qIndex<game.total){game.toast=`尚欠 ${game.total-game.qIndex} 份關鍵情報，巴黎和會協定仍未成熟`;game.toastT=2;player.x=flag.x-80;player.vx=-220}else{let rel=(player.y-flag.y)/flag.h;let heightScore=Math.max(0,Math.min(1,1-rel));game.flagScore=Math.round(heightScore*500);game.score+=game.flagScore;flag.done=true;endGame(true)}}}
-function endGame(win){game.state='report';document.getElementById('report').classList.remove('hidden');let title=win?'巴黎和會協定達成':'任務失敗';let intelRate=game.qIndex/game.total;let rank=game.correct>=game.total*.85?'凡爾賽首席談判員':game.correct>=game.total*.65?'和平會議代表':game.correct>=game.total*.4?'戰地情報員':'歷史新兵';document.getElementById('reportStatus').textContent=`${title}｜${rank}`;document.getElementById('reportStats').innerHTML=[['模式',game.mode==='hard'?'困難模式':'簡易模式'],['名稱',game.name],['分數',game.score],['破解情報',`${game.correct} / ${game.total}`],['收集情報檔案',game.files],['協定完成度',Math.round(intelRate*100)+'%'],['用時',Math.round(game.time)+' 秒'],['旗杆獎勵',game.flagScore]].map(x=>`<div class="stat"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('');let rev=['情報越完整，越能釐清一戰前因、戰爭責任與戰後安排。','巴黎和會嘗試建立新秩序，但《凡爾賽條約》亦激起德國強烈不滿。','國際聯盟有維持和平的理想，但因美國缺席、缺乏軍事力量及執行力不足而受限制。'];document.getElementById('reportReview').innerHTML='<ul>'+rev.map(r=>'<li>'+r+'</li>').join('')+'</ul>';autoUpload(win,rank)}
-function autoUpload(win,rank){let el=document.getElementById('uploadState');el.textContent='正在自動上載 Google Sheet 龍虎榜...';let data={name:game.name,mode:game.mode,score:game.score,correct:game.correct,total:game.total,time:Math.round(game.time),files:game.files};fetch(LEADERBOARD_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(data)}).then(()=>{el.textContent='已自動上載成績。';loadLeaderboard()}).catch(()=>{el.textContent='上載未能確認；如 Apps Script 權限正確，通常仍會寫入。'})}
-function showMenu(){document.getElementById('report').classList.add('hidden');document.getElementById('menu').classList.remove('hidden');game.state='menu';if(raf){cancelAnimationFrame(raf);raf=0}loadLeaderboard()}
-function loadLeaderboard(){fetch(LEADERBOARD_URL+'?top=10').then(r=>r.json()).then(rows=>{let el=document.getElementById('leaderRows');if(!rows.length){el.textContent='暫無紀錄';return}el.innerHTML='<div class="row"><b>#</b><b>名稱</b><b>分數</b><b>模式</b></div>'+rows.slice(0,5).map((r,i)=>`<div class="row"><span>${i+1}</span><span>${r.name}</span><span>${r.score}</span><span>${r.mode==='hard'?'困難':'簡易'}</span></div>`).join('')}).catch(()=>document.getElementById('leaderRows').textContent='龍虎榜暫時未能載入')}
-function draw(){ctx.save();let shake=game.shake||0;ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);drawWorld();ctx.restore();if(game.flash>0){ctx.fillStyle=`rgba(170,0,0,${game.flash})`;ctx.fillRect(0,0,W,H)}}
-function drawWorld(){ctx.clearRect(0,0,W,H);let cam=game.camera;drawBg(cam);ctx.save();ctx.translate(-cam,0);plats.forEach(drawPlatform);hazards.forEach(drawHazard);items.forEach(drawItem);enemies.forEach(drawEnemy);drawFlag();drawPlayer();ctx.restore();drawHUD();}
-function drawBg(cam){let z=zones.find(z=>cam+W/2>=z.x&&cam+W/2<z.x+z.w)||zones[0];let grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#15130d');grad.addColorStop(.45,z.theme==='trench'?'#332818':z.theme==='paris'?'#2d2518':z.theme==='versailles'?'#302417':'#242013');grad.addColorStop(1,'#120d08');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
-// 戰地地圖格線
-ctx.strokeStyle='rgba(202,166,74,.14)';ctx.lineWidth=1;for(let x=-100;x<W+120;x+=110){ctx.beginPath();ctx.moveTo(x+((cam*.15)%110),HUD);ctx.lineTo(x-125+((cam*.15)%110),H);ctx.stroke()}for(let y=HUD+18;y<H;y+=58){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
-// 遠景煙霧與炮光
-for(let i=0;i<6;i++){let x=(i*210-(cam*.08)%210);let r=80+20*Math.sin(i+cam*.002);ctx.fillStyle=i%2?'rgba(130,95,50,.10)':'rgba(180,120,50,.08)';ctx.beginPath();ctx.arc(x+80,250+i%3*25,r,0,Math.PI*2);ctx.fill()}
-// 遠景戰壕、枯樹、炮坑剪影
-ctx.fillStyle='rgba(0,0,0,.28)';for(let i=0;i<10;i++){let x=(i*145-(cam*.25)%145);ctx.beginPath();ctx.ellipse(x,438,78,24,0,0,Math.PI*2);ctx.fill();ctx.fillRect(x+48,355,5,90);ctx.strokeStyle='rgba(0,0,0,.42)';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(x+51,377);ctx.lineTo(x+18,402);ctx.moveTo(x+52,377);ctx.lineTo(x+90,402);ctx.stroke()}
-// 前景沙包與木樁，令地面更似壕溝
-for(let x=-60+(cam*-0.35%120);x<W+160;x+=120){ctx.fillStyle='rgba(86,58,30,.45)';ctx.beginPath();ctx.ellipse(x,455,42,13,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(x+36,456,42,13,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(70,42,18,.55)';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(x-20,405);ctx.lineTo(x-25,462);ctx.moveTo(x+55,405);ctx.lineTo(x+50,462);ctx.stroke()}
-// V8 額外細節：遠方炮兵、破旗、地面碎石，提升戰場層次。
-for(let x=40-(cam*.18%260);x<W+260;x+=260){ctx.fillStyle='rgba(0,0,0,.32)';ctx.fillRect(x,420,38,16);ctx.fillRect(x+8,402,8,32);ctx.fillStyle='rgba(140,105,55,.28)';ctx.fillRect(x+16,396,52,5);ctx.strokeStyle='rgba(120,70,40,.35)';ctx.beginPath();ctx.moveTo(x+20,436);ctx.lineTo(x+5,462);ctx.moveTo(x+25,436);ctx.lineTo(x+45,462);ctx.stroke();ctx.fillStyle='rgba(130,35,30,.25)';ctx.fillRect(x+72,392,32,16)}
-for(let x=0-(cam*.55%90);x<W+90;x+=90){ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(x,494,22,5);ctx.fillRect(x+44,506,30,5)}
-// 區域主題牌，不用巨型空字壓畫面
-ctx.fillStyle='rgba(0,0,0,.42)';ctx.fillRect(28,108,350,92);ctx.strokeStyle='rgba(202,166,74,.35)';ctx.strokeRect(28,108,350,92);ctx.fillStyle='#ffe892';ctx.font='900 30px sans-serif';ctx.fillText(z.n,55,148);ctx.font='18px sans-serif';ctx.fillText(z.s,55,184);ctx.fillStyle='rgba(255,230,140,.08)';ctx.font='900 72px Georgia';ctx.fillText(z.theme==='paris'?'PEACE TABLE':z.theme==='versailles'?'VERSAILLES':z.theme==='turning'?'1917 INTEL':z.theme==='trench'?'TRENCH LINE':'EUROPE 1914',420,225);
-// 情報線：象徵收集情報推進和會協定
-ctx.strokeStyle='rgba(240,200,80,.28)';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<7;i++){let x=100+i*105;let y=260+Math.sin(i*1.4+cam*.002)*25;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);ctx.fillStyle='rgba(240,200,80,.45)';ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.fill();ctx.beginPath();if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}ctx.stroke();
-if(z.theme==='trench'){drawTrenchScenery(cam)}if(z.theme==='paris'||z.theme==='versailles')drawTreatyScenery(cam,z.theme)}
-function drawTrenchScenery(cam){ctx.strokeStyle='rgba(210,210,190,.35)';ctx.lineWidth=3;for(let i=0;i<4;i++){ctx.beginPath();for(let x=0;x<W+20;x+=44){let y=385+i*12+Math.sin((x+cam*.4)/45)*7; if(x===0)ctx.moveTo(x,y); else ctx.lineTo(x,y)}ctx.stroke()}ctx.fillStyle='rgba(80,49,20,.35)';for(let x=0;x<W;x+=80){ctx.beginPath();ctx.ellipse(x,438,45,13,0,0,Math.PI*2);ctx.fill()}}
-function drawTreatyScenery(cam,theme){ctx.fillStyle='rgba(230,220,170,.22)';ctx.fillRect(650,300,155,120);ctx.fillStyle='rgba(120,40,35,.5)';ctx.fillRect(675,334,105,10);ctx.fillRect(675,369,105,10);ctx.fillStyle='rgba(255,230,140,.75)';ctx.font='900 17px serif';ctx.fillText(theme==='paris'?'PEACE TABLE':'TREATY',665,323)}
-function drawHUD(){ctx.fillStyle='rgba(10,9,5,.82)';ctx.fillRect(8,8,W-16,72);ctx.strokeStyle='#9e8538';ctx.lineWidth=2;ctx.strokeRect(8,8,W-16,72);ctx.fillStyle='#ffe892';ctx.font='700 18px sans-serif';let z=zones.find(z=>player&&player.x>=z.x&&player.x<z.x+z.w)||zones[0];ctx.fillText(`${game.mode==='hard'?'困難':'簡易'}模式`,24,30);ctx.fillText(`穩定度 ${game.health}`,190,30);ctx.fillText(`分數 ${game.score}`,300,30);ctx.fillText(`情報檔案 ${game.files}`,405,30);ctx.fillText(`情報站 ${game.qIndex}/${game.total}`,530,30);ctx.fillText(`時間 ${Math.max(0,Math.round(game.timeLimit-game.time))}s`,660,30);ctx.fillText(`區域：${z.n}`,24,62);ctx.font='15px sans-serif';ctx.fillText(`玩家：${game.name||'未命名'}｜情報越完整，越有助達成巴黎和會協定`,190,62);ctx.fillStyle='#a07c20';ctx.fillRect(20,72,W-60,8);ctx.fillStyle='#f2cf5a';ctx.fillRect(20,72,(W-60)*(player?player.x/world.w:0),8);if(game.toastT>0){ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(300,92,420,34);ctx.fillStyle='#ffe892';ctx.font='900 17px sans-serif';ctx.fillText(game.toast,318,115)}}
-function drawPlatform(p){ctx.fillStyle='#4a2f18';ctx.fillRect(p.x,p.y,p.w,p.h);ctx.fillStyle='#8a5d2a';ctx.fillRect(p.x,p.y,p.w,18);ctx.strokeStyle='rgba(0,0,0,.25)';for(let x=p.x+10;x<p.x+p.w;x+=28){ctx.beginPath();ctx.moveTo(x,p.y+28);ctx.lineTo(x+14,p.y+40);ctx.stroke()}}
-function drawPlayer(){if(!player)return;if(player.inv>0&&Math.floor(player.inv*16)%2===0)return;let x=player.x,y=player.y;ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(x+16,y+50,28,7,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#203b4d';ctx.fillRect(x+6,y+16,24,32);ctx.fillStyle='#dec08e';ctx.fillRect(x+8,y+3,20,14);ctx.fillStyle='#26313b';ctx.fillRect(x+5,y+0,26,6);ctx.fillStyle='#6a4a25';ctx.fillRect(x-2,y+28,10,16);ctx.fillStyle='#caa64a';ctx.fillRect(x+28,y+30,22,5);ctx.fillStyle='#ffe892';ctx.font='11px sans-serif';ctx.fillText('情報員',x-6,y-8)}
-function drawEnemy(e){let x=e.x,y=e.y;ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(x+16,y+e.h,26,7,0,0,Math.PI*2);ctx.fill();if(e.type==='german'){ctx.fillStyle='#596164';ctx.fillRect(x+5,y+16,24,30);ctx.fillStyle='#2b3032';ctx.beginPath();ctx.arc(x+17,y+13,14,Math.PI,Math.PI*2);ctx.fill();ctx.fillRect(x+3,y+13,28,5);ctx.fillStyle='#161616';ctx.fillRect(x+10,y+25,16,4);ctx.fillStyle='#9a6b35';ctx.fillRect(x+27,y+30,24,4);ctx.fillStyle='#ffe892';ctx.font='10px sans-serif';ctx.fillText('德軍',x+4,y-6)}else if(e.type==='austro'){ctx.fillStyle='#8b2e2a';ctx.fillRect(x+6,y+14,23,32);ctx.fillStyle='#d5b57b';ctx.fillRect(x+9,y+2,18,14);ctx.fillStyle='#5a3e25';ctx.fillRect(x+6,y+0,24,6);ctx.fillStyle='#111';ctx.fillRect(x+11,y+25,14,4);ctx.fillStyle='#c6c6b8';ctx.fillRect(x+29,y+29,28,3);ctx.fillStyle='#ffe892';ctx.font='10px sans-serif';ctx.fillText('奧匈',x+4,y-6)}else{ctx.fillStyle='#111';ctx.fillRect(x+4,y+10,28,45);ctx.beginPath();ctx.arc(x+18,y+10,15,Math.PI,Math.PI*2);ctx.fill();ctx.fillStyle='#d33';ctx.fillRect(x+10,y+24,18,3);ctx.fillStyle='#ffe892';ctx.font='10px sans-serif';ctx.fillText('危機',x+3,y-6)}}
-function drawHazard(h){let x=h.x,y=h.y;if(h.t==='wire'){ctx.strokeStyle='#d8d8c8';ctx.lineWidth=2;for(let k=0;k<3;k++){ctx.beginPath();for(let i=0;i<h.w;i+=18){let yy=y+5+k*5+(i%36?4:-4);if(i===0)ctx.moveTo(x+i,yy);else ctx.lineTo(x+i,yy)}ctx.stroke()}for(let i=0;i<h.w;i+=22){ctx.beginPath();ctx.moveTo(x+i,y+h.h);ctx.lineTo(x+i+10,y);ctx.stroke()}}else if(h.t==='gas'){if(!h.active)return;let a=.18+.08*Math.sin(h.phase*3);for(let i=0;i<6;i++){ctx.fillStyle=`rgba(135,190,92,${a})`;ctx.beginPath();ctx.ellipse(x+20+i*32,y+h.h-20-Math.sin(h.phase+i)*12,42,28,0,0,Math.PI*2);ctx.fill()}}else if(h.t==='shell'){ctx.strokeStyle=h.active?'rgba(255,70,45,.95)':'rgba(255,70,45,.35)';ctx.setLineDash([8,8]);ctx.lineWidth=3;ctx.strokeRect(x,y,h.w,h.h);ctx.setLineDash([]);ctx.fillStyle=h.active?'#ff5a36':'#d95a46';ctx.font='900 15px sans-serif';ctx.fillText(h.active?'炮火！':'炮火警告',x+12,y+28);if(h.active){ctx.fillStyle='rgba(255,130,35,.3)';ctx.beginPath();ctx.arc(x+h.w/2,y+h.h-20,40,0,Math.PI*2);ctx.fill()}}else if(h.t==='bomber'){let px=x+(Math.sin(h.phase*1.6)+1)*h.w*.38;ctx.strokeStyle=h.active?'rgba(255,70,45,.95)':'rgba(255,70,45,.35)';ctx.setLineDash([6,8]);ctx.lineWidth=2;ctx.strokeRect(x,y,h.w,h.h);ctx.setLineDash([]);ctx.fillStyle='rgba(25,25,22,.88)';ctx.fillRect(px-18,y-92,52,12);ctx.fillRect(px,y-112,10,35);ctx.beginPath();ctx.moveTo(px+35,y-86);ctx.lineTo(px+55,y-74);ctx.lineTo(px+26,y-78);ctx.fill();ctx.fillStyle=h.active?'#ff5a36':'#d95a46';ctx.font='900 14px sans-serif';ctx.fillText(h.active?'空襲！':'轟炸警告',x+12,y+26);if(h.active){ctx.fillStyle='rgba(255,130,35,.28)';ctx.beginPath();ctx.arc(x+h.w/2,y+h.h-18,50,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(255,200,70,.45)';ctx.beginPath();ctx.moveTo(px+4,y-72);ctx.lineTo(x+h.w/2,y+h.h-20);ctx.stroke()}}}
-function drawItem(it){if(it.got)return;let bob=Math.sin(it.phase*3)*4,x=it.x,y=it.y+bob;if(it.t==='file'){ctx.fillStyle='#e3cd7d';ctx.fillRect(x,y,it.w,it.h);ctx.fillStyle='#8b3344';ctx.fillRect(x+5,y+8,18,3);ctx.fillRect(x+5,y+17,18,3);ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(x+3,y+3,it.w-6,it.h-6)}else if(it.t==='quiz'){// 情報站：電報機／無線電站，而不是問號情報站
-ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(x+18,y+38,34,8,0,0,Math.PI*2);ctx.fill();ctx.fillStyle='#2d3435';ctx.fillRect(x-2,y+12,40,26);ctx.fillStyle='#d3b76a';ctx.fillRect(x+5,y+4,24,10);ctx.strokeStyle='#d3b76a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+18,y+4);ctx.lineTo(x+4,y-14);ctx.moveTo(x+18,y+4);ctx.lineTo(x+34,y-14);ctx.stroke();ctx.fillStyle='#1b211f';ctx.fillRect(x+7,y+20,26,7);ctx.fillStyle='#77d0a1';ctx.beginPath();ctx.arc(x+31,y+14,5,0,Math.PI*2);ctx.fill();ctx.fillStyle='rgba(0,0,0,.72)';ctx.fillRect(x-15,y+42,72,22);ctx.fillStyle='#ffe892';ctx.font='13px sans-serif';ctx.fillText('情報站',x-6,y+58)}else if(it.t==='med'){ctx.fillStyle='#eee';ctx.fillRect(x,y,28,28);ctx.fillStyle='#c33';ctx.fillRect(x+11,y+4,6,20);ctx.fillRect(x+4,y+11,20,6)}else if(it.t==='mask'){ctx.fillStyle='#9fc49a';ctx.beginPath();ctx.arc(x+14,y+14,16,0,Math.PI*2);ctx.fill();ctx.fillStyle='#263';ctx.fillRect(x+8,y+11,12,5)}else{ctx.fillStyle='#f2e9a0';ctx.beginPath();ctx.arc(x+14,y+14,15,0,Math.PI*2);ctx.fill();ctx.fillStyle='#6d6';ctx.font='18px serif';ctx.fillText('✦',x+5,y+21)}}
-function drawFlag(){let x=flag.x,y=flag.y;ctx.fillStyle='#c6b16b';ctx.fillRect(x,y,flag.w,flag.h);ctx.fillStyle='#7a1f1f';ctx.fillRect(x+flag.w,y+28,70,42);ctx.fillStyle='#ffe892';ctx.font='900 16px sans-serif';ctx.fillText('VERSAILLES',x-48,y-12);ctx.font='12px sans-serif';ctx.fillText('跳旗越高，獎勵越高',x-72,y+flag.h+18);for(let i=0;i<5;i++){ctx.strokeStyle=`rgba(255,232,146,${.25+i*.12})`;ctx.beginPath();ctx.moveTo(x-10,y+i*45);ctx.lineTo(x+flag.w+10,y+i*45);ctx.stroke()}}
-loadLeaderboard();drawWorld();
-</script></body></html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8" />
+  <title>齊默爾曼行動：1917</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #0b1020;
+      overflow: hidden;
+      height: 100%;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans TC", "PingFang TC", sans-serif;
+    }
+
+    /* Canvas 全畫面（用 svh/dvh 防 iOS Safari 黑邊/跳動） */
+    #game{
+      display:block;
+      width:100vw;
+      height:100svh;      /* 新 Safari */
+      height:100dvh;      /* 新規格 */
+      background:#0b1020;
+      touch-action:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ===============================
+       手機虛擬控制器（圓形）
+       =============================== */
+
+    #touchUI{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom: calc(14px + env(safe-area-inset-bottom));
+      height: 170px;
+      pointer-events:none;
+      z-index:10;
+      display:none; /* JS 判斷手機先顯示 */
+    }
+
+    /* 左邊：圓形方向盤 */
+    #movePad{
+      position:absolute;
+      left: 18px;
+      bottom: 0;
+      width: 124px;
+      height: 124px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      pointer-events:auto;
+      touch-action:none;
+      backdrop-filter: blur(6px);
+    }
+    #movePad::after{
+      content:"";
+      position:absolute;
+      left:50%;
+      top:50%;
+      width: 38px;
+      height: 38px;
+      margin-left:-19px;
+      margin-top:-19px;
+      border-radius:50%;
+      background: rgba(255,255,255,0.22);
+    }
+
+    /* 右邊：跳躍掣（隔遠啲唔撞手） */
+    #btnJump{
+      position:absolute;
+      right: 24px;
+      bottom: 10px;
+      width: 98px;
+      height: 98px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.20);
+      background: rgba(255,255,255,0.16);
+      color: #fff;
+      font-size: 22px;
+      font-weight: 800;
+      pointer-events:auto;
+      touch-action:none;
+      backdrop-filter: blur(6px);
+    }
+    #btnJump:active{ background: rgba(255,255,255,0.28); }
+
+    /* V9 原版改良：開始前輸入名稱 + 模式選擇 */
+    #startOverlay{
+      position:fixed;
+      inset:0;
+      z-index:30;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      box-sizing:border-box;
+      background:
+        radial-gradient(circle at 22% 20%, rgba(180,80,40,.25), transparent 26%),
+        radial-gradient(circle at 78% 70%, rgba(80,110,160,.22), transparent 30%),
+        rgba(5,8,18,.88);
+      color:#f4f0e3;
+    }
+    #startCard{
+      width:min(980px, 96vw);
+      max-height:92vh;
+      overflow:auto;
+      border:1px solid rgba(243,199,75,.45);
+      background:rgba(10,14,26,.86);
+      box-shadow:0 18px 60px rgba(0,0,0,.45);
+      padding:26px;
+      box-sizing:border-box;
+    }
+    #startCard h1{margin:0 0 8px;font-size:34px;letter-spacing:.04em;color:#ffd166;}
+    #startCard .sub{opacity:.88;margin-bottom:18px;line-height:1.55;}
+    #startGrid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;}
+    #startCard input{
+      width:100%;
+      box-sizing:border-box;
+      padding:12px 14px;
+      border-radius:10px;
+      border:1px solid rgba(243,199,75,.5);
+      background:rgba(0,0,0,.35);
+      color:#fff;
+      font-size:18px;
+      outline:none;
+      margin:8px 0 14px;
+    }
+    #startCard button{
+      border:1px solid rgba(243,199,75,.55);
+      border-radius:12px;
+      padding:14px 18px;
+      margin:6px 8px 6px 0;
+      color:#fff;
+      background:rgba(160,105,30,.75);
+      font-size:17px;
+      font-weight:800;
+      cursor:pointer;
+    }
+    #startCard button.secondary{background:rgba(255,255,255,.10);}
+    #leaderboardBox{
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+      padding:14px;
+      min-height:190px;
+      line-height:1.55;
+    }
+    #leaderboardBox h3{margin:0 0 8px;color:#ffd166;}
+    .smallNote{font-size:14px;opacity:.78;line-height:1.6;}
+    @media(max-width:760px){
+      #startGrid{grid-template-columns:1fr;}
+      #startCard h1{font-size:26px;}
+      #startCard{padding:18px;}
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div id="startOverlay">
+    <div id="startCard">
+      <h1>1914–1919：戰爭與和平任務</h1>
+      <div class="sub">
+        你是戰時情報員。沿途收集情報檔案，進入情報站破解一戰前因、戰爭發展與巴黎和會的關鍵資料。情報越完整，越有助達成巴黎和會協定。
+      </div>
+      <div id="startGrid">
+        <div>
+          <label for="playerNameInput"><b>玩家名稱</b></label>
+          <input id="playerNameInput" maxlength="12" placeholder="例如：3A Chan / 歷史情報員" />
+          <div>
+            <button id="btnEasy">開始簡易模式</button>
+            <button id="btnHard" class="secondary">開始困難模式</button>
+          </div>
+          <p class="smallNote">
+            簡易模式：較多生命、較寬鬆時間。困難模式：較少生命、較多敵人及情報站。完成或失敗後，系統會自動上載成績到 Google Sheet，不再另行詢問。
+          </p>
+        </div>
+        <div id="leaderboardBox">
+          <h3>網上龍虎榜</h3>
+          <div id="leaderboardContent">讀取中……</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="game"></canvas>
+
+  <!-- 手機虛擬控制器：圓形方向盤 + 跳躍 -->
+  <div id="touchUI" aria-hidden="true">
+    <div id="movePad" aria-label="移動"></div>
+    <button id="btnJump" aria-label="跳躍">⤒</button>
+  </div>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const LEADERBOARD_URL = "https://script.google.com/macros/s/AKfycbznfJMNPGJqktjMsqBKZCiE5BAdZxafipeEflXFWBd9KxHRWAqyAgWH1yfXbk_W_GkN/exec";
+
+    function loadLeaderboard() {
+      const box = document.getElementById("leaderboardContent");
+      if (!box) return;
+      box.textContent = "讀取中……";
+      fetch(LEADERBOARD_URL + "?top=10")
+        .then(r => r.json())
+        .then(rows => {
+          if (!Array.isArray(rows) || rows.length === 0) {
+            box.innerHTML = "暫無紀錄。";
+            return;
+          }
+          const easy = rows.filter(r => r.mode === "easy").slice(0, 5);
+          const hard = rows.filter(r => r.mode === "hard").slice(0, 5);
+          const render = (title, arr) => `<b>${title}</b><br>` + (arr.length ? arr.map((r,i)=>`${i+1}. ${String(r.name||"無名情報員")}｜${Number(r.score||0)}分｜${Number(r.correct||0)}/${Number(r.total||0)}`).join("<br>") : "未有紀錄");
+          box.innerHTML = render("簡易 Top 5", easy) + "<br><br>" + render("困難 Top 5", hard);
+        })
+        .catch(() => {
+          box.innerHTML = "未能讀取網上榜；完成遊戲後仍會嘗試自動上載。";
+        });
+    }
+
+    const cleanName = (name) => {
+      let s = String(name || "").trim().replace(/[<>"'`]/g, "").slice(0, 12);
+      const bad = ["仆街","屌","on9","傻閪","撚","柒","fuck","shit","bitch"];
+      bad.forEach(w => s = s.split(w).join("*"));
+      if (!s || /^[\W_]+$/u.test(s)) s = "無名情報員";
+      return s;
+    };
+
+
+    /* =========================================================
+     * 齊默爾曼行動：1917（穩定版 v5.1）
+     * ✅ 修正黑MON：回歸穩陣 fixed internal res + DPR resize
+     * ✅ 手機控制：圓形方向盤（左右拖）+ 跳躍分遠
+     * ✅ 移除任何 btnLeft/btnRight/bindHold 殘碼，避免爆 error
+     * ========================================================= */
+
+    const T = {
+      title: "1914–1919：戰爭與和平任務",
+      hudScore: "分數",
+      hudLives: "生命",
+      hudTime: "時間",
+      pressToContinue: "電腦：SPACE/ENTER　｜　手機：點畫面繼續",
+      introTitle: "任務簡報：Room 40（40號房間）",
+      introLines: [
+        "1917年，德國外長齊默爾曼向墨西哥發出一封加密電報。",
+        "英國情報部門 Room 40 成功截獲並破譯。",
+        "你係英國情報員，要穿越城市避開德軍，",
+        "收集機密文件，並把電報送到唐寧街10號。"
+      ],
+      rulesTitle: "遊戲規則與注意事項",
+      rulesLines: [
+        "【操作】",
+        "電腦：← → 移動，SPACE/↑ 跳",
+        "手機：左邊圓形方向盤移動｜右邊圓形掣跳",
+        "",
+        "【情報站📡】",
+        "進入情報站要破解歷史情報；答錯→左右反轉10秒（主角會閃＋中央提示）",
+        "",
+        "【敵人👢】",
+        "✅ 只有「踏中敵人頭部」先會彈出「一戰MC」",
+        "❌ 側邊撞到 / 被子彈射中：只會扣命＋擊退（唔需要答題）",
+        "",
+        "【終點🚪】",
+        "到唐寧街10號要答「齊默爾曼電報」史料MC；答啱先過關",
+        "",
+        "【提示】",
+        "手機畫面太細：建議打橫玩（Landscape）"
+      ],
+      winTitle: "任務成功",
+      winLines: [
+        "你成功把齊默爾曼電報送達唐寧街10號。",
+        "電報公開後在美國引起極大憤怒，推動民意反德。",
+        "美國於1917年4月參戰，改變第一次世界大戰形勢。"
+      ],
+      loseTitle: "任務失敗",
+      timeUp: "時間耗盡，電報未能送達唐寧街10號。",
+      quizHint: "按 1–4 作答（或點選選項）",
+      quizDoorTitle: "過關史料題（齊默爾曼電報）",
+      quizStarTitle: "情報站：破解關鍵情報",
+      quizWWITitle: "戰場遭遇：第一次世界大戰題"
+    };
+
+    const QUIZ_TELEGRAM = [
+      {
+        q: "齊默爾曼電報的主要內容係咩？",
+        options: [
+          "德國邀請墨西哥結盟；若美國參戰便共同對付美國",
+          "德國要求墨西哥立即入侵加拿大",
+          "英國向墨西哥承諾戰後割讓德州",
+          "美國要求英國退出第一次世界大戰"
+        ],
+        answer: 0,
+        explain: "電報提議：如美國參戰，德國希望墨西哥與德國結盟對抗美國。"
+      },
+      {
+        q: "Room 40（40號房間）最主要負責邊類工作？",
+        options: ["密碼破譯/情報解讀", "製造坦克", "海軍補給", "戰地醫療"],
+        answer: 0,
+        explain: "Room 40 以破譯及情報分析著稱。"
+      }
+    ];
+
+    const QUIZ_STARS = [
+      {"q": "同盟制度如何使一場地區衝突擴大？", "options": ["盟國有軍事義務，容易把局部衝突變成陣營戰爭", "各國會立即裁軍", "小國不再需要大國支持", "殖民地問題自然消失"], "answer": 0, "explain": "同盟制度令盟友互相支援，地區危機可迅速擴大。"},
+      {"q": "1907年三國協約主要包括哪些國家？", "options": ["英國、法國、俄國", "德國、奧匈、意大利", "英國、德國、俄國", "法國、意大利、奧匈"], "answer": 0, "explain": "三國協約由英、法、俄組成。"},
+      {"q": "1882年三國同盟主要包括哪些國家？", "options": ["德國、奧匈、意大利", "英國、法國、俄國", "英國、德國、意大利", "俄國、塞爾維亞、法國"], "answer": 0, "explain": "三國同盟由德國、奧匈和意大利組成。"},
+      {"q": "巴爾幹半島被稱為歐洲火藥庫，最主要因為甚麼？", "options": ["民族矛盾複雜且列強介入", "當地完全沒有民族主義", "英國已完全控制該區", "該區沒有任何大國利益"], "answer": 0, "explain": "巴爾幹的民族主義與列強競爭令危機容易爆發。"},
+      {"q": "塞拉耶佛暗殺事件直接觸發哪兩國衝突？", "options": ["奧匈與塞爾維亞", "英國與法國", "德國與美國", "俄國與日本"], "answer": 0, "explain": "奧匈皇儲遇刺後，奧匈向塞爾維亞施壓並宣戰。"},
+      {"q": "英德海軍競賽主要圍繞哪類軍艦？", "options": ["無畏艦", "航空母艦", "潛水艇", "驅逐艦"], "answer": 0, "explain": "無畏艦競賽加劇英德互相猜疑。"},
+      {"q": "第一次摩洛哥危機主要反映哪兩國矛盾？", "options": ["法國與德國", "英國與俄國", "意大利與俄國", "奧匈與塞爾維亞"], "answer": 0, "explain": "摩洛哥危機反映法國殖民擴張與德國挑戰。"},
+      {"q": "1908年波斯尼亞危機中，哪國兼併波斯尼亞和黑塞哥維那？", "options": ["奧匈帝國", "英國", "法國", "美國"], "answer": 0, "explain": "奧匈兼併兩地，引起塞爾維亞和俄國不滿。"},
+      {"q": "德國推行泛日耳曼主義，主要想加強哪一民族勢力？", "options": ["日耳曼民族", "斯拉夫民族", "拉丁民族", "阿拉伯民族"], "answer": 0, "explain": "泛日耳曼主義強調日耳曼民族優越與擴張。"},
+      {"q": "俄國常以甚麼理念支持巴爾幹斯拉夫民族？", "options": ["泛斯拉夫主義", "泛日耳曼主義", "孤立主義", "綏靖主義"], "answer": 0, "explain": "俄國以泛斯拉夫主義包裝其在巴爾幹的影響力。"},
+      {"q": "以下哪項最能說明軍備競賽的影響？", "options": ["加深恐懼與猜疑，使戰爭準備更充分", "令各國完全信任對方", "使殖民地爭奪停止", "令國聯提前成立"], "answer": 0, "explain": "軍備競賽令列強更易相信戰爭不可避免。"},
+      {"q": "齊默爾曼電報為何刺激美國？", "options": ["德國試圖拉攏墨西哥對抗美國", "英國要求美國退出戰爭", "法國入侵美國本土", "俄國支持德國"], "answer": 0, "explain": "電報內容威脅美國安全與外交利益。"},
+      {"q": "1917年美國參戰對協約國有何影響？", "options": ["增強人力、物資和士氣", "令協約國立即投降", "令德國取得美國援助", "令俄國重新加入戰爭"], "answer": 0, "explain": "美國參戰增強協約國整體力量。"},
+      {"q": "1917年俄國退出戰爭主要與哪件事有關？", "options": ["俄國革命", "巴黎和會", "無畏艦下水", "國聯成立"], "answer": 0, "explain": "俄國革命後新政權與德國議和，退出戰爭。"},
+      {"q": "巴黎和會由哪三位主要領袖主導？", "options": ["威爾遜、勞萊喬治、克里孟梭", "希特拉、墨索里尼、史太林", "尼古拉二世、威廉二世、斐迪南", "羅斯福、邱吉爾、史太林"], "answer": 0, "explain": "巴黎和會的主要決定由美、英、法三巨頭主導。"},
+      {"q": "威爾遜的十四點和平原則強調甚麼？", "options": ["民族自決與建立國際組織", "嚴懲德國至完全瓦解", "恢復所有帝國", "取消所有小國"], "answer": 0, "explain": "威爾遜重視民族自決和國際聯盟。"},
+      {"q": "克里孟梭對德國的態度較強硬，主要因為甚麼？", "options": ["法國曾兩次受德國侵略", "法國與德國從無衝突", "法國希望德國統一歐洲", "法國支持德國重建軍力"], "answer": 0, "explain": "法國安全受威脅，克里孟梭希望削弱德國。"},
+      {"q": "《凡爾賽條約》中哪項最直接傷害德國民族自尊？", "options": ["戰爭罪責條款", "成立國聯", "民族自決", "裁軍會議"], "answer": 0, "explain": "德國被迫承擔全部戰爭責任，引起強烈不滿。"},
+      {"q": "《凡爾賽條約》對德國軍事的限制包括甚麼？", "options": ["限制軍隊、禁止潛艇和軍用飛機", "容許建立龐大空軍", "准許德奧合併", "給予德國更多殖民地"], "answer": 0, "explain": "條約大幅削弱德國軍力。"},
+      {"q": "國際聯盟的主要目標是甚麼？", "options": ["維持和平與處理國際糾紛", "鼓勵侵略戰爭", "重建三國同盟", "瓜分德國本土"], "answer": 0, "explain": "國聯是戰後維持和平的集體安全嘗試。"},
+      {"q": "國聯的一大弱點是甚麼？", "options": ["沒有獨立軍隊且美國沒有加入", "擁有過多軍隊", "只有美國參加", "完全不處理和平問題"], "answer": 0, "explain": "缺乏美國和軍事執行力削弱國聯。"},
+      {"q": "民族自決在巴黎和會中有甚麼限制？", "options": ["未能平等照顧所有少數民族", "完全解決所有民族矛盾", "只適用於英國本土", "完全沒有被提及"], "answer": 0, "explain": "新國界仍留下少數民族問題。"},
+      {"q": "意大利對巴黎和會不滿，主要因為甚麼？", "options": ["所得利益少於戰前承諾", "獲得全部巴爾幹半島", "不用承擔任何代價", "成為歐洲唯一強國"], "answer": 0, "explain": "意大利認為戰勝後所得回報不足。"},
+      {"q": "巴黎和會與二戰遠因有何關係？", "options": ["德、意不滿和約，助長極權主義興起", "令歐洲永久和平", "令德國完全接受戰後秩序", "令國聯擁有強大軍隊"], "answer": 0, "explain": "和約不滿與戰後問題為極權主義提供土壤。"},
+      {"q": "以下哪項屬於時序正確？", "options": ["塞拉耶佛事件 → 一戰爆發 → 巴黎和會 → 凡爾賽條約", "巴黎和會 → 塞拉耶佛事件 → 一戰爆發 → 凡爾賽條約", "凡爾賽條約 → 一戰爆發 → 塞拉耶佛事件 → 巴黎和會", "美國參戰 → 塞拉耶佛事件 → 巴黎和會 → 一戰爆發"], "answer": 0, "explain": "1914事件與戰爭在前，1919和會與條約在後。"}
+    ];
+
+    const QUIZ_WWI = [
+      {"q": "以下哪一項通常被視為一戰的導火線？", "options": ["奧匈帝國皇儲斐迪南大公在薩拉熱窩被刺", "德國對波蘭宣戰", "俄國爆發十月革命", "美國對德國宣戰"], "answer": 0, "explain": "薩拉熱窩事件觸發連鎖宣戰。"},
+      {"q": "西線最典型的戰爭形式係？", "options": ["壕溝戰", "閃電戰", "游擊戰", "核戰"], "answer": 0, "explain": "西線長期僵持，壕溝戰造成巨大消耗。"},
+      {"q": "以下哪一國最初並非協約國成員？", "options": ["意大利", "英國", "法國", "俄國"], "answer": 0, "explain": "意大利最初屬三國同盟，其後倒戈。"},
+      {"q": "德國於一戰前主要體現哪種民族主義？", "options": ["泛日耳曼主義", "泛斯拉夫主義", "民族自決", "孤立主義"], "answer": 0, "explain": "德國強調日耳曼民族擴張與優越。"},
+      {"q": "俄國於一戰前常以哪一理念包裝其民族主義？", "options": ["泛斯拉夫主義", "法西斯主義", "自由民族主義", "帝國主義現代化"], "answer": 0, "explain": "俄國自稱保護斯拉夫民族。"},
+      {"q": "同盟制度的最大危險是甚麼？", "options": ["把地區性衝突擴大為世界性戰爭", "阻止任何國家參戰", "使英德成為盟友", "令軍備競賽停止"], "answer": 0, "explain": "盟國義務可造成連鎖參戰。"},
+      {"q": "殖民地爭奪如何影響列強關係？", "options": ["加劇海外衝突和互相猜疑", "令列強共享殖民地", "完全消除歐洲矛盾", "使德國放棄擴張"], "answer": 0, "explain": "殖民競爭令英法德等國矛盾加深。"},
+      {"q": "軍備競賽如何推高戰爭風險？", "options": ["各國擴軍並把對方視為假想敵", "各國立即裁軍", "各國放棄戰爭計劃", "各國只發展文化交流"], "answer": 0, "explain": "軍備競賽令危機更易軍事化。"},
+      {"q": "第一次摩洛哥危機後，德國處境如何？", "options": ["被孤立，法德關係惡化", "成為法國盟友", "取得摩洛哥全部控制權", "退出歐洲政治"], "answer": 0, "explain": "會議結果不利德國，德國更感孤立。"},
+      {"q": "波斯尼亞危機加劇哪兩方的不滿？", "options": ["塞爾維亞及俄國對奧匈的不滿", "英國對法國的不滿", "美國對墨西哥的不滿", "意大利對英國的不滿"], "answer": 0, "explain": "奧匈兼併波斯尼亞引起斯拉夫民族不滿。"},
+      {"q": "巴爾幹戰爭的結果之一是甚麼？", "options": ["巴爾幹局勢更不穩定", "奧匈與塞爾維亞完全和解", "俄國完全退出巴爾幹", "民族主義消失"], "answer": 0, "explain": "巴爾幹戰爭令區內民族與列強矛盾更尖銳。"},
+      {"q": "以下哪項最能解釋英國擔心德國海軍擴張？", "options": ["英國重視海上霸權與帝國安全", "英國希望德國控制海洋", "英國沒有殖民地", "英國沒有海軍"], "answer": 0, "explain": "英國依賴海軍保護帝國與貿易。"},
+      {"q": "以下哪項是總體戰的特徵？", "options": ["國家動員經濟、人民和資源支持戰爭", "戰爭只限士兵參與", "完全不影響平民", "不需工業生產"], "answer": 0, "explain": "一戰動員整個社會與經濟。"},
+      {"q": "壕溝戰造成甚麼問題？", "options": ["傷亡巨大而戰線推進有限", "戰爭迅速結束", "士兵生活舒適", "完全沒有新式武器"], "answer": 0, "explain": "壕溝戰造成消耗與僵持。"},
+      {"q": "毒氣、坦克、機槍等新式武器反映甚麼？", "options": ["科技令戰爭殺傷力增加", "戰爭變得無傷亡", "外交取代軍事", "國聯成功止戰"], "answer": 0, "explain": "新式武器提高一戰破壞力。"},
+      {"q": "無限制潛艇戰為何刺激美國？", "options": ["威脅美國商船和人民安全", "保護美國貿易", "令美國加入德國陣營", "使英國立即投降"], "answer": 0, "explain": "德國潛艇戰損害美國利益。"},
+      {"q": "齊默爾曼電報與美國參戰有何關係？", "options": ["加強美國反德情緒", "令美國支持德國", "令墨西哥攻打法國", "令俄國重返戰場"], "answer": 0, "explain": "電報被公開後刺激美國輿論。"},
+      {"q": "1917年為何是戰爭轉捩點？", "options": ["美國參戰與俄國退出同時改變戰局", "德國簽署凡爾賽條約", "國聯成立", "二戰爆發"], "answer": 0, "explain": "1917年協約國和同盟國力量平衡受重大影響。"},
+      {"q": "巴黎和會於哪一年召開？", "options": ["1919年", "1914年", "1917年", "1939年"], "answer": 0, "explain": "巴黎和會於一戰後的1919年召開。"},
+      {"q": "巴黎和會中戰敗國有何地位？", "options": ["不獲准參與主要決策", "完全主導會議", "可否決所有條款", "主持和會"], "answer": 0, "explain": "戰敗國基本上被排除在談判外。"},
+      {"q": "威爾遜對德國態度較寬容，主要原因是甚麼？", "options": ["認為德國對歐洲重建仍重要", "法國曾被德國入侵", "美國要吞併德國", "美國已被德國佔領"], "answer": 0, "explain": "威爾遜希望建立較持久和公正和平。"},
+      {"q": "勞萊喬治在巴黎和會中的立場較接近甚麼？", "options": ["在理想與嚴懲之間尋求折衷", "要求完全消滅德國", "完全支持德國免責", "拒絕任何和平條約"], "answer": 0, "explain": "英國需要回應民意，也不想德國過度衰弱。"},
+      {"q": "克里孟梭主張嚴懲德國的主要目的？", "options": ["保障法國安全，使德國不能再侵略", "協助德國重建軍隊", "讓德國取得法國領土", "取消法國賠款"], "answer": 0, "explain": "法國希望削弱德國以避免再受侵略。"},
+      {"q": "《凡爾賽條約》要求德國承擔甚麼？", "options": ["戰爭全部罪責", "國聯主席職位", "所有協約國債務", "英國殖民地"], "answer": 0, "explain": "戰爭罪責條款令德國極度不滿。"},
+      {"q": "《凡爾賽條約》規定德國軍隊上限約為多少？", "options": ["10萬人", "100萬人", "500萬人", "無上限"], "answer": 0, "explain": "德國只准保留小規模軍隊。"},
+      {"q": "《凡爾賽條約》如何處理阿爾薩斯和洛林？", "options": ["歸還法國", "交給美國", "成為德國殖民地", "交給俄國"], "answer": 0, "explain": "阿爾薩斯和洛林歸還法國。"},
+      {"q": "波蘭走廊對德國有何影響？", "options": ["把東普魯士與德國本土分開", "使德國取得更多港口", "令德國與奧地利合併", "使法國失去邊界"], "answer": 0, "explain": "波蘭走廊造成德國領土分隔。"},
+      {"q": "德國被禁止與哪國合併？", "options": ["奧地利", "英國", "美國", "日本"], "answer": 0, "explain": "條約禁止德奧合併。"},
+      {"q": "國聯成立的理念與哪位領袖關係最密切？", "options": ["威爾遜", "克里孟梭", "威廉二世", "墨索里尼"], "answer": 0, "explain": "威爾遜的十四點包含建立國際組織。"},
+      {"q": "美國拒絕加入國聯造成甚麼問題？", "options": ["削弱國聯威信與執行力", "令國聯更有軍力", "令德國完全服從", "使國聯變成美國組織"], "answer": 0, "explain": "倡議者美國缺席削弱國聯。"},
+      {"q": "國聯沒有獨立軍隊代表甚麼？", "options": ["執行制裁和軍事行動能力有限", "能直接攻擊所有侵略國", "不需成員支持", "可自行佔領德國"], "answer": 0, "explain": "國聯依賴成員國意願。"},
+      {"q": "國聯重大決議常需一致同意，這造成甚麼？", "options": ["行動遲緩，難以迅速應對危機", "可快速作戰", "完全避免分歧", "令小國無票"], "answer": 0, "explain": "一致同意制成為行動障礙。"},
+      {"q": "《羅加諾公約》的作用包括甚麼？", "options": ["改善德法關係，確認西部邊界", "直接廢除凡爾賽條約", "建立二戰同盟", "使德國退出國聯"], "answer": 0, "explain": "羅加諾有助舒緩西歐緊張。"},
+      {"q": "《凱格—白里安公約》的主要理念是甚麼？", "options": ["譴責以戰爭解決國際爭端", "鼓勵侵略戰爭", "建立德國空軍", "重建三國同盟"], "answer": 0, "explain": "公約反映和平理想，但缺乏強制力。"},
+      {"q": "裁軍會議失敗反映甚麼？", "options": ["各國互不信任，難以真正削減軍備", "各國完全願意裁軍", "國聯有強大軍隊", "德國已完全滿意"], "answer": 0, "explain": "安全疑慮令裁軍難以落實。"},
+      {"q": "意大利不滿巴黎和會的原因是甚麼？", "options": ["未取得期望中的領土回報", "被要求支付所有德國賠款", "被完全分割", "失去所有本土"], "answer": 0, "explain": "意大利認為自己在和會中被忽視。"},
+      {"q": "德國不滿凡爾賽條約的原因不包括哪項？", "options": ["獲得更多殖民地", "戰爭罪責", "巨額賠款", "軍事限制"], "answer": 0, "explain": "德國沒有獲得更多殖民地。"},
+      {"q": "戰後經濟問題如何助長極權主義？", "options": ["民眾渴望強人政府解決混亂", "民眾完全滿意民主政府", "所有國家經濟繁榮", "國聯即時提供軍隊"], "answer": 0, "explain": "經濟不穩令強人政治更有吸引力。"},
+      {"q": "法西斯主義的特徵包括甚麼？", "options": ["一黨專政、服從國家、崇尚戰爭", "多黨自由選舉", "反對所有軍事擴張", "完全不控制人民"], "answer": 0, "explain": "法西斯主義強調國家至上與獨裁。"},
+      {"q": "納粹主義在德國興起與哪項關係密切？", "options": ["凡爾賽條約不滿與經濟危機", "英國海軍擴張成功", "國聯擁有強大軍隊", "德國成為戰勝國"], "answer": 0, "explain": "德國戰後不滿為納粹宣傳提供基礎。"},
+      {"q": "巴黎和會是否完全實現民族自決？", "options": ["否，仍有少數民族被置於他國統治下", "是，所有民族完全獨立", "是，殖民地即時獨立", "否，因完全沒有提及民族"], "answer": 0, "explain": "民族自決未能一致與全面實行。"},
+      {"q": "以下事件正確時序是？", "options": ["摩洛哥危機 → 波斯尼亞危機 → 巴爾幹戰爭 → 塞拉耶佛事件", "塞拉耶佛事件 → 摩洛哥危機 → 巴黎和會 → 巴爾幹戰爭", "凡爾賽條約 → 塞拉耶佛事件 → 摩洛哥危機 → 一戰爆發", "國聯成立 → 一戰爆發 → 巴爾幹戰爭 → 巴黎和會"], "answer": 0, "explain": "危機逐步升級，最終在1914年爆發戰爭。"},
+      {"q": "以下事件正確時序是？", "options": ["美國參戰 → 德國停戰 → 巴黎和會 → 凡爾賽條約", "巴黎和會 → 美國參戰 → 塞拉耶佛事件 → 德國停戰", "凡爾賽條約 → 美國參戰 → 德國停戰 → 巴黎和會", "德國停戰 → 塞拉耶佛事件 → 美國參戰 → 巴黎和會"], "answer": 0, "explain": "1917美國參戰，1918停戰，1919和會與條約。"},
+      {"q": "一戰與巴黎和會如何連接到二戰遠因？", "options": ["和約不滿、經濟問題和集體安全失效助長侵略", "和會永久消除侵略", "國聯完全阻止德意擴張", "德國完全放棄復仇"], "answer": 0, "explain": "戰後秩序問題逐步成為二戰遠因。"},
+      {"q": "如果學生收集更多情報，最能象徵甚麼？", "options": ["更全面理解戰爭成因與和約安排，有助達成和平協定", "可以直接消除所有戰爭", "可以不需回答任何問題", "代表德國自動勝利"], "answer": 0, "explain": "情報完整有助分析前因後果和作出和平安排。"}
+    ];
+
+    const PALETTE = {
+      " ": null,
+      "0": "#0b1020",
+      "S": "#f4f0e3",
+      "K": "#1b1f2e",
+      "G": "#4b566e",
+      "B": "#7a3b2e",
+      "R": "#b0463c",
+      "Y": "#f3c74b",
+      "L": "#c9a07b",
+      "D": "#3a6b3f",
+      "N": "#2a3e6e",
+      "W": "#cfd8e6",
+      "E": "#b9c7e6",
+      "O": "#ffb703"
+    };
+
+    function drawSprite(ctx, sprite, x, y, scale = 3, flip = false) {
+      for (let j = 0; j < sprite.length; j++) {
+        const row = sprite[j];
+        for (let i = 0; i < row.length; i++) {
+          const ch = row[i];
+          const col = PALETTE[ch];
+          if (!col) continue;
+          const px = flip ? row.length - 1 - i : i;
+          ctx.fillStyle = col;
+          ctx.fillRect((x + px * scale) | 0, (y + j * scale) | 0, scale, scale);
+        }
+      }
+    }
+
+    const SPRITES = {
+      playerIdle: [
+        "   NNN    ",
+        "  NYYYN   ",
+        "  NYYNN   ",
+        "   LL     ",
+        "  DDDDD   ",
+        "  DDDDD   ",
+        "  D D D   ",
+        "  K   K   "
+      ],
+      playerWalk1: [
+        "   NNN    ",
+        "  NYYYN   ",
+        "  NYYNN   ",
+        "   LL     ",
+        "  DDDDD   ",
+        "  DDDDD   ",
+        "  D  D    ",
+        " K    K   "
+      ],
+      playerWalk2: [
+        "   NNN    ",
+        "  NYYYN   ",
+        "  NYYNN   ",
+        "   LL     ",
+        "  DDDDD   ",
+        "  DDDDD   ",
+        "   D  D   ",
+        "  K   K   "
+      ],
+      enemy1: [
+        "   K K    ",
+        "  KYYYK   ",
+        "  KYYYK   ",
+        "   LL     ",
+        "  GGGGG   ",
+        "  GGGGG   ",
+        "  G G G   ",
+        "  K   K   "
+      ],
+      enemy2: [
+        "   K K    ",
+        "  KYYYK   ",
+        "  KYYYK   ",
+        "   LL     ",
+        "  GGGGG   ",
+        "  GGGGG   ",
+        "  G  G    ",
+        " K    K   "
+      ],
+      shooter1: [
+        "   K K    ",
+        "  KYYYK   ",
+        "  KYYYK   ",
+        "   LL     ",
+        "  GGGGG   ",
+        "  GGGGG   ",
+        "  GGGGO   ",
+        "  K   K   "
+      ],
+      shooter2: [
+        "   K K    ",
+        "  KYYYK   ",
+        "  KYYYK   ",
+        "   LL     ",
+        "  GGGGG   ",
+        "  GGGGO   ",
+        "  GGGGG   ",
+        "  K   K   "
+      ],
+      bullet: [
+        " O ",
+        "OOO",
+        " O "
+      ],
+      doc: [
+        "  SSSS  ",
+        " SSSSSS ",
+        " SS KSS ",
+        " SSSSSS ",
+        " SS KK  ",
+        "  SSSS  "
+      ],
+      star: [
+        "  KKK  ",
+        " KYYYK ",
+        "KYKKYK ",
+        "KYYYYK ",
+        "  YK   ",
+        " K K   ",
+        "K   K  "
+      ],
+      brick: [
+        "RRRRRRRR",
+        "RBRBRBRR",
+        "RRRRRRRR",
+        "RBRBRBRR",
+        "RRRRRRRR",
+        "RBRBRBRR",
+        "RRRRRRRR",
+        "RBRBRBRR"
+      ],
+      beam: [
+        "GGGGGGGGGGGG",
+        "GEEEEEEEEEEG",
+        "GGGGGGGGGGGG"
+      ],
+      cloud: [
+        "   WWWW    ",
+        " WWWWWWWW  ",
+        "WWWWWWWWWW ",
+        " WWWWWWWW  ",
+        "   WWWW    "
+      ],
+      door: [
+        "KKKKKKKKKK",
+        "KYYYYYYYYK",
+        "KYYKKKKYYK",
+        "KYYK  KYYK",
+        "KYYK  KYYK",
+        "KYYK  KYYK",
+        "KYYK  KYYK",
+        "KYYKKKKYYK",
+        "KYYYYYYYYK",
+        "KKKKKKKKKK"
+      ]
+    };
+
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+    const lerp = (a, b, t) => a + (b - a) * t;
+
+    class AABB {
+      constructor(x, y, w, h) { this.x = x; this.y = y; this.w = w; this.h = h; }
+      intersects(o) {
+        return (
+          this.x < o.x + o.w &&
+          this.x + this.w > o.x &&
+          this.y < o.y + o.h &&
+          this.y + this.h > o.y
+        );
+      }
+    }
+
+    class Platform {
+      constructor(x, y, w, h, type = "ground") { this.x = x; this.y = y; this.w = w; this.h = h; this.type = type; }
+      get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
+      draw(ctx, camX, scale) {
+        const sx = (this.x - camX) | 0;
+        const sy = this.y | 0;
+
+        if (this.type === "ground") {
+          const tileW = SPRITES.brick[0].length * scale;
+          const tileH = SPRITES.brick.length * scale;
+          for (let yy = sy; yy < sy + this.h; yy += tileH) {
+            for (let xx = sx; xx < sx + this.w; xx += tileW) drawSprite(ctx, SPRITES.brick, xx, yy, scale);
+          }
+        } else {
+          const sprW = SPRITES.beam[0].length * scale;
+          for (let xx = sx; xx < sx + this.w; xx += sprW) drawSprite(ctx, SPRITES.beam, xx, sy, scale);
+          ctx.fillStyle = "rgba(0,0,0,0.18)";
+          ctx.fillRect(sx, sy + SPRITES.beam.length * scale, this.w, 3);
+        }
+      }
+    }
+
+    class Item {
+      constructor(x, y) { this.x = x; this.y = y; this.w = 18; this.h = 14; this.collected = false; this.bob = 0; }
+      get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
+      update(dt) { this.bob += dt * 6; }
+      draw(ctx, camX, scale) {
+        if (this.collected) return;
+        const bobY = Math.sin(this.bob) * 3;
+        drawSprite(ctx, SPRITES.doc, (this.x - camX) | 0, (this.y + bobY) | 0, scale);
+      }
+    }
+
+    class StarTrigger {
+      constructor(x, y, qIndex) { this.x = x; this.y = y; this.w = 22; this.h = 22; this.used = false; this.qIndex = qIndex; this.bob = 0; }
+      get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
+      update(dt) { this.bob += dt * 6; }
+      draw(ctx, camX, scale) {
+        if (this.used) return;
+        const bobY = Math.sin(this.bob) * 3;
+        const sx = (this.x - camX) | 0;
+        const sy = (this.y + bobY) | 0;
+        drawSprite(ctx, SPRITES.star, sx, sy, scale);
+        ctx.fillStyle = "rgba(0,0,0,0.55)";
+        ctx.fillRect(sx - 8, sy + 24, 64, 20);
+        ctx.fillStyle = "rgba(243,199,75,0.95)";
+        ctx.font = "bold 12px system-ui, sans-serif";
+        ctx.fillText("情報站", sx - 2, sy + 39);
+      }
+    }
+
+    class Bullet {
+      constructor(x, y, vx, vy = 0) {
+        this.x = x; this.y = y;
+        this.vx = vx; this.vy = vy;
+        this.w = 10; this.h = 10;
+        this.dead = false;
+        this.life = 2.6;
+      }
+      get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
+      update(dt, game) {
+        if (this.dead) return;
+        this.life -= dt;
+        if (this.life <= 0) { this.dead = true; return; }
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+
+        const a = this.aabb;
+        for (const p of game.platforms) if (a.intersects(p.aabb)) { this.dead = true; return; }
+
+        if (this.x < -200 || this.x > game.levelWidth + 200 || this.y < -200 || this.y > game.H + 300) this.dead = true;
+      }
+      draw(ctx, camX, scale) {
+        if (this.dead) return;
+        drawSprite(ctx, SPRITES.bullet, (this.x - camX) | 0, this.y | 0, Math.max(2, scale - 1));
+      }
+    }
+
+    class Enemy {
+      constructor(x, y, patrolMin, patrolMax) {
+        this.x = x; this.y = y;
+        this.w = 22; this.h = 30;
+        this.vx = 35; this.vy = 0;
+        this.patrolMin = patrolMin; this.patrolMax = patrolMax;
+        this.alive = true;
+        this.anim = 0;
+        this.face = 1;
+        this.standOnBeams = true;
+      }
+      get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
+      update(dt, game) {
+        if (!this.alive) return;
+        this.anim += dt * 8;
+
+        this.x += this.vx * dt;
+        this.face = this.vx >= 0 ? 1 : -1;
+        if (this.x < this.patrolMin) { this.x = this.patrolMin; this.vx = Math.abs(this.vx); }
+        if (this.x + this.w > this.patrolMax) { this.x = this.patrolMax - this.w; this.vx = -Math.abs(this.vx); }
+
+        this.vy += game.physics.gravity * dt;
+        this.y += this.vy * dt;
+
+        for (const p of game.platforms) {
+          if (!this.standOnBeams && p.type === "beam") continue;
+          const a = this.aabb, b = p.aabb;
+          if (!a.intersects(b)) continue;
+          const wasAbove = (a.y + a.h) - b.y < 14 && this.vy >= 0;
+          if (wasAbove) { this.y = b.y - this.h; this.vy = 0; }
+        }
+      }
+      draw(ctx, camX, scale) {
+        if (!this.alive) return;
+        const frame = (Math.floor(this.anim) % 2 === 0) ? SPRITES.enemy1 : SPRITES.enemy2;
+        drawSprite(ctx, frame, (this.x - camX) | 0, this.y | 0, scale, this.face < 0);
+      }
+    }
+
+    class ShooterEnemy extends Enemy {
+      constructor(x, y, patrolMin, patrolMax, opts = {}) {
+        super(x, y, patrolMin, patrolMax);
+        this.patrol = !!opts.patrol;
+        this.vx = this.patrol ? (opts.vx ?? 22) : 0;
+        this.cooldown = 0.9 + Math.random() * 0.6;
+        this.minCD = 1.15;
+        this.maxCD = 2.05;
+        this.range = opts.range ?? 480;
+        this.bulletSpeed = opts.bulletSpeed ?? 380;
+      }
+      update(dt, game) {
+        if (!this.alive) return;
+
+        if (this.patrol) super.update(dt, game);
+        else {
+          this.anim += dt * 6;
+          this.vy += game.physics.gravity * dt;
+          this.y += this.vy * dt;
+          for (const p of game.platforms) {
+            const a = this.aabb, b = p.aabb;
+            if (!a.intersects(b)) continue;
+            const wasAbove = (a.y + a.h) - b.y < 14 && this.vy >= 0;
+            if (wasAbove) { this.y = b.y - this.h; this.vy = 0; }
+          }
+        }
+
+        const px = game.player.x + game.player.w * 0.5;
+        const ex = this.x + this.w * 0.5;
+        const dx = px - ex;
+        this.face = dx >= 0 ? 1 : -1;
+
+        const onScreen = (this.x - game.cameraX) > -220 && (this.x - game.cameraX) < game.W + 220;
+        const near = Math.abs(dx) <= this.range && Math.abs((game.player.y - this.y)) < 180;
+
+        this.cooldown -= dt;
+        if (onScreen && near && this.cooldown <= 0) {
+          this.cooldown = this.minCD + Math.random() * (this.maxCD - this.minCD);
+          const bx = this.face > 0 ? (this.x + this.w + 2) : (this.x - 12);
+          const by = this.y + 14;
+
+          // 0° / -30° / -45°（斜射）
+          const angles = [0, -30, -45];
+          const deg = angles[(Math.random() * angles.length) | 0];
+          const rad = deg * Math.PI / 180;
+          const spd = this.bulletSpeed;
+          const vx = Math.cos(rad) * spd * this.face;
+          const vy = Math.sin(rad) * spd;
+
+          game.bullets.push(new Bullet(bx, by, vx, vy));
+        }
+      }
+      draw(ctx, camX, scale) {
+        if (!this.alive) return;
+        const frame = (Math.floor(this.anim) % 2 === 0) ? SPRITES.shooter1 : SPRITES.shooter2;
+        drawSprite(ctx, frame, (this.x - camX) | 0, this.y | 0, scale, this.face < 0);
+      }
+    }
+
+    class Player {
+      constructor(x, y) {
+        this.x = x; this.y = y;
+        this.w = 22; this.h = 30;
+        this.vx = 0; this.vy = 0;
+        this.onGround = false;
+        this.face = 1;
+        this.anim = 0;
+        this.invuln = 0;
+        this.coyote = 0;
+        this.jumpBuf = 0;
+        this.jumpHold = 0;
+        this.jumping = false;
+        this.coyoteMax = 0.10;
+        this.jumpBufMax = 0.12;
+        this.jumpHoldMax = 0.18;
+        this.jumpCut = 0.55;
+      }
+      get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
+      update(dt, game) {
+        const input = game.input;
+        const inverted = game.effects.invertTimer > 0;
+        const LEFT = inverted ? input.right : input.left;
+        const RIGHT = inverted ? input.left : input.right;
+
+        this.invuln = Math.max(0, this.invuln - dt);
+        this.coyote = Math.max(0, this.coyote - dt);
+        this.jumpBuf = Math.max(0, this.jumpBuf - dt);
+        if (input.jumpPressed) this.jumpBuf = this.jumpBufMax;
+
+        const accel = game.physics.accel;
+        if (LEFT)  { this.vx -= accel * dt; this.face = -1; }
+        if (RIGHT) { this.vx += accel * dt; this.face =  1; }
+        if (!LEFT && !RIGHT) {
+          const f = this.onGround ? game.physics.frictionGround : game.physics.frictionAir;
+          this.vx *= Math.pow(f, dt * 60);
+        }
+        this.vx = clamp(this.vx, -game.physics.maxSpeed, game.physics.maxSpeed);
+
+        const prevX = this.x;
+        const prevY = this.y;
+
+        const canJump = this.onGround || this.coyote > 0;
+        if (this.jumpBuf > 0 && canJump) {
+          this.vy = -game.physics.jumpVel;
+          this.onGround = false;
+          this.coyote = 0;
+          this.jumpBuf = 0;
+          this.jumping = true;
+          this.jumpHold = 0;
+        }
+
+        this.vy += game.physics.gravity * dt;
+        if (this.jumping && input.jump && this.vy < 0 && this.jumpHold < this.jumpHoldMax) {
+          this.vy -= game.physics.gravity * dt * 0.55;
+          this.jumpHold += dt;
+        }
+        if (this.jumping && !input.jump && this.vy < 0) {
+          this.vy *= this.jumpCut;
+          this.jumping = false;
+        }
+
+        this.x += this.vx * dt;
+        this.resolveCollisionsX(game, prevX);
+        this.y += this.vy * dt;
+        this.onGround = false;
+        this.resolveCollisionsY(game, prevY);
+        if (this.onGround) { this.coyote = this.coyoteMax; this.jumping = false; }
+
+        const moving = Math.abs(this.vx) > 20;
+        this.anim += dt * (moving ? 10 : 4);
+
+        if (this.y > game.H + 240) game.playerDie("你跌落坑洞，任務中斷。");
+      }
+      resolveCollisionsX(game, prevX) {
+        for (const p of game.platforms) {
+          if (p.type === "beam") continue;
+          const a = this.aabb, b = p.aabb;
+          if (!a.intersects(b)) continue;
+          if (prevX + this.w <= b.x) this.x = b.x - this.w;
+          else if (prevX >= b.x + b.w) this.x = b.x + b.w;
+          this.vx = 0;
+        }
+        this.x = clamp(this.x, 0, game.levelWidth - this.w);
+      }
+      resolveCollisionsY(game, prevY) {
+        for (const p of game.platforms) {
+          const a = this.aabb, b = p.aabb;
+          if (!a.intersects(b)) continue;
+          const wasAbove = (prevY + this.h) <= b.y + 4;
+          const wasBelow = prevY >= (b.y + b.h - 4);
+          if (this.vy >= 0 && wasAbove) {
+            this.y = b.y - this.h; this.vy = 0; this.onGround = true;
+          } else if (this.vy < 0 && wasBelow) {
+            this.y = b.y + b.h; this.vy = 0;
+          } else {
+            const overlapTop = (a.y + a.h) - b.y;
+            const overlapBottom = (b.y + b.h) - a.y;
+            if (overlapTop < overlapBottom) { this.y -= overlapTop; this.vy = 0; this.onGround = true; }
+            else { this.y += overlapBottom; this.vy = 0; }
+          }
+        }
+      }
+      hurt(game, fromDir) {
+        if (this.invuln > 0) return;
+        game.lives -= 1;
+        this.invuln = 1.0;
+        this.vy = -220;
+        this.vx = (fromDir || -this.face) * 220;
+        if (game.lives <= 0) game.setState("gameover", "你失去所有生命，任務失敗。");
+      }
+      draw(ctx, camX, scale, invertBlink) {
+        const moving = Math.abs(this.vx) > 20;
+        const sprite = moving
+          ? ((Math.floor(this.anim) % 2 === 0) ? SPRITES.playerWalk1 : SPRITES.playerWalk2)
+          : SPRITES.playerIdle;
+
+        const invFlicker = (this.invuln > 0 && Math.floor(this.invuln * 12) % 2 === 0);
+        const invertFlicker = invertBlink && (Math.floor(performance.now() / 1000 * 12) % 2 === 0);
+        if (invFlicker || invertFlicker) ctx.globalAlpha = 0.35;
+
+        drawSprite(ctx, sprite, (this.x - camX) | 0, this.y | 0, scale, this.face < 0);
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    class Game {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext("2d", { alpha: false });
+        this.ctx.imageSmoothingEnabled = false;
+
+        this.W = 960; this.H = 540;
+        this.state = "menu";
+        this.score = 0; this.lives = 3;
+        this.mode = "easy";
+        this.playerName = "無名情報員";
+        this.submitted = false;
+        this.finalStatus = "";
+        this.correctCount = 0;
+        this.totalQuizCount = 0;
+        this.timeLimit = 150; this.timeLeft = this.timeLimit;
+
+        this.scale = 3;
+        this.levelWidth = 3000;
+        this.cameraX = 0; this.cameraSmooth = 0.12;
+
+        this.physics = {
+          gravity: 1100, accel: 2200, maxSpeed: 220, jumpVel: 420,
+          frictionGround: 0.78, frictionAir: 0.92
+        };
+
+        this.effects = { invertTimer: 0 };
+        this.input = { left: false, right: false, jump: false, jumpPressed: false };
+
+        this.platforms = [];
+        this.items = [];
+        this.enemies = [];
+        this.stars = [];
+        this.bullets = [];
+
+        this.player = new Player(70, 340);
+        this.goal = { x: this.levelWidth - 140, y: 0, w: 36, h: 60 };
+        this.goalAABB = () => new AABB(this.goal.x, this.goal.y, this.goal.w, this.goal.h);
+
+        this.quiz = { title: "", source: null, idx: 0, selected: -1, feedback: "", optionRects: [], lock: 0, onCorrect: null, onWrong: null };
+
+        this.bgBuildings = this.generateBuildings(84);
+        this.bgClouds = this.generateClouds(10);
+
+        this.fixedDt = 1 / 120;
+        this.accum = 0;
+        this.last = performance.now() / 1000;
+
+        this.buildLevel();
+        this.bindKeyboard();
+        this.bindPointerStart();
+        this.bindQuizPointer();
+        this.setupTouchControls();
+        this.setupResize();
+
+        requestAnimationFrame(() => this.loop());
+      }
+
+      setupResize() {
+        const apply = () => {
+          const dpr = Math.min(2, window.devicePixelRatio || 1);
+          this.canvas.width  = Math.floor(this.W * dpr);
+          this.canvas.height = Math.floor(this.H * dpr);
+          this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+          this.ctx.scale(dpr, dpr);
+          this.ctx.imageSmoothingEnabled = false;
+          this.canvas.style.width = "100vw";
+          this.canvas.style.height = "100dvh";
+        };
+        apply();
+        window.addEventListener("resize", apply, { passive: true });
+        window.addEventListener("orientationchange", () => setTimeout(apply, 80), { passive: true });
+        document.addEventListener("visibilitychange", () => { if (!document.hidden) apply(); }, { passive: true });
+      }
+
+      setupTouchControls() {
+        const isMobile =
+          matchMedia("(pointer: coarse)").matches ||
+          /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+        const touchUI = document.getElementById("touchUI");
+        if (!touchUI) return;
+        touchUI.style.display = isMobile ? "block" : "none";
+        if (!isMobile) return;
+
+        const pad = document.getElementById("movePad");
+        const btnJump = document.getElementById("btnJump");
+
+        let padActive = false;
+        let centerX = 0;
+
+        const updateCenter = () => {
+          if (!pad) return;
+          const r = pad.getBoundingClientRect();
+          centerX = r.left + r.width / 2;
+        };
+
+        if (pad) {
+          updateCenter();
+          window.addEventListener("resize", updateCenter, { passive: true });
+          window.addEventListener("orientationchange", () => setTimeout(updateCenter, 80), { passive: true });
+
+          pad.addEventListener("pointerdown", (e) => {
+            e.preventDefault();
+            if (this.state !== "playing") return;
+            padActive = true;
+            pad.setPointerCapture(e.pointerId);
+          }, { passive: false });
+
+          pad.addEventListener("pointermove", (e) => {
+            if (!padActive || this.state !== "playing") return;
+            const dx = e.clientX - centerX;
+            const dead = 12;
+
+            if (dx < -dead) { this.input.left = true;  this.input.right = false; }
+            else if (dx > dead) { this.input.right = true; this.input.left = false; }
+            else { this.input.left = false; this.input.right = false; }
+          });
+
+          const release = (e) => {
+            padActive = false;
+            this.input.left = false;
+            this.input.right = false;
+            try { pad.releasePointerCapture(e.pointerId); } catch {}
+          };
+
+          pad.addEventListener("pointerup", release);
+          pad.addEventListener("pointercancel", release);
+          pad.addEventListener("pointerleave", release);
+        }
+
+        if (btnJump) {
+          btnJump.addEventListener("pointerdown", (e) => {
+            e.preventDefault();
+            if (this.state !== "playing") return;
+            if (!this.input.jump) this.input.jumpPressed = true;
+            this.input.jump = true;
+          }, { passive: false });
+
+          const up = (e) => { e.preventDefault(); this.input.jump = false; };
+          btnJump.addEventListener("pointerup", up, { passive: false });
+          btnJump.addEventListener("pointercancel", up, { passive: false });
+        }
+      }
+
+      clearInput() { this.input.left = this.input.right = this.input.jump = this.input.jumpPressed = false; }
+
+
+      startGame(mode = "easy", name = "") {
+        this.mode = mode === "hard" ? "hard" : "easy";
+        this.playerName = cleanName(name);
+        this.score = 0;
+        this.lives = this.mode === "hard" ? 2 : 3;
+        this.timeLimit = this.mode === "hard" ? 130 : 150;
+        this.timeLeft = this.timeLimit;
+        this.effects.invertTimer = 0;
+        this.cameraX = 0;
+        this.submitted = false;
+        this.finalStatus = "";
+        this.correctCount = 0;
+        this.totalQuizCount = 0;
+        this.player = new Player(70, 340);
+        this.bullets.length = 0;
+        this.clearInput();
+        this.buildLevel();
+        this.state = "playing";
+        const overlay = document.getElementById("startOverlay");
+        if (overlay) overlay.style.display = "none";
+      }
+
+      submitScore(finalState) {
+        if (this.submitted) return;
+        this.submitted = true;
+        this.finalStatus = "正在自動上載成績……";
+        const payload = {
+          name: this.playerName,
+          mode: this.mode,
+          score: Math.floor(this.score),
+          correct: this.correctCount || 0,
+          total: this.totalQuizCount || 0,
+          time: Math.max(0, Math.ceil(this.timeLimit - this.timeLeft)),
+          files: this.items.filter(i => i.collected).length,
+          result: finalState
+        };
+        fetch(LEADERBOARD_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        }).then(() => {
+          this.finalStatus = "成績已自動上載。";
+          loadLeaderboard();
+        }).catch(() => {
+          this.finalStatus = "成績未能上載，請檢查網絡或 Apps Script 權限。";
+        });
+      }
+
+      setState(s, reason = "") {
+        this.state = s;
+        if (s === "gameover") this.gameOverReason = reason || "任務失敗。";
+        if (s === "win" || s === "gameover") this.submitScore(s);
+      }
+
+      resetAll() {
+        this.state = "menu";
+        this.score = 0; this.lives = 3; this.timeLeft = this.timeLimit;
+        this.effects.invertTimer = 0;
+        this.cameraX = 0;
+        this.submitted = false;
+        this.finalStatus = "";
+        this.correctCount = 0;
+        this.totalQuizCount = 0;
+        this.player = new Player(70, 340);
+        this.bullets.length = 0;
+        this.clearInput();
+        this.buildLevel();
+        const overlay = document.getElementById("startOverlay");
+        if (overlay) overlay.style.display = "flex";
+        loadLeaderboard();
+      }
+
+      playerDie(reason) {
+        if (this.state !== "playing") return;
+        this.lives -= 1;
+        if (this.lives <= 0) { this.setState("gameover", reason || "任務失敗。"); return; }
+        this.player.x = 70; this.player.y = 340;
+        this.player.vx = 0; this.player.vy = 0;
+        this.player.invuln = 1.2;
+        this.cameraX = 0;
+        this.bullets.length = 0;
+        this.clearInput();
+      }
+
+      buildLevel() {
+        this.platforms.length = 0;
+        this.items.length = 0;
+        this.enemies.length = 0;
+        this.stars.length = 0;
+        this.bullets.length = 0;
+
+        const groundY = 430;
+        this.platforms.push(new Platform(0, groundY, 520, 120, "ground"));
+        this.platforms.push(new Platform(560, groundY, 380, 120, "ground"));
+        this.platforms.push(new Platform(980, groundY, 360, 120, "ground"));
+        this.platforms.push(new Platform(1380, groundY, 320, 120, "ground"));
+        this.platforms.push(new Platform(1740, groundY, 280, 120, "ground"));
+        this.platforms.push(new Platform(2060, groundY, 320, 120, "ground"));
+        this.platforms.push(new Platform(2420, groundY, 220, 120, "ground"));
+        this.platforms.push(new Platform(2700, groundY, 200, 120, "ground"));
+        this.platforms.push(new Platform(2920, groundY, 320, 120, "ground"));
+
+        this.platforms.push(new Platform(640, 350, 180, 18, "beam"));
+        this.platforms.push(new Platform(840, 300, 180, 18, "beam"));
+        this.platforms.push(new Platform(820, 250, 140, 18, "beam"));
+        this.platforms.push(new Platform(1060, 330, 220, 18, "beam"));
+        this.platforms.push(new Platform(1240, 280, 160, 18, "beam"));
+        this.platforms.push(new Platform(1460, 360, 160, 18, "beam"));
+        this.platforms.push(new Platform(1640, 320, 160, 18, "beam"));
+        this.platforms.push(new Platform(1680, 240, 140, 18, "beam"));
+        this.platforms.push(new Platform(1820, 280, 160, 18, "beam"));
+        this.platforms.push(new Platform(2000, 320, 160, 18, "beam"));
+        this.platforms.push(new Platform(2140, 270, 160, 18, "beam"));
+        this.platforms.push(new Platform(2860, 360, 160, 18, "beam"));
+        this.platforms.push(new Platform(3040, 320, 160, 18, "beam"));
+
+        this.goal.y = groundY - 60;
+        this.goal.x = this.levelWidth - 140;
+
+        const addDoc = (x, y) => this.items.push(new Item(x, y));
+        addDoc(300, groundY - 70);
+        addDoc(720, 320);
+        addDoc(910, 270);
+        addDoc(1160, 300);
+        addDoc(1520, 330);
+        addDoc(1760, groundY - 70);
+        addDoc(1880, 250);
+        addDoc(2140, groundY - 70);
+        addDoc(2480, groundY - 70);
+        addDoc(2885, 330);
+        addDoc(2940, groundY - 70);
+
+        // 原版星星觸發點改為「情報站」：只增設位置，不重寫地圖
+        this.stars.push(new StarTrigger(760, 315, 0));
+        this.stars.push(new StarTrigger(1080, 260, 1));
+        this.stars.push(new StarTrigger(1520, 330, 2));
+        this.stars.push(new StarTrigger(1880, 210, 3));
+        this.stars.push(new StarTrigger(2140, 295, 4));
+        this.stars.push(new StarTrigger(2480, 392, 5));
+        this.stars.push(new StarTrigger(2880, 330, 6));
+        this.stars.push(new StarTrigger(3060, 290, 7));
+
+        const addEnemy = (x, y, min, max) => this.enemies.push(new Enemy(x, y, min, max));
+        const addShooter = (x, y, min, max, opts) => this.enemies.push(new ShooterEnemy(x, y, min, max, opts));
+
+        addEnemy(650,  groundY - 30, 560,  940);
+        addEnemy(1120, groundY - 30, 980,  1340);
+        addEnemy(1600, groundY - 30, 1380, 1700);
+        addEnemy(2520, groundY - 30, 2420, 2640);
+        addEnemy(2820, groundY - 30, 2700, 2920);
+
+        addEnemy(860,  270, 840,  1010);
+        addEnemy(1860, 250, 1820, 1980);
+
+        addShooter(1280, groundY - 30, 1240, 1340, { patrol: false, range: 460, bulletSpeed: 380 });
+        addShooter(2065, 240,          2000, 2160, { patrol: true,  vx: 22, range: 520, bulletSpeed: 360 });
+        addShooter(2925, groundY - 30, 2920, 3240, { patrol: false, range: 520, bulletSpeed: 420 });
+        addShooter(1560, 210, 1500, 1700, { patrol: false, range: 520, bulletSpeed: 360 });
+        addShooter(2320, 190, 2260, 2460, { patrol: false, range: 520, bulletSpeed: 380 });
+
+        // 困難模式只在原版地圖上加少量敵人，不改平台與物理
+        if (this.mode === "hard") {
+          addEnemy(720, groundY - 30, 560, 940);
+          addEnemy(1760, groundY - 30, 1740, 2020);
+          addShooter(2480, groundY - 30, 2420, 2640, { patrol: false, range: 500, bulletSpeed: 420 });
+        }
+      }
+
+      generateBuildings(n) {
+        const arr = [];
+        let x = 0;
+        for (let i = 0; i < n; i++) {
+          const w = 40 + Math.floor(Math.random() * 70);
+          const h = 60 + Math.floor(Math.random() * 160);
+          const style = Math.random();
+          const roof = style < 0.55 ? "gable" : (style < 0.8 ? "flat" : "saw");
+          const windows = 2 + Math.floor(Math.random() * 4);
+          const chimney = Math.random() < 0.35;
+          arr.push({ x, w, h, roof, windows, chimney, tone: Math.random() });
+          x += w + (10 + Math.floor(Math.random() * 20));
+        }
+        return arr;
+      }
+
+      generateClouds(n) {
+        const arr = [];
+        for (let i = 0; i < n; i++) {
+          arr.push({ x: Math.random() * this.levelWidth, y: 40 + Math.random() * 120, s: 2 + Math.floor(Math.random() * 2), spd: 4 + Math.random() * 8 });
+        }
+        return arr;
+      }
+
+      beginQuiz({ title, source, idx, onCorrect, onWrong }) {
+        this.state = "quiz";
+        this.quiz.title = title;
+        this.quiz.source = source;
+        this.quiz.idx = idx;
+        this.quiz.selected = -1;
+        this.quiz.feedback = "";
+        this.quiz.optionRects = [];
+        this.quiz.lock = 0;
+        this.quiz.onCorrect = onCorrect;
+        this.quiz.onWrong = onWrong;
+        this.player.vx = 0; this.player.vy = 0;
+        this.clearInput();
+      }
+
+      answerQuiz(choice) {
+        if (this.quiz.lock > 0) return;
+        this.quiz.selected = choice;
+        const item = this.quiz.source[this.quiz.idx];
+        const correct = choice === item.answer;
+        this.quiz.lock = 5.0;
+        this.quiz.feedback = correct ? `✅ 答啱！${item.explain}` : `❌ 答錯！${item.explain}`;
+        this.totalQuizCount = (this.totalQuizCount || 0) + 1;
+        if (correct) this.correctCount = (this.correctCount || 0) + 1;
+        if (correct && typeof this.quiz.onCorrect === "function") this.quiz.onCorrect();
+        if (!correct && typeof this.quiz.onWrong === "function") this.quiz.onWrong();
+      }
+
+      bindQuizPointer() {
+        this.canvas.addEventListener("pointerdown", (e) => {
+          if (this.state !== "quiz") return;
+          const r = this.canvas.getBoundingClientRect();
+          const mx = (e.clientX - r.left) * (this.W / r.width);
+          const my = (e.clientY - r.top) * (this.H / r.height);
+          for (const b of this.quiz.optionRects) {
+            if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
+              this.answerQuiz(b.idx); break;
+            }
+          }
+        }, { passive: true });
+      }
+
+      bindKeyboard() {
+        window.addEventListener("keydown", (e) => {
+          const blocks = ["ArrowLeft","ArrowRight","ArrowUp","Space","Enter","Digit1","Digit2","Digit3","Digit4"];
+          if (blocks.includes(e.code)) e.preventDefault();
+
+          if (this.state === "quiz") {
+            if (e.code === "Digit1") this.answerQuiz(0);
+            if (e.code === "Digit2") this.answerQuiz(1);
+            if (e.code === "Digit3") this.answerQuiz(2);
+            if (e.code === "Digit4") this.answerQuiz(3);
+            return;
+          }
+          if ((this.state === "intro" || this.state === "rules") && (e.code === "Space" || e.code === "Enter")) {
+            this.state = this.state === "intro" ? "rules" : "playing"; this.clearInput(); return;
+          }
+          if ((this.state === "win" || this.state === "gameover") && (e.code === "Space" || e.code === "Enter")) {
+            this.resetAll(); return;
+          }
+          if (this.state !== "playing") return;
+          if (e.code === "ArrowLeft") this.input.left = true;
+          if (e.code === "ArrowRight") this.input.right = true;
+          if (e.code === "Space" || e.code === "ArrowUp") {
+            if (!this.input.jump) this.input.jumpPressed = true;
+            this.input.jump = true;
+          }
+        }, { passive: false });
+
+        window.addEventListener("keyup", (e) => {
+          if (this.state !== "playing") return;
+          if (e.code === "ArrowLeft") this.input.left = false;
+          if (e.code === "ArrowRight") this.input.right = false;
+          if (e.code === "Space" || e.code === "ArrowUp") this.input.jump = false;
+        });
+      }
+
+      bindPointerStart() {
+        this.canvas.addEventListener("pointerdown", () => {
+          if (this.state === "quiz") return;
+          if (this.state === "intro") { this.state = "rules"; this.clearInput(); return; }
+          if (this.state === "rules") { this.state = "playing"; this.clearInput(); return; }
+          if (this.state === "win" || this.state === "gameover") { this.resetAll(); return; }
+        }, { passive: true });
+      }
+
+      loop() {
+        const now = performance.now() / 1000;
+        const frameDt = Math.min(0.05, now - this.last);
+        this.last = now;
+        this.accum += frameDt;
+        while (this.accum >= this.fixedDt) { this.step(this.fixedDt); this.accum -= this.fixedDt; }
+        this.render();
+        requestAnimationFrame(() => this.loop());
+      }
+
+      step(dt) {
+        for (const c of this.bgClouds) {
+          c.x += c.spd * dt;
+          if (c.x > this.levelWidth + 200) c.x = -200;
+        }
+
+        if (this.state === "quiz") { this.quiz.lock = Math.max(0, this.quiz.lock - dt); this.input.jumpPressed = false; return; }
+        if (this.state !== "playing") { this.input.jumpPressed = false; return; }
+
+        this.effects.invertTimer = Math.max(0, this.effects.invertTimer - dt);
+        this.timeLeft -= dt;
+        if (this.timeLeft <= 0) { this.timeLeft = 0; this.setState("gameover", T.timeUp); this.clearInput(); return; }
+
+        this.player.update(dt, this);
+
+        for (let i = this.bullets.length - 1; i >= 0; i--) {
+          const b = this.bullets[i];
+          b.update(dt, this);
+          if (!b.dead && this.player.invuln <= 0 && this.player.aabb.intersects(b.aabb)) {
+            b.dead = true;
+            const fromDir = b.vx > 0 ? 1 : -1;
+            this.player.hurt(this, fromDir);
+          }
+          if (b.dead) this.bullets.splice(i, 1);
+        }
+
+        for (const it of this.items) {
+          it.update(dt);
+          if (!it.collected && this.player.aabb.intersects(it.aabb)) {
+            it.collected = true;
+            this.score += 150;
+            this.timeLeft = Math.min(this.timeLimit, this.timeLeft + 2.0);
+          }
+        }
+
+        for (const st of this.stars) {
+          st.update(dt);
+          if (!st.used && this.player.aabb.intersects(st.aabb)) {
+            st.used = true;
+            const idx = st.qIndex % QUIZ_STARS.length;
+            this.beginQuiz({
+              title: T.quizStarTitle, source: QUIZ_STARS, idx,
+              onCorrect: () => { this.score += 200; setTimeout(() => { this.clearInput(); this.state = "playing"; }, 5000); },
+              onWrong:   () => { this.effects.invertTimer = 10; setTimeout(() => { this.clearInput(); this.state = "playing"; }, 5000); }
+            });
+            return;
+          }
+        }
+
+        for (const en of this.enemies) {
+          en.update(dt, this);
+          if (!en.alive) continue;
+          if (this.player.aabb.intersects(en.aabb)) {
+            const playerBottom = this.player.y + this.player.h;
+            const enemyTop = en.y;
+            const falling = this.player.vy > 50;
+            const stomp = falling && (playerBottom - enemyTop) < 14 && (this.player.y < en.y);
+            if (stomp) {
+              en.alive = false;
+              this.player.vy = -260;
+              this.beginQuiz({
+                title: T.quizWWITitle, source: QUIZ_WWI, idx: (Math.random() * QUIZ_WWI.length) | 0,
+                onCorrect: () => { this.score += 150; setTimeout(() => { this.clearInput(); this.state = "playing"; }, 5000); },
+                onWrong:   () => {
+                  this.lives -= 1;
+                  if (this.lives <= 0) setTimeout(() => { this.setState("gameover", "你答錯第一次世界大戰題目，任務失敗。"); }, 5000);
+                  else setTimeout(() => { this.clearInput(); this.state = "playing"; }, 5000);
+                }
+              });
+              return;
+            } else {
+              const fromDir = (this.player.x + this.player.w * 0.5) < (en.x + en.w * 0.5) ? -1 : 1;
+              this.player.hurt(this, fromDir);
+            }
+          }
+        }
+
+        if (this.player.aabb.intersects(this.goalAABB())) {
+          this.beginQuiz({
+            title: T.quizDoorTitle, source: QUIZ_TELEGRAM, idx: (Math.random() * QUIZ_TELEGRAM.length) | 0,
+            onCorrect: () => { this.score += 300; setTimeout(() => { this.clearInput(); this.setState("win"); }, 5000); },
+            onWrong:   () => {
+              this.lives -= 1;
+              if (this.lives <= 0) setTimeout(() => { this.setState("gameover", "你答錯史料題，任務失敗。"); }, 5000);
+              else setTimeout(() => {
+                this.clearInput();
+                this.state = "playing";
+                this.player.x = this.goal.x - 220;
+                this.player.y = this.goal.y - 40;
+                this.player.vx = 0; this.player.vy = 0;
+              }, 5000);
+            }
+          });
+          return;
+        }
+
+        const target = clamp(this.player.x - this.W * 0.40, 0, this.levelWidth - this.W);
+        this.cameraX = lerp(this.cameraX, target, this.cameraSmooth);
+        this.score += Math.max(0, this.player.vx) * dt * 0.02;
+        this.input.jumpPressed = false;
+      }
+
+      render() {
+        const ctx = this.ctx, w = this.W, h = this.H;
+
+        ctx.fillStyle = "#0b1020"; ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = "rgba(185,199,230,0.10)"; ctx.fillRect(0, 0, w, h * 0.55);
+        ctx.fillStyle = "rgba(185,199,230,0.06)"; ctx.fillRect(0, h * 0.35, w, h * 0.35);
+
+        this.drawBackground(ctx);
+        this.drawClouds(ctx);
+
+        for (const p of this.platforms) {
+          if (p.x - this.cameraX > w + 240 || p.x + p.w - this.cameraX < -240) continue;
+          p.draw(ctx, this.cameraX, this.scale);
+        }
+
+        this.drawGoal(ctx);
+
+        for (const it of this.items) {
+          if (it.x - this.cameraX > w + 240 || it.x - this.cameraX < -240) continue;
+          it.draw(ctx, this.cameraX, this.scale);
+        }
+        for (const st of this.stars) {
+          if (st.x - this.cameraX > w + 240 || st.x - this.cameraX < -240) continue;
+          st.draw(ctx, this.cameraX, this.scale);
+        }
+        for (const en of this.enemies) {
+          if (en.x - this.cameraX > w + 240 || en.x - this.cameraX < -240) continue;
+          en.draw(ctx, this.cameraX, this.scale);
+        }
+        for (const b of this.bullets) {
+          if (b.x - this.cameraX > w + 260 || b.x - this.cameraX < -260) continue;
+          b.draw(ctx, this.cameraX, this.scale);
+        }
+
+        this.player.draw(ctx, this.cameraX, this.scale, this.effects.invertTimer > 0);
+        this.drawHUD(ctx);
+
+        if (this.state === "intro") this.drawPanel(ctx, T.introTitle, T.introLines, T.pressToContinue);
+        if (this.state === "rules") this.drawPanel(ctx, T.rulesTitle, T.rulesLines, T.pressToContinue);
+        if (this.state === "win") this.drawPanel(ctx, T.winTitle, T.winLines.concat([this.finalStatus || "成績會自動上載。"]), "點畫面或按 SPACE/ENTER 返回主畫面");
+        if (this.state === "gameover") this.drawPanel(ctx, T.loseTitle, [this.gameOverReason || "任務失敗。", this.finalStatus || "成績會自動上載。"], "點畫面或按 SPACE/ENTER 返回主畫面");
+        if (this.state === "quiz") this.drawQuiz(ctx);
+      }
+
+      drawBackground(ctx) {
+        const w = this.W, far = 0.25;
+        ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.fillRect(0, 250, w, 160);
+        const baseY = 410;
+        for (const b of this.bgBuildings) {
+          const x = (b.x - this.cameraX * far) | 0;
+          if (x > w + 120 || x + b.w < -120) continue;
+          const y = baseY - b.h;
+          const bodyCol =
+            b.tone < 0.33 ? "rgba(44,45,52,0.75)" :
+            b.tone < 0.66 ? "rgba(75,86,110,0.65)" :
+            "rgba(122,59,46,0.55)";
+          ctx.fillStyle = bodyCol; ctx.fillRect(x, y, b.w, b.h);
+          ctx.fillStyle = "rgba(139,47,42,0.55)";
+          if (b.roof === "flat") ctx.fillRect(x, y - 6, b.w, 6);
+          else if (b.roof === "gable") {
+            for (let i = 0; i < 8; i++) {
+              const rw = b.w - i * 6; if (rw <= 0) break;
+              ctx.fillRect(x + i * 3, y - 6 - i * 3, rw, 3);
+            }
+          } else { for (let i = 0; i < b.w; i += 12) ctx.fillRect(x + i, y - 12, 10, 12); }
+          ctx.fillStyle = "rgba(243,199,75,0.18)";
+          const rows = Math.max(2, Math.floor(b.h / 40));
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < b.windows; c++) {
+              const wx = x + 10 + c * Math.floor((b.w - 20) / b.windows);
+              const wy = y + 12 + r * Math.floor((b.h - 20) / rows);
+              ctx.fillRect(wx, wy, 6, 8);
+            }
+          }
+          if (b.chimney) {
+            ctx.fillStyle = "rgba(27,31,46,0.55)";
+            ctx.fillRect(x + b.w - 18, y - 26, 10, 20);
+            ctx.fillStyle = "rgba(0,0,0,0.18)";
+            ctx.fillRect(x + b.w - 20, y - 30, 14, 6);
+          }
+        }
+      }
+
+      drawClouds(ctx) {
+        for (const c of this.bgClouds) {
+          const x = (c.x - this.cameraX * 0.18) | 0;
+          const y = c.y | 0;
+          if (x > this.W + 120 || x < -160) continue;
+          drawSprite(ctx, SPRITES.cloud, x, y, c.s);
+        }
+      }
+
+      drawGoal(ctx) {
+        const sx = (this.goal.x - this.cameraX) | 0;
+        const sy = this.goal.y | 0;
+        drawSprite(ctx, SPRITES.door, sx, sy, this.scale);
+        ctx.font = "12px system-ui, sans-serif";
+        ctx.fillStyle = "rgba(255,255,255,0.70)";
+        ctx.fillText("10", sx + 10, sy - 6);
+      }
+
+      drawHUD(ctx) {
+        const pad = 14, panelW = 430, panelH = 64;
+        ctx.fillStyle = "rgba(10,14,26,0.65)";
+        ctx.fillRect(pad, pad, panelW, panelH);
+        ctx.strokeStyle = "rgba(255,255,255,0.10)";
+        ctx.strokeRect(pad + 0.5, pad + 0.5, panelW - 1, panelH - 1);
+
+        const score = Math.floor(this.score);
+        const time = Math.ceil(this.timeLeft);
+
+        ctx.fillStyle = "rgba(232,229,216,0.95)";
+        ctx.font = "bold 16px system-ui, sans-serif";
+        ctx.fillText((this.mode === "hard" ? "困難模式" : "簡易模式") + "｜" + this.playerName, pad + 12, pad + 22);
+
+        ctx.font = "14px system-ui, sans-serif";
+        ctx.fillStyle = "rgba(232,229,216,0.90)";
+        ctx.fillText(`${T.hudScore}：${score}`, pad + 12, pad + 44);
+        ctx.fillStyle = "rgba(255,90,106,0.95)";
+        ctx.fillText(`${T.hudLives}：${this.lives}`, pad + 165, pad + 44);
+        ctx.fillStyle = time <= 15 ? "rgba(255,90,106,0.95)" : "rgba(243,199,75,0.95)";
+        ctx.fillText(`${T.hudTime}：${time}s`, pad + 285, pad + 44);
+
+        if (this.effects.invertTimer > 0) {
+          ctx.fillStyle = "rgba(255,90,106,0.95)";
+          ctx.font = "800 14px system-ui, sans-serif";
+          ctx.fillText(`⚠ 左右反轉：${Math.ceil(this.effects.invertTimer)}s`, pad + 12, pad + 62);
+
+          const sec = Math.ceil(this.effects.invertTimer);
+          ctx.save();
+          ctx.fillStyle = "rgba(0,0,0,0.35)";
+          ctx.fillRect(0, 0, this.W, this.H);
+          ctx.textAlign = "center"; ctx.textBaseline = "middle";
+          ctx.fillStyle = "#ff5a6a";
+          ctx.font = "900 52px system-ui, sans-serif";
+          ctx.fillText("⚠ 操作反轉！", this.W / 2, this.H / 2 - 30);
+          ctx.fillStyle = "#ffd166";
+          ctx.font = "800 30px system-ui, sans-serif";
+          ctx.fillText(`剩餘 ${sec} 秒`, this.W / 2, this.H / 2 + 30);
+          ctx.restore();
+        }
+      }
+
+      drawPanel(ctx, title, lines, footer) {
+        const w = this.W, h = this.H;
+        ctx.fillStyle = "rgba(10,14,26,0.78)"; ctx.fillRect(0, 0, w, h);
+        const cw = Math.min(860, w - 60), ch = Math.min(460, h - 60);
+        const cx = (w - cw) / 2, cy = (h - ch) / 2;
+        ctx.fillStyle = "rgba(255,255,255,0.06)"; ctx.fillRect(cx, cy, cw, ch);
+        ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.strokeRect(cx + 0.5, cy + 0.5, cw - 1, ch - 1);
+        ctx.fillStyle = "rgba(232,229,216,0.96)";
+        ctx.font = "800 26px system-ui, sans-serif"; ctx.fillText(title, cx + 24, cy + 52);
+        ctx.font = "15px system-ui, sans-serif"; ctx.fillStyle = "rgba(232,229,216,0.92)";
+        let yy = cy + 88; for (const ln of lines) { ctx.fillText(ln, cx + 24, yy); yy += 22; }
+        ctx.fillStyle = "rgba(243,199,75,0.95)";
+        ctx.font = "800 16px system-ui, sans-serif";
+        ctx.fillText(footer, cx + 24, cy + ch - 26);
+      }
+
+      drawQuiz(ctx) {
+        const w = this.W, h = this.H;
+        const item = this.quiz.source[this.quiz.idx];
+        ctx.fillStyle = "rgba(10,14,26,0.82)"; ctx.fillRect(0, 0, w, h);
+        const cw = Math.min(860, w - 80), ch = Math.min(420, h - 80);
+        const cx = (w - cw) / 2, cy = (h - ch) / 2;
+        ctx.fillStyle = "rgba(255,255,255,0.06)"; ctx.fillRect(cx, cy, cw, ch);
+        ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.strokeRect(cx + 0.5, cy + 0.5, cw - 1, ch - 1);
+
+        ctx.fillStyle = "rgba(232,229,216,0.96)";
+        ctx.font = "800 22px system-ui, sans-serif"; ctx.fillText(this.quiz.title, cx + 22, cy + 42);
+
+        ctx.font = "16px system-ui, sans-serif"; ctx.fillStyle = "rgba(232,229,216,0.94)";
+        ctx.fillText(item.q, cx + 22, cy + 74);
+
+        this.quiz.optionRects = [];
+        const btnH = 44, gap = 10; let by = cy + 100;
+        for (let i = 0; i < item.options.length; i++) {
+          const bx = cx + 22, bw = cw - 44;
+          const chosen = this.quiz.selected === i;
+
+          ctx.fillStyle = chosen ? "rgba(243,199,75,0.22)" : "rgba(255,255,255,0.08)";
+          ctx.fillRect(bx, by, bw, btnH);
+          ctx.strokeStyle = "rgba(255,255,255,0.14)";
+          ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, btnH - 1);
+
+          ctx.fillStyle = "rgba(232,229,216,0.95)";
+          ctx.font = "16px system-ui, sans-serif";
+          ctx.fillText(`${i + 1}) ${item.options[i]}`, bx + 14, by + 28);
+
+          this.quiz.optionRects.push({ x: bx, y: by, w: bw, h: btnH, idx: i });
+          by += btnH + gap;
+        }
+
+        ctx.fillStyle = "rgba(243,199,75,0.95)";
+        ctx.font = "700 14px system-ui, sans-serif";
+        ctx.fillText(T.quizHint, cx + 22, cy + ch - 50);
+
+        if (this.quiz.feedback) {
+          ctx.fillStyle = "rgba(232,229,216,0.95)";
+          ctx.font = "700 14px system-ui, sans-serif";
+          ctx.fillText(this.quiz.feedback, cx + 22, cy + ch - 26);
+        }
+      }
+    }
+
+    const canvas = document.getElementById("game");
+    if (!canvas) throw new Error('Missing <canvas id="game">');
+    const game = new Game(canvas);
+    window.__ww1Game = game;
+
+    const nameInput = document.getElementById("playerNameInput");
+    const easyBtn = document.getElementById("btnEasy");
+    const hardBtn = document.getElementById("btnHard");
+    if (easyBtn) easyBtn.addEventListener("click", () => game.startGame("easy", nameInput && nameInput.value));
+    if (hardBtn) hardBtn.addEventListener("click", () => game.startGame("hard", nameInput && nameInput.value));
+    if (nameInput) nameInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") game.startGame("easy", nameInput.value);
+    });
+    loadLeaderboard();
+  })();
+  </script>
+</body>
+</html>
