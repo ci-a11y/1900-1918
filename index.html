@@ -2,7 +2,7 @@
 <html lang="zh-HK">
 <head>
   <meta charset="UTF-8" />
-  <title>1914–1919：戰爭與和平任務 v5.6</title>
+  <title>1914–1919：戰爭與和平任務 v5.7</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
   <style>
@@ -1138,20 +1138,13 @@
         if (this.x < this.patrolMin) { this.x = this.patrolMin; this.moveDir = 1; }
         if (this.x + this.w > this.patrolMax) { this.x = this.patrolMax - this.w; this.moveDir = -1; }
 
-        this.vy += game.physics.gravity * dt;
-        this.y += this.vy * dt;
-
-        for (const p of game.platforms) {
-          if (!this.standOnBeams && p.type === 'beam') continue;
-          const a = this.aabb, b = p.aabb;
-          if (!a.intersects(b)) continue;
-          const wasAbove = (a.y + a.h) - b.y < 14 && this.vy >= 0;
-          if (wasAbove) { this.y = b.y - this.h; this.vy = 0; }
-        }
+        // 陸上步兵不再使用平台重力碰撞，避免被二層平台頂上天空。
+        this.y = game.groundY - this.h;
+        this.vy = 0;
       }
       draw(ctx, camX, scale) {
         if (!this.alive) return;
-        const sx = (this.x - camX) | 0, sy = this.y | 0;
+        const sx = (this.x - camX) | 0, sy = Math.max(399, this.y | 0);
         const step = Math.floor(Math.sin(this.anim) * 2);
         ctx.save();
         if (this.face < 0) { ctx.translate(sx + this.w + 10, 0); ctx.scale(-1, 1); } else { ctx.translate(sx - 2, 0); }
@@ -1222,14 +1215,9 @@
           if (this.x + this.w > this.patrolMax) { this.x = this.patrolMax - this.w; this.moveDir = -1; }
         }
 
-        this.vy += game.physics.gravity * dt;
-        this.y += this.vy * dt;
-        for (const p of game.platforms) {
-          const a = this.aabb, b = p.aabb;
-          if (!a.intersects(b)) continue;
-          const wasAbove = (a.y + a.h) - b.y < 14 && this.vy >= 0;
-          if (wasAbove) { this.y = b.y - this.h; this.vy = 0; }
-        }
+        // 陸上槍兵鎖定地面高度，不再與二層平台碰撞。
+        this.y = game.groundY - this.h;
+        this.vy = 0;
 
         const px = game.player.x + game.player.w * 0.5;
         const ex = this.x + this.w * 0.5;
@@ -1265,7 +1253,7 @@
       }
       draw(ctx, camX, scale) {
         if (!this.alive) return;
-        const sx = (this.x - camX) | 0, sy = this.y | 0;
+        const sx = (this.x - camX) | 0, sy = Math.max(399, this.y | 0);
         ctx.save();
         if (this.face < 0) { ctx.translate(sx + this.w + 28, 0); ctx.scale(-1, 1); } else { ctx.translate(sx - 2, 0); }
         ctx.fillStyle = 'rgba(0,0,0,0.24)'; ctx.fillRect(2, 30, 30, 4);
@@ -2049,6 +2037,7 @@
         if (this.state !== "playing") { this.input.jumpPressed = false; return; }
 
         this.effects.invertTimer = Math.max(0, this.effects.invertTimer - dt);
+        this.forceEnemiesToGround();
         this.bomberWarningTimer = Math.max(0, (this.bomberWarningTimer || 0) - dt);
         this.bombFlashTimer = Math.max(0, (this.bombFlashTimer || 0) - dt);
         this.flagBonusTimer = Math.max(0, (this.flagBonusTimer || 0) - dt);
@@ -2134,10 +2123,14 @@
         }
 
         for (const en of this.enemies) {
+          // 陸上敵軍只准沿地面巡邏，先鎖高度再更新。
+          en.y = this.groundY - en.h;
+          en.vy = 0;
+          en.standOnBeams = false;
           en.update(dt, this);
+          en.y = this.groundY - en.h;
+          en.vy = 0;
           if (!en.alive) continue;
-          // 每一幀再保險：任何敵軍若離開地面高度，立即壓回地面。
-          if (en.y < this.groundY - 85) { en.y = this.groundY - en.h; en.vy = 0; }
           if (this.player.aabb.intersects(en.aabb)) {
             const playerBottom = this.player.y + this.player.h;
             const enemyTop = en.y;
@@ -2235,10 +2228,12 @@
           if (st.x - this.cameraX > w + 240 || st.x - this.cameraX < -240) continue;
           st.draw(ctx, this.cameraX, this.scale, this.player);
         }
+        this.forceEnemiesToGround();
         for (const en of this.enemies) {
           if (en.x - this.cameraX > w + 240 || en.x - this.cameraX < -240) continue;
-          // 兜底：如果舊瀏覽器/舊快取殘留令敵軍座標異常，直接不繪畫天空敵軍。
-          if (en.y < this.groundY - 85) continue;
+          // 陸上敵軍繪畫前再次鎖地面高度，杜絕天空士兵。
+          en.y = this.groundY - en.h;
+          en.vy = 0;
           en.draw(ctx, this.cameraX, this.scale);
         }
         for (const b of this.bullets) {
