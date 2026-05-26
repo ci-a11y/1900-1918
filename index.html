@@ -175,7 +175,7 @@
             <button id="btnHard" class="secondary">開始困難模式</button>
           </div>
           <p class="smallNote">
-            簡易模式：較多生命、較寬鬆時間。困難模式：較少生命、較多戰場障礙及情報站。完成或失敗後，系統會自動上載成績到 Google Sheet，不再另行詢問。
+            簡易模式：較多生命、較寬鬆時間。困難模式：較少生命、較多戰場障礙及歷史關卡。完成或失敗後，系統會自動上載成績到 Google Sheet，不再另行詢問。
           </p>
         </div>
         <div id="leaderboardBox">
@@ -256,8 +256,8 @@
         "電腦：← → 移動，SPACE/↑ 跳",
         "手機：左邊圓形方向盤移動｜右邊圓形掣跳",
         "",
-        "【情報站📡】",
-        "進入情報站要破解歷史情報；答錯→左右反轉10秒（主角會閃＋中央提示）",
+        "【歷史關卡📘】",
+        "進入歷史關卡要破解關鍵線索；答錯→左右反轉4秒（主角會閃＋中央提示）",
         "",
         "【戰場威脅】",
         "✅ 踏中敵軍頭部會彈出一戰題",
@@ -280,7 +280,7 @@
       timeUp: "時間耗盡，你未能抵達凡爾賽大門。",
       quizHint: "按 1–4 作答（或點選選項）",
       quizDoorTitle: "凡爾賽大門：和平方案題",
-      quizStarTitle: "情報站：破解關鍵情報",
+      quizStarTitle: "歷史關卡：破解關鍵線索",
       quizWWITitle: "戰場遭遇：第一次世界大戰題"
     };
 
@@ -569,6 +569,15 @@
         " SS KK  ",
         "  SSSS  "
       ],
+      note: [
+        " SSSSS  ",
+        " SYYYYS ",
+        " SSSSSS ",
+        " SYYYYS ",
+        " SSSSSS ",
+        " SYYYYS ",
+        " SSSSS  "
+      ],
       star: [
         "  KKK  ",
         " KYYYK ",
@@ -652,13 +661,20 @@
     }
 
     class Item {
-      constructor(x, y) { this.x = x; this.y = y; this.w = 18; this.h = 14; this.collected = false; this.bob = 0; }
+      constructor(x, y) { this.x = x; this.y = y; this.w = 21; this.h = 21; this.collected = false; this.bob = 0; }
       get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
       update(dt) { this.bob += dt * 6; }
       draw(ctx, camX, scale) {
         if (this.collected) return;
         const bobY = Math.sin(this.bob) * 3;
-        drawSprite(ctx, SPRITES.doc, (this.x - camX) | 0, (this.y + bobY) | 0, scale);
+        const sx = (this.x - camX) | 0;
+        const sy = (this.y + bobY) | 0;
+        drawSprite(ctx, SPRITES.note, sx, sy, scale);
+        ctx.save();
+        ctx.font = "900 13px system-ui, sans-serif";
+        ctx.fillStyle = "rgba(255,90,106,0.95)";
+        ctx.fillText("♥", sx + 9, sy + 15);
+        ctx.restore();
       }
     }
 
@@ -676,7 +692,7 @@
         ctx.fillRect(sx - 8, sy + 24, 64, 20);
         ctx.fillStyle = "rgba(243,199,75,0.95)";
         ctx.font = "bold 12px system-ui, sans-serif";
-        ctx.fillText("情報站", sx - 2, sy + 39);
+        ctx.fillText("歷史關卡", sx - 2, sy + 39);
       }
     }
 
@@ -748,8 +764,9 @@
         this.x = x; this.y = y;
         this.minX = minX; this.maxX = maxX;
         this.vx = speed;
-        this.w = 86; this.h = 28;
+        this.w = 92; this.h = 30;
         this.dropTimer = 1.2 + Math.random() * 1.5;
+        this.alertCooldown = 0;
       }
       get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
       update(dt, game) {
@@ -757,10 +774,19 @@
         if (this.x < this.minX) { this.x = this.minX; this.vx = Math.abs(this.vx); }
         if (this.x + this.w > this.maxX) { this.x = this.maxX - this.w; this.vx = -Math.abs(this.vx); }
 
-        const onScreen = (this.x - game.cameraX) > -180 && (this.x - game.cameraX) < game.W + 180;
+        const onScreen = (this.x - game.cameraX) > -160 && (this.x - game.cameraX) < game.W + 160;
+        this.alertCooldown = Math.max(0, this.alertCooldown - dt);
+        if (onScreen && this.alertCooldown <= 0) {
+          game.bomberWarningTimer = Math.max(game.bomberWarningTimer || 0, 1.6);
+          this.alertCooldown = 4.8;
+        }
+
         this.dropTimer -= dt;
+        if (onScreen && this.dropTimer <= 0.45) {
+          game.bombFlashTimer = Math.max(game.bombFlashTimer || 0, 0.18);
+        }
         if (onScreen && this.dropTimer <= 0) {
-          this.dropTimer = game.mode === "hard" ? 1.4 + Math.random() * 1.2 : 2.1 + Math.random() * 1.6;
+          this.dropTimer = game.mode === "hard" ? 1.45 + Math.random() * 1.2 : 2.35 + Math.random() * 1.8;
           game.bombs.push(new Bomb(this.x + this.w * 0.5, this.y + this.h - 2, this.vx * 0.15, 80));
         }
       }
@@ -774,24 +800,32 @@
         } else {
           ctx.translate(sx, sy);
         }
-        ctx.fillStyle = "#46515f";
-        ctx.fillRect(16, 9, 54, 10);
+        // 機身及機翼
+        ctx.fillStyle = "#3f4a57";
+        ctx.fillRect(15, 10, 58, 11);
         ctx.fillStyle = "#5e6b78";
-        ctx.fillRect(30, 5, 24, 18);
+        ctx.fillRect(30, 5, 28, 20);
+        ctx.fillStyle = "#2f3741";
+        ctx.fillRect(25, 19, 48, 5);
+        // 頭尾
         ctx.fillStyle = "#7a3b2e";
-        ctx.fillRect(0, 11, 18, 6);
-        ctx.fillRect(68, 8, 16, 12);
+        ctx.fillRect(0, 12, 18, 6);
+        ctx.fillRect(72, 8, 18, 13);
+        // 窗
         ctx.fillStyle = "#cfd8e6";
-        ctx.fillRect(44, 7, 8, 4);
+        ctx.fillRect(45, 7, 8, 4);
         ctx.fillStyle = "#f3c74b";
-        ctx.fillRect(70, 5, 5, 5);
-        ctx.fillStyle = "rgba(0,0,0,0.35)";
-        ctx.fillRect(24, 20, 38, 3);
+        ctx.fillRect(75, 5, 5, 5);
+        // 投彈預警閃光
+        if (this.dropTimer <= 0.45 && Math.floor(performance.now() / 120) % 2 === 0) {
+          ctx.fillStyle = "rgba(255,90,90,0.95)";
+          ctx.fillRect(40, 25, 10, 4);
+        }
         ctx.restore();
 
         ctx.fillStyle = "rgba(255,209,102,0.95)";
         ctx.font = "bold 11px system-ui, sans-serif";
-        ctx.fillText("轟炸機", sx + 18, sy - 5);
+        ctx.fillText("轟炸機", sx + 20, sy - 6);
       }
     }
 
@@ -799,12 +833,27 @@
       constructor(x, y, w = 72, h = 28) {
         this.x = x; this.y = y; this.w = w; this.h = h;
       }
-      get aabb() { return new AABB(this.x + 4, this.y + 4, this.w - 8, this.h - 4); }
+      get aabb() { return new AABB(this.x + 4, this.y + 2, this.w - 8, this.h - 2); }
       draw(ctx, camX) {
         const sx = (this.x - camX) | 0;
         const sy = this.y | 0;
         ctx.save();
-        ctx.strokeStyle = "#b7bdc8";
+        // 泥地／壕溝底色
+        ctx.fillStyle = "rgba(73,54,42,0.70)";
+        ctx.fillRect(sx - 4, sy + this.h - 7, this.w + 8, 9);
+
+        // 木樁
+        ctx.strokeStyle = "#8a6b4a";
+        ctx.lineWidth = 4;
+        for (let x = sx + 6; x < sx + this.w; x += 18) {
+          ctx.beginPath();
+          ctx.moveTo(x, sy + this.h + 2);
+          ctx.lineTo(x + 7, sy + 1);
+          ctx.stroke();
+        }
+
+        // 主鐵線
+        ctx.strokeStyle = "#cbd1dc";
         ctx.lineWidth = 2;
         for (let i = 0; i < 3; i++) {
           const yy = sy + 6 + i * 8;
@@ -813,23 +862,31 @@
           ctx.lineTo(sx + this.w, yy);
           ctx.stroke();
         }
-        ctx.strokeStyle = "#8a6b4a";
-        ctx.lineWidth = 3;
-        for (let x = sx + 6; x < sx + this.w; x += 20) {
-          ctx.beginPath();
-          ctx.moveTo(x, sy + this.h);
-          ctx.lineTo(x + 6, sy);
-          ctx.stroke();
-        }
-        ctx.strokeStyle = "#d8dde6";
-        ctx.lineWidth = 1.5;
-        for (let x = sx + 4; x < sx + this.w; x += 12) {
+
+        // 交叉鐵線
+        ctx.strokeStyle = "#e1e6ee";
+        ctx.lineWidth = 1.4;
+        for (let x = sx + 2; x < sx + this.w; x += 12) {
           ctx.beginPath();
           ctx.moveTo(x, sy + 4);
-          ctx.lineTo(x + 8, sy + 14);
-          ctx.moveTo(x + 8, sy + 4);
-          ctx.lineTo(x, sy + 14);
+          ctx.lineTo(x + 10, sy + 20);
+          ctx.moveTo(x + 10, sy + 4);
+          ctx.lineTo(x, sy + 20);
           ctx.stroke();
+        }
+
+        // 倒刺
+        ctx.strokeStyle = "#f0f3f8";
+        ctx.lineWidth = 1.1;
+        for (let x = sx + 6; x < sx + this.w; x += 10) {
+          for (const yy of [sy + 6, sy + 14, sy + 22]) {
+            ctx.beginPath();
+            ctx.moveTo(x - 3, yy - 3);
+            ctx.lineTo(x + 3, yy + 3);
+            ctx.moveTo(x + 3, yy - 3);
+            ctx.lineTo(x - 3, yy + 3);
+            ctx.stroke();
+          }
         }
         ctx.restore();
       }
@@ -1067,7 +1124,7 @@
 
         this.W = 960; this.H = 540;
         this.state = "menu";
-        this.score = 0; this.lives = 3;
+        this.score = 0; this.lives = 3; this.maxLives = 3;
         this.mode = "easy";
         this.playerName = "無名和平代表";
         this.submitted = false;
@@ -1097,9 +1154,11 @@
         this.bombers = [];
         this.wires = [];
         this.blasts = [];
+        this.bomberWarningTimer = 0;
+        this.bombFlashTimer = 0;
 
         this.player = new Player(70, 340);
-        this.goal = { x: this.levelWidth - 160, y: 0, w: 130, h: 70 };
+        this.goal = { x: this.levelWidth - 185, y: 0, w: 175, h: 90 };
         this.goalAABB = () => new AABB(this.goal.x, this.goal.y, this.goal.w, this.goal.h);
 
         this.quiz = { title: "", source: null, idx: 0, selected: -1, feedback: "", optionRects: [], lock: 0, onCorrect: null, onWrong: null };
@@ -1215,10 +1274,13 @@
         this.mode = mode === "hard" ? "hard" : "easy";
         this.playerName = cleanName(name);
         this.score = 0;
-        this.lives = this.mode === "hard" ? 2 : 3;
+        this.maxLives = this.mode === "hard" ? 2 : 3;
+        this.lives = this.maxLives;
         this.timeLimit = this.mode === "hard" ? 130 : 150;
         this.timeLeft = this.timeLimit;
         this.effects.invertTimer = 0;
+        this.bomberWarningTimer = 0;
+        this.bombFlashTimer = 0;
         this.cameraX = 0;
         this.submitted = false;
         this.finalStatus = "";
@@ -1268,8 +1330,10 @@
 
       resetAll() {
         this.state = "menu";
-        this.score = 0; this.lives = 3; this.timeLeft = this.timeLimit;
+        this.score = 0; this.maxLives = 3; this.lives = this.maxLives; this.timeLeft = this.timeLimit;
         this.effects.invertTimer = 0;
+        this.bomberWarningTimer = 0;
+        this.bombFlashTimer = 0;
         this.cameraX = 0;
         this.submitted = false;
         this.finalStatus = "";
@@ -1348,7 +1412,7 @@
         addDoc(2885, 330);
         addDoc(2940, groundY - 70);
 
-        // 原版星星觸發點改為「情報站」：只增設位置，不重寫地圖
+        // 原版星星觸發點改為「歷史關卡」：只增設位置，不重寫地圖
         this.stars.push(new StarTrigger(760, 315, 0));
         this.stars.push(new StarTrigger(1080, 260, 1));
         this.stars.push(new StarTrigger(1520, 330, 2));
@@ -1445,7 +1509,7 @@
         this.quiz.selected = choice;
         const item = this.quiz.source[this.quiz.idx];
         const correct = choice === item.answer;
-        this.quiz.lock = 5.0;
+        this.quiz.lock = correct ? 1.2 : 1.8;
         this.quiz.feedback = correct ? `✅ 答啱！${item.explain}` : `❌ 答錯！${item.explain}`;
         this.totalQuizCount = (this.totalQuizCount || 0) + 1;
         if (correct) this.correctCount = (this.correctCount || 0) + 1;
@@ -1531,6 +1595,8 @@
         if (this.state !== "playing") { this.input.jumpPressed = false; return; }
 
         this.effects.invertTimer = Math.max(0, this.effects.invertTimer - dt);
+        this.bomberWarningTimer = Math.max(0, (this.bomberWarningTimer || 0) - dt);
+        this.bombFlashTimer = Math.max(0, (this.bombFlashTimer || 0) - dt);
         this.timeLeft -= dt;
         if (this.timeLeft <= 0) { this.timeLeft = 0; this.setState("gameover", T.timeUp); this.clearInput(); return; }
 
@@ -1575,8 +1641,13 @@
           it.update(dt);
           if (!it.collected && this.player.aabb.intersects(it.aabb)) {
             it.collected = true;
-            this.score += 150;
-            this.timeLeft = Math.min(this.timeLimit, this.timeLeft + 2.0);
+            if (this.lives < this.maxLives) {
+              this.lives += 1;
+              this.score += 80;
+            } else {
+              this.score += 120;
+              this.timeLeft = Math.min(this.timeLimit, this.timeLeft + 1.0);
+            }
           }
         }
 
@@ -1587,8 +1658,8 @@
             const idx = st.qIndex % QUIZ_STARS.length;
             this.beginQuiz({
               title: T.quizStarTitle, source: QUIZ_STARS, idx,
-              onCorrect: () => { this.score += 200; setTimeout(() => { this.clearInput(); this.state = "playing"; }, 5000); },
-              onWrong:   () => { this.effects.invertTimer = 10; setTimeout(() => { this.clearInput(); this.state = "playing"; }, 5000); }
+              onCorrect: () => { this.score += 200; setTimeout(() => { this.clearInput(); this.state = "playing"; }, 1200); },
+              onWrong:   () => { setTimeout(() => { this.clearInput(); this.state = "playing"; this.effects.invertTimer = 4; }, 1800); }
             });
             return;
           }
@@ -1607,11 +1678,11 @@
               this.player.vy = -260;
               this.beginQuiz({
                 title: T.quizWWITitle, source: QUIZ_WWI, idx: (Math.random() * QUIZ_WWI.length) | 0,
-                onCorrect: () => { this.score += 150; setTimeout(() => { this.clearInput(); this.state = "playing"; }, 5000); },
+                onCorrect: () => { this.score += 150; setTimeout(() => { this.clearInput(); this.state = "playing"; }, 1200); },
                 onWrong:   () => {
                   this.lives -= 1;
-                  if (this.lives <= 0) setTimeout(() => { this.setState("gameover", "你答錯第一次世界大戰題目，任務失敗。"); }, 5000);
-                  else setTimeout(() => { this.clearInput(); this.state = "playing"; }, 5000);
+                  if (this.lives <= 0) setTimeout(() => { this.setState("gameover", "你答錯第一次世界大戰題目，任務失敗。"); }, 1800);
+                  else setTimeout(() => { this.clearInput(); this.state = "playing"; }, 1800);
                 }
               });
               return;
@@ -1625,17 +1696,17 @@
         if (this.player.aabb.intersects(this.goalAABB())) {
           this.beginQuiz({
             title: T.quizDoorTitle, source: QUIZ_FINAL, idx: (Math.random() * QUIZ_FINAL.length) | 0,
-            onCorrect: () => { this.score += 300; setTimeout(() => { this.clearInput(); this.setState("win"); }, 5000); },
+            onCorrect: () => { this.score += 300; setTimeout(() => { this.clearInput(); this.setState("win"); }, 2000); },
             onWrong:   () => {
               this.lives -= 1;
-              if (this.lives <= 0) setTimeout(() => { this.setState("gameover", "你答錯史料題，任務失敗。"); }, 5000);
+              if (this.lives <= 0) setTimeout(() => { this.setState("gameover", "你答錯史料題，任務失敗。"); }, 2000);
               else setTimeout(() => {
                 this.clearInput();
                 this.state = "playing";
                 this.player.x = this.goal.x - 220;
                 this.player.y = this.goal.y - 40;
                 this.player.vx = 0; this.player.vy = 0;
-              }, 5000);
+              }, 2000);
             }
           });
           return;
@@ -1706,6 +1777,7 @@
 
         this.player.draw(ctx, this.cameraX, this.scale, this.effects.invertTimer > 0);
         this.drawHUD(ctx);
+        this.drawBomberWarning(ctx);
 
         if (this.state === "intro") this.drawPanel(ctx, T.introTitle, T.introLines, T.pressToContinue);
         if (this.state === "rules") this.drawPanel(ctx, T.rulesTitle, T.rulesLines, T.pressToContinue);
@@ -1766,59 +1838,99 @@
         const sx = (this.goal.x - this.cameraX) | 0;
         const sy = this.goal.y | 0;
 
-        // 凡爾賽大門：金色大門 + Mario 式旗仔終點
+        // 凡爾賽大門：加大金色大門 + 更明顯 Mario 式旗仔終點
         ctx.save();
-        ctx.fillStyle = "#5b4636";
-        ctx.fillRect(sx - 8, sy + 8, 8, 58);
-        ctx.fillRect(sx + 82, sy + 8, 8, 58);
+        const gateW = 118;
+        const gateH = 84;
+        const postW = 10;
+        const topY = sy - 8;
 
+        // 門柱
+        ctx.fillStyle = "#5b4636";
+        ctx.fillRect(sx - postW, topY + 28, postW, gateH - 18);
+        ctx.fillRect(sx + gateW, topY + 28, postW, gateH - 18);
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.fillRect(sx - postW - 3, topY + gateH + 8, gateW + postW * 2 + 6, 8);
+
+        // 金色拱門
         ctx.strokeStyle = "#f3c74b";
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(sx, sy + 66);
-        ctx.lineTo(sx, sy + 22);
-        ctx.quadraticCurveTo(sx + 41, sy - 8, sx + 82, sy + 22);
-        ctx.lineTo(sx + 82, sy + 66);
+        ctx.moveTo(sx, topY + gateH);
+        ctx.lineTo(sx, topY + 34);
+        ctx.quadraticCurveTo(sx + gateW / 2, topY - 8, sx + gateW, topY + 34);
+        ctx.lineTo(sx + gateW, topY + gateH);
         ctx.stroke();
 
+        // 門格
         ctx.strokeStyle = "#ffd166";
         ctx.lineWidth = 2;
-        for (let i = 8; i <= 74; i += 11) {
+        for (let i = 10; i <= gateW - 10; i += 14) {
           ctx.beginPath();
-          ctx.moveTo(sx + i, sy + 64);
-          ctx.lineTo(sx + i, sy + 22 + Math.abs(i - 41) * 0.25);
+          ctx.moveTo(sx + i, topY + gateH - 2);
+          ctx.lineTo(sx + i, topY + 34 + Math.abs(i - gateW / 2) * 0.26);
           ctx.stroke();
         }
         ctx.beginPath();
-        ctx.moveTo(sx, sy + 42);
-        ctx.lineTo(sx + 82, sy + 42);
+        ctx.moveTo(sx, topY + 56);
+        ctx.lineTo(sx + gateW, topY + 56);
         ctx.stroke();
-
-        // 旗杆與旗仔
-        ctx.strokeStyle = "#d8dde6";
-        ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(sx + 104, sy - 18);
-        ctx.lineTo(sx + 104, sy + 66);
+        ctx.moveTo(sx, topY + 70);
+        ctx.lineTo(sx + gateW, topY + 70);
         ctx.stroke();
-        ctx.fillStyle = "#1f5fbf";
-        ctx.fillRect(sx + 106, sy - 18, 12, 22);
-        ctx.fillStyle = "#f4f0e3";
-        ctx.fillRect(sx + 118, sy - 18, 12, 22);
-        ctx.fillStyle = "#c43b3b";
-        ctx.fillRect(sx + 130, sy - 18, 12, 22);
 
-        ctx.fillStyle = "rgba(0,0,0,0.55)";
-        ctx.fillRect(sx - 6, sy - 38, 156, 22);
+        // 旗杆與放大旗仔
+        const poleX = sx + gateW + 36;
+        ctx.strokeStyle = "#e5e9f0";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(poleX, topY - 32);
+        ctx.lineTo(poleX, topY + gateH + 4);
+        ctx.stroke();
+        ctx.fillStyle = "rgba(229,233,240,0.65)";
+        ctx.fillRect(poleX - 7, topY + gateH + 2, 16, 5);
+        ctx.fillStyle = "#1f5fbf";
+        ctx.fillRect(poleX + 4, topY - 32, 18, 28);
+        ctx.fillStyle = "#f4f0e3";
+        ctx.fillRect(poleX + 22, topY - 32, 18, 28);
+        ctx.fillStyle = "#c43b3b";
+        ctx.fillRect(poleX + 40, topY - 32, 18, 28);
+
+        // 標題牌
+        ctx.fillStyle = "rgba(0,0,0,0.65)";
+        ctx.fillRect(sx - 10, topY - 62, 204, 25);
         ctx.fillStyle = "#ffd166";
-        ctx.font = "bold 13px system-ui, sans-serif";
-        ctx.fillText("凡爾賽大門 1919", sx + 2, sy - 22);
+        ctx.font = "bold 15px system-ui, sans-serif";
+        ctx.fillText("凡爾賽大門 1919", sx + 2, topY - 44);
+        ctx.restore();
+      }
+
+      drawBomberWarning(ctx) {
+        if ((this.bomberWarningTimer || 0) <= 0 && (this.bombFlashTimer || 0) <= 0) return;
+        ctx.save();
+        if ((this.bombFlashTimer || 0) > 0) {
+          ctx.fillStyle = "rgba(255,80,80,0.08)";
+          ctx.fillRect(0, 0, this.W, this.H);
+        }
+        if ((this.bomberWarningTimer || 0) > 0) {
+          const alpha = 0.55 + 0.25 * Math.sin(performance.now() / 80);
+          ctx.fillStyle = `rgba(255,72,90,${alpha})`;
+          ctx.fillRect(this.W / 2 - 160, 78, 320, 36);
+          ctx.strokeStyle = "rgba(255,209,102,0.95)";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(this.W / 2 - 160.5, 78.5, 320, 36);
+          ctx.fillStyle = "#fff5d6";
+          ctx.font = "900 20px system-ui, sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("⚠ 敵機接近！小心空襲", this.W / 2, 102);
+        }
         ctx.restore();
       }
 
       drawHUD(ctx) {
-        const pad = 14, panelW = 430, panelH = 64;
-        ctx.fillStyle = "rgba(10,14,26,0.65)";
+        const pad = 14, panelW = 370, panelH = 56;
+        ctx.fillStyle = "rgba(10,14,26,0.62)";
         ctx.fillRect(pad, pad, panelW, panelH);
         ctx.strokeStyle = "rgba(255,255,255,0.10)";
         ctx.strokeRect(pad + 0.5, pad + 0.5, panelW - 1, panelH - 1);
@@ -1827,21 +1939,25 @@
         const time = Math.ceil(this.timeLeft);
 
         ctx.fillStyle = "rgba(232,229,216,0.95)";
-        ctx.font = "bold 16px system-ui, sans-serif";
-        ctx.fillText((this.mode === "hard" ? "困難模式" : "簡易模式") + "｜" + this.playerName, pad + 12, pad + 22);
+        ctx.font = "bold 15px system-ui, sans-serif";
+        ctx.fillText((this.mode === "hard" ? "困難模式" : "簡易模式") + "｜" + this.playerName, pad + 12, pad + 20);
 
-        ctx.font = "14px system-ui, sans-serif";
+        ctx.font = "13px system-ui, sans-serif";
         ctx.fillStyle = "rgba(232,229,216,0.90)";
-        ctx.fillText(`${T.hudScore}：${score}`, pad + 12, pad + 44);
-        ctx.fillStyle = "rgba(255,90,106,0.95)";
-        ctx.fillText(`${T.hudLives}：${this.lives}`, pad + 165, pad + 44);
+        ctx.fillText(`${T.hudScore}：${score}`, pad + 12, pad + 42);
+        ctx.font = "900 20px system-ui, sans-serif";
+        for (let i = 0; i < (this.maxLives || 3); i++) {
+          ctx.fillStyle = i < this.lives ? "rgba(255,70,90,0.98)" : "rgba(255,255,255,0.22)";
+          ctx.fillText(i < this.lives ? "♥" : "♡", pad + 145 + i * 24, pad + 43);
+        }
+        ctx.font = "13px system-ui, sans-serif";
         ctx.fillStyle = time <= 15 ? "rgba(255,90,106,0.95)" : "rgba(243,199,75,0.95)";
-        ctx.fillText(`${T.hudTime}：${time}s`, pad + 285, pad + 44);
+        ctx.fillText(`${T.hudTime}：${time}s`, pad + 255, pad + 42);
 
         if (this.effects.invertTimer > 0) {
           ctx.fillStyle = "rgba(255,90,106,0.95)";
-          ctx.font = "800 14px system-ui, sans-serif";
-          ctx.fillText(`⚠ 左右反轉：${Math.ceil(this.effects.invertTimer)}s`, pad + 12, pad + 62);
+          ctx.font = "800 13px system-ui, sans-serif";
+          ctx.fillText(`⚠ 左右反轉：${Math.ceil(this.effects.invertTimer)}s`, pad + 12, pad + 54);
 
           const sec = Math.ceil(this.effects.invertTimer);
           ctx.save();
@@ -1874,48 +1990,90 @@
         ctx.fillText(footer, cx + 24, cy + ch - 26);
       }
 
+
+
+      wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 3) {
+        const chars = String(text || "").split("");
+        let line = "";
+        let lines = [];
+        for (const ch of chars) {
+          const test = line + ch;
+          if (ctx.measureText(test).width > maxWidth && line) {
+            lines.push(line);
+            line = ch;
+          } else {
+            line = test;
+          }
+        }
+        if (line) lines.push(line);
+        if (lines.length > maxLines) {
+          lines = lines.slice(0, maxLines);
+          lines[maxLines - 1] = lines[maxLines - 1].slice(0, Math.max(0, lines[maxLines - 1].length - 1)) + "…";
+        }
+        for (let i = 0; i < lines.length; i++) ctx.fillText(lines[i], x, y + i * lineHeight);
+        return lines.length;
+      }
+
+      getQuizBadge(item) {
+        const q = String(item && item.q || "");
+        if (/時序|先後|排列/.test(q)) return "排序題";
+        if (/根據|資料|漫畫|演說|條文/.test(q)) return "資料判讀";
+        if (/概念|定義|最能反映|最能說明/.test(q)) return "概念辨識";
+        if (/是否|多大程度|判斷|支持此說/.test(q)) return "立場判斷";
+        return "四選一";
+      }
+
       drawQuiz(ctx) {
         const w = this.W, h = this.H;
         const item = this.quiz.source[this.quiz.idx];
-        ctx.fillStyle = "rgba(10,14,26,0.82)"; ctx.fillRect(0, 0, w, h);
-        const cw = Math.min(860, w - 80), ch = Math.min(420, h - 80);
+        ctx.fillStyle = "rgba(5,8,18,0.94)"; ctx.fillRect(0, 0, w, h);
+        const cw = Math.min(800, w - 120), ch = Math.min(360, h - 100);
         const cx = (w - cw) / 2, cy = (h - ch) / 2;
-        ctx.fillStyle = "rgba(255,255,255,0.06)"; ctx.fillRect(cx, cy, cw, ch);
-        ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.strokeRect(cx + 0.5, cy + 0.5, cw - 1, ch - 1);
+        ctx.fillStyle = "rgba(255,255,255,0.075)"; ctx.fillRect(cx, cy, cw, ch);
+        ctx.strokeStyle = "rgba(255,255,255,0.18)"; ctx.strokeRect(cx + 0.5, cy + 0.5, cw - 1, ch - 1);
+
+        const badge = this.getQuizBadge(item);
+        ctx.fillStyle = "rgba(243,199,75,0.22)";
+        ctx.fillRect(cx + 22, cy + 18, 86, 24);
+        ctx.strokeStyle = "rgba(243,199,75,0.55)";
+        ctx.strokeRect(cx + 22.5, cy + 18.5, 85, 23);
+        ctx.fillStyle = "#ffd166";
+        ctx.font = "800 13px system-ui, sans-serif";
+        ctx.fillText(badge, cx + 34, cy + 35);
 
         ctx.fillStyle = "rgba(232,229,216,0.96)";
-        ctx.font = "800 22px system-ui, sans-serif"; ctx.fillText(this.quiz.title, cx + 22, cy + 42);
+        ctx.font = "800 20px system-ui, sans-serif";
+        ctx.fillText(this.quiz.title, cx + 122, cy + 36);
 
-        ctx.font = "16px system-ui, sans-serif"; ctx.fillStyle = "rgba(232,229,216,0.94)";
-        ctx.fillText(item.q, cx + 22, cy + 74);
+        ctx.font = "15px system-ui, sans-serif"; ctx.fillStyle = "rgba(232,229,216,0.96)";
+        const qLines = this.wrapText(ctx, item.q, cx + 22, cy + 66, cw - 44, 20, 2);
 
         this.quiz.optionRects = [];
-        const btnH = 44, gap = 10; let by = cy + 100;
+        const btnH = 39, gap = 8; let by = cy + 78 + qLines * 20;
         for (let i = 0; i < item.options.length; i++) {
           const bx = cx + 22, bw = cw - 44;
           const chosen = this.quiz.selected === i;
-
-          ctx.fillStyle = chosen ? "rgba(243,199,75,0.22)" : "rgba(255,255,255,0.08)";
+          const correct = this.quiz.selected >= 0 && i === item.answer;
+          ctx.fillStyle = correct ? "rgba(55,190,95,0.20)" : (chosen ? "rgba(243,199,75,0.22)" : "rgba(255,255,255,0.08)");
           ctx.fillRect(bx, by, bw, btnH);
-          ctx.strokeStyle = "rgba(255,255,255,0.14)";
+          ctx.strokeStyle = correct ? "rgba(55,220,95,0.55)" : "rgba(255,255,255,0.16)";
           ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, btnH - 1);
 
-          ctx.fillStyle = "rgba(232,229,216,0.95)";
-          ctx.font = "16px system-ui, sans-serif";
-          ctx.fillText(`${i + 1}) ${item.options[i]}`, bx + 14, by + 28);
-
+          ctx.fillStyle = "rgba(232,229,216,0.96)";
+          ctx.font = "15px system-ui, sans-serif";
+          this.wrapText(ctx, `${i + 1}) ${item.options[i]}`, bx + 14, by + 25, bw - 28, 17, 1);
           this.quiz.optionRects.push({ x: bx, y: by, w: bw, h: btnH, idx: i });
           by += btnH + gap;
         }
 
         ctx.fillStyle = "rgba(243,199,75,0.95)";
         ctx.font = "700 14px system-ui, sans-serif";
-        ctx.fillText(T.quizHint, cx + 22, cy + ch - 50);
+        ctx.fillText(T.quizHint, cx + 22, cy + ch - 46);
 
         if (this.quiz.feedback) {
-          ctx.fillStyle = "rgba(232,229,216,0.95)";
-          ctx.font = "700 14px system-ui, sans-serif";
-          ctx.fillText(this.quiz.feedback, cx + 22, cy + ch - 26);
+          ctx.fillStyle = this.quiz.feedback.startsWith("✅") ? "rgba(180,255,190,0.95)" : "rgba(255,205,205,0.95)";
+          ctx.font = "700 13px system-ui, sans-serif";
+          this.wrapText(ctx, this.quiz.feedback, cx + 22, cy + ch - 24, cw - 44, 16, 1);
         }
       }
     }
