@@ -2,7 +2,7 @@
 <html lang="zh-HK">
 <head>
   <meta charset="UTF-8" />
-  <title>1914–1919：戰爭與和平任務 v5.8</title>
+  <title>1914–1919：戰爭與和平任務 v5.8.1</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
   <style>
@@ -192,7 +192,8 @@
         </div>
         <div id="leaderboardBox">
           <h3>網上龍虎榜</h3>
-          <div id="leaderboardContent">讀取中……</div>
+          <div id="leaderboardContent">預覽版不會自動連線；正式網站會顯示網上榜。</div>
+          <button id="btnLoadLeaderboard" class="secondary" style="padding:8px 12px;font-size:14px;margin-top:10px;">更新龍虎榜</button>
         </div>
       </div>
     </div>
@@ -212,9 +213,18 @@
 
     const LEADERBOARD_URL = "https://script.google.com/macros/s/AKfycbznfJMNPGJqktjMsqBKZCiE5BAdZxafipeEflXFWBd9KxHRWAqyAgWH1yfXbk_W_GkN/exec";
 
+    function isFormalWebsite() {
+      const host = String(location.hostname || "").toLowerCase();
+      return host === "ci-a11y.github.io" || host.endsWith(".github.io");
+    }
+
     function loadLeaderboard() {
       const box = document.getElementById("leaderboardContent");
       if (!box) return;
+      if (!isFormalWebsite()) {
+        box.innerHTML = "預覽版已關閉網絡連線，因此不會彈出權限視窗。<br>上載到 GitHub Pages 正式網站後，網上龍虎榜會正常讀取。";
+        return;
+      }
       box.textContent = "讀取中……";
       fetch(LEADERBOARD_URL + "?top=10")
         .then(r => r.json())
@@ -1750,6 +1760,10 @@
           files: this.items.filter(i => i.collected).length,
           result: finalState
         };
+        if (!isFormalWebsite()) {
+          this.finalStatus = "預覽版已關閉網絡連線，未上載成績；正式網站會自動上載。";
+          return;
+        }
         fetch(LEADERBOARD_URL, {
           method: "POST",
           mode: "no-cors",
@@ -2919,6 +2933,8 @@
         if (e.key === "Enter") requestStart("easy");
       });
     }
+    const loadLeaderboardBtn = document.getElementById("btnLoadLeaderboard");
+    if (loadLeaderboardBtn) loadLeaderboardBtn.addEventListener("click", loadLeaderboard);
     loadLeaderboard();
   })();
   </script>
