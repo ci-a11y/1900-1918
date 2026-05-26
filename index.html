@@ -687,19 +687,49 @@
       draw(ctx, camX, scale) {
         const sx = (this.x - camX) | 0;
         const sy = this.y | 0;
-
+        ctx.save();
         if (this.type === "ground") {
-          const tileW = SPRITES.brick[0].length * scale;
-          const tileH = SPRITES.brick.length * scale;
-          for (let yy = sy; yy < sy + this.h; yy += tileH) {
-            for (let xx = sx; xx < sx + this.w; xx += tileW) drawSprite(ctx, SPRITES.brick, xx, yy, scale);
+          // 更像戰場磚石地台：加頂層、陰影、破損紋理，避免舊式純 tile 感。
+          ctx.fillStyle = "#522b25";
+          ctx.fillRect(sx, sy, this.w, this.h);
+          ctx.fillStyle = "#b94b3f";
+          ctx.fillRect(sx, sy, this.w, 10);
+          ctx.fillStyle = "rgba(255,220,170,0.16)";
+          ctx.fillRect(sx, sy + 2, this.w, 2);
+          ctx.strokeStyle = "rgba(36,18,18,0.58)";
+          ctx.lineWidth = 1;
+          const brickH = 10, brickW = 22;
+          for (let yy = sy + 10; yy < sy + this.h; yy += brickH) {
+            ctx.beginPath();
+            ctx.moveTo(sx, yy); ctx.lineTo(sx + this.w, yy); ctx.stroke();
+            const off = ((yy / brickH) | 0) % 2 ? brickW / 2 : 0;
+            for (let xx = sx - off; xx < sx + this.w; xx += brickW) {
+              ctx.beginPath(); ctx.moveTo(xx, yy); ctx.lineTo(xx, yy + brickH); ctx.stroke();
+            }
+          }
+          ctx.fillStyle = "rgba(0,0,0,0.24)";
+          ctx.fillRect(sx, sy + this.h - 16, this.w, 16);
+          ctx.fillStyle = "rgba(255,255,255,0.07)";
+          for (let xx = sx + 10; xx < sx + this.w; xx += 70) {
+            ctx.fillRect(xx, sy + 18 + ((xx/7)|0)%40, 18, 3);
           }
         } else {
-          const sprW = SPRITES.beam[0].length * scale;
-          for (let xx = sx; xx < sx + this.w; xx += sprW) drawSprite(ctx, SPRITES.beam, xx, sy, scale);
-          ctx.fillStyle = "rgba(0,0,0,0.18)";
-          ctx.fillRect(sx, sy + SPRITES.beam.length * scale, this.w, 3);
+          // 金屬橋台：更清楚的邊框、鉚釘、冷光。
+          ctx.fillStyle = "rgba(38,48,64,0.95)";
+          ctx.fillRect(sx, sy, this.w, this.h);
+          ctx.fillStyle = "#9fb2c8";
+          ctx.fillRect(sx, sy, this.w, 4);
+          ctx.fillStyle = "#5b6c80";
+          ctx.fillRect(sx, sy + this.h - 4, this.w, 4);
+          ctx.strokeStyle = "rgba(210,225,245,0.35)";
+          ctx.lineWidth = 1;
+          for (let xx = sx + 12; xx < sx + this.w; xx += 28) {
+            ctx.beginPath(); ctx.arc(xx, sy + 8, 2, 0, Math.PI * 2); ctx.stroke();
+          }
+          ctx.fillStyle = "rgba(0,0,0,0.22)";
+          ctx.fillRect(sx, sy + this.h, this.w, 4);
         }
+        ctx.restore();
       }
     }
 
@@ -1043,8 +1073,23 @@
       }
       draw(ctx, camX, scale) {
         if (!this.alive) return;
-        const frame = (Math.floor(this.anim) % 2 === 0) ? SPRITES.enemy1 : SPRITES.enemy2;
-        drawSprite(ctx, frame, (this.x - camX) | 0, this.y | 0, scale, this.face < 0);
+        const sx = (this.x - camX) | 0, sy = this.y | 0;
+        const bob = Math.floor(Math.sin(this.anim) * 2);
+        ctx.save();
+        if (this.face < 0) { ctx.translate(sx + this.w, 0); ctx.scale(-1, 1); } else { ctx.translate(sx, 0); }
+        // 一戰步兵：頭盔、背包、軍靴、步槍輪廓，比舊 pixel 人仔更清晰。
+        ctx.fillStyle = "rgba(0,0,0,0.28)"; ctx.fillRect(0, 28, 24, 4);
+        ctx.fillStyle = "#2f4930"; ctx.fillRect(6, 12 + bob, 13, 15);
+        ctx.fillStyle = "#4b633d"; ctx.fillRect(3, 14 + bob, 5, 10);
+        ctx.fillStyle = "#263826"; ctx.fillRect(16, 14 + bob, 6, 9);
+        ctx.fillStyle = "#d2a76f"; ctx.fillRect(8, 6 + bob, 9, 8);
+        ctx.fillStyle = "#3f4b3e"; ctx.fillRect(5, 4 + bob, 15, 5);
+        ctx.fillStyle = "#232b25"; ctx.fillRect(3, 7 + bob, 18, 3);
+        ctx.fillStyle = "#6d4a2e"; ctx.fillRect(0, 16 + bob, 20, 3);
+        ctx.fillStyle = "#2a1f1a"; ctx.fillRect(18, 17 + bob, 13, 2);
+        ctx.fillStyle = "#2b2b2b"; ctx.fillRect(7, 26 + bob, 5, 5); ctx.fillRect(16, 25 - bob, 5, 6);
+        ctx.fillStyle = "#151515"; ctx.fillRect(5, 30 + bob, 8, 3); ctx.fillRect(15, 30 - bob, 8, 3);
+        ctx.restore();
       }
     }
 
@@ -1102,8 +1147,23 @@
       }
       draw(ctx, camX, scale) {
         if (!this.alive) return;
-        const frame = (Math.floor(this.anim) % 2 === 0) ? SPRITES.shooter1 : SPRITES.shooter2;
-        drawSprite(ctx, frame, (this.x - camX) | 0, this.y | 0, scale, this.face < 0);
+        const sx = (this.x - camX) | 0, sy = this.y | 0;
+        const pulse = Math.sin(this.anim * 1.8) > 0.4;
+        ctx.save();
+        if (this.face < 0) { ctx.translate(sx + this.w, 0); ctx.scale(-1, 1); } else { ctx.translate(sx, 0); }
+        // 持槍敵兵：加長槍管與警戒姿勢。
+        ctx.fillStyle = "rgba(0,0,0,0.28)"; ctx.fillRect(0, 29, 27, 4);
+        ctx.fillStyle = "#314b33"; ctx.fillRect(6, 12, 14, 16);
+        ctx.fillStyle = "#d2a76f"; ctx.fillRect(8, 6, 9, 8);
+        ctx.fillStyle = "#3e493d"; ctx.fillRect(5, 4, 15, 5);
+        ctx.fillStyle = "#222a23"; ctx.fillRect(3, 7, 18, 3);
+        ctx.fillStyle = "#5b3828"; ctx.fillRect(14, 16, 20, 4);
+        ctx.fillStyle = "#171717"; ctx.fillRect(28, 15, 18, 2);
+        if (pulse) { ctx.fillStyle = "#ffb703"; ctx.fillRect(45, 14, 4, 4); }
+        ctx.fillStyle = "#263826"; ctx.fillRect(3, 15, 6, 9);
+        ctx.fillStyle = "#2b2b2b"; ctx.fillRect(7, 27, 5, 5); ctx.fillRect(16, 27, 5, 5);
+        ctx.fillStyle = "#151515"; ctx.fillRect(5, 31, 8, 3); ctx.fillRect(15, 31, 8, 3);
+        ctx.restore();
       }
     }
 
@@ -1285,7 +1345,7 @@
         this.goalAABB = () => new AABB(this.goal.x, this.goal.y, this.goal.w, this.goal.h);
         this.flagAABB = () => new AABB(this.flag.x, this.flag.y, this.flag.w, this.flag.h);
 
-        this.quiz = { title: "", source: null, idx: 0, item: null, selected: -1, feedback: "", optionRects: [], lock: 0, onCorrect: null, onWrong: null };
+        this.quiz = { title: "", source: null, idx: 0, item: null, selected: -1, feedback: "", optionRects: [], lock: 0, onCorrect: null, onWrong: null, pendingContinue: null, timeoutId: null };
         this.quizBags = new WeakMap();
 
         this.bgBuildings = this.generateBuildings(84);
@@ -1681,12 +1741,29 @@
         this.clearInput();
       }
 
+      scheduleQuizContinue(fn, ms = 2000) {
+        if (this.quiz.timeoutId) clearTimeout(this.quiz.timeoutId);
+        this.quiz.pendingContinue = fn;
+        this.quiz.lock = ms / 1000;
+        this.quiz.timeoutId = setTimeout(() => this.forceQuizContinue(), ms);
+      }
+
+      forceQuizContinue() {
+        if (this.state !== "quiz" || !this.quiz.pendingContinue) return;
+        if (this.quiz.timeoutId) clearTimeout(this.quiz.timeoutId);
+        const fn = this.quiz.pendingContinue;
+        this.quiz.pendingContinue = null;
+        this.quiz.timeoutId = null;
+        this.quiz.lock = 0;
+        fn();
+      }
+
       answerQuiz(choice) {
         if (this.quiz.lock > 0) return;
         this.quiz.selected = choice;
         const item = this.quiz.item;
         const correct = choice === item.answer;
-        this.quiz.lock = 2.0;
+        this.quiz.lock = 0;
         this.quiz.feedback = correct ? `✅ 答啱！${item.explain}` : `❌ 答錯！${item.explain}`;
         this.totalQuizCount = (this.totalQuizCount || 0) + 1;
         if (correct) this.correctCount = (this.correctCount || 0) + 1;
@@ -1697,6 +1774,7 @@
       bindQuizPointer() {
         this.canvas.addEventListener("pointerdown", (e) => {
           if (this.state !== "quiz") return;
+          if (this.quiz.selected >= 0) { this.forceQuizContinue(); return; }
           const r = this.canvas.getBoundingClientRect();
           const mx = (e.clientX - r.left) * (this.W / r.width);
           const my = (e.clientY - r.top) * (this.H / r.height);
@@ -1717,6 +1795,7 @@
           if (blocks.includes(e.code)) e.preventDefault();
 
           if (this.state === "quiz") {
+            if (this.quiz.selected >= 0) { e.preventDefault(); this.forceQuizContinue(); return; }
             if (e.code === "Digit1") this.answerQuiz(0);
             if (e.code === "Digit2") this.answerQuiz(1);
             if (e.code === "Digit3") this.answerQuiz(2);
@@ -1774,7 +1853,12 @@
           if (c.x > this.levelWidth + 200) c.x = -200;
         }
 
-        if (this.state === "quiz") { this.quiz.lock = Math.max(0, this.quiz.lock - dt); this.input.jumpPressed = false; return; }
+        if (this.state === "quiz") { 
+          this.quiz.lock = Math.max(0, this.quiz.lock - dt); 
+          if (this.quiz.selected >= 0 && this.quiz.lock <= 0 && this.quiz.pendingContinue) this.forceQuizContinue();
+          this.input.jumpPressed = false; 
+          return; 
+        }
         if (this.state !== "playing") { this.input.jumpPressed = false; return; }
 
         this.effects.invertTimer = Math.max(0, this.effects.invertTimer - dt);
@@ -1844,8 +1928,8 @@
             st.used = true;
             this.beginQuiz({
               title: T.quizStarTitle, source: QUIZ_STARS,
-              onCorrect: () => { this.score += 200; setTimeout(() => { this.clearInput(); this.state = "playing"; }, 2000); },
-              onWrong:   () => { setTimeout(() => { this.clearInput(); this.state = "playing"; this.effects.invertTimer = 4; }, 2000); }
+              onCorrect: () => { this.score += 200; this.scheduleQuizContinue(() => { this.clearInput(); this.state = "playing"; }); },
+              onWrong:   () => { this.scheduleQuizContinue(() => { this.clearInput(); this.state = "playing"; this.effects.invertTimer = 4; }); }
             });
             return;
           }
@@ -1864,11 +1948,11 @@
               this.player.vy = -260;
               this.beginQuiz({
                 title: T.quizWWITitle, source: QUIZ_WWI,
-                onCorrect: () => { this.score += 150; setTimeout(() => { this.clearInput(); this.state = "playing"; }, 2000); },
+                onCorrect: () => { this.score += 150; this.scheduleQuizContinue(() => { this.clearInput(); this.state = "playing"; }); },
                 onWrong:   () => {
                   this.lives -= 1;
-                  if (this.lives <= 0) setTimeout(() => { this.setState("gameover", "你答錯第一次世界大戰題目，任務失敗。"); }, 2000);
-                  else setTimeout(() => { this.clearInput(); this.state = "playing"; }, 2000);
+                  if (this.lives <= 0) this.scheduleQuizContinue(() => { this.setState("gameover", "你答錯第一次世界大戰題目，任務失敗。"); });
+                  else this.scheduleQuizContinue(() => { this.clearInput(); this.state = "playing"; });
                 }
               });
               return;
@@ -1897,17 +1981,17 @@
         if (this.player.aabb.intersects(this.goalAABB())) {
           this.beginQuiz({
             title: T.quizDoorTitle, source: QUIZ_FINAL,
-            onCorrect: () => { this.score += 300; setTimeout(() => { this.clearInput(); this.setState("win"); }, 2000); },
+            onCorrect: () => { this.score += 300; this.scheduleQuizContinue(() => { this.clearInput(); this.setState("win"); }); },
             onWrong:   () => {
               this.lives -= 1;
-              if (this.lives <= 0) setTimeout(() => { this.setState("gameover", "你答錯史料題，任務失敗。"); }, 2000);
-              else setTimeout(() => {
+              if (this.lives <= 0) this.scheduleQuizContinue(() => { this.setState("gameover", "你答錯史料題，任務失敗。"); });
+              else this.scheduleQuizContinue(() => {
                 this.clearInput();
                 this.state = "playing";
                 this.player.x = this.goal.x - 220;
                 this.player.y = this.goal.y - 40;
                 this.player.vx = 0; this.player.vy = 0;
-              }, 2000);
+              });
             }
           });
           return;
@@ -1989,6 +2073,12 @@
 
       drawBackground(ctx) {
         const w = this.W, far = 0.25;
+        // 遠景煙霧與戰時城市剪影
+        const g = ctx.createLinearGradient(0, 210, 0, 430);
+        g.addColorStop(0, "rgba(42,48,68,0.55)");
+        g.addColorStop(1, "rgba(14,18,30,0.20)");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 230, w, 205);
         ctx.fillStyle = "rgba(0,0,0,0.18)"; ctx.fillRect(0, 250, w, 160);
         const baseY = 410;
         for (const b of this.bgBuildings) {
@@ -1996,29 +2086,34 @@
           if (x > w + 120 || x + b.w < -120) continue;
           const y = baseY - b.h;
           const bodyCol =
-            b.tone < 0.33 ? "rgba(44,45,52,0.75)" :
-            b.tone < 0.66 ? "rgba(75,86,110,0.65)" :
-            "rgba(122,59,46,0.55)";
+            b.tone < 0.33 ? "rgba(50,57,72,0.78)" :
+            b.tone < 0.66 ? "rgba(80,88,110,0.68)" :
+            "rgba(112,55,50,0.62)";
           ctx.fillStyle = bodyCol; ctx.fillRect(x, y, b.w, b.h);
-          ctx.fillStyle = "rgba(139,47,42,0.55)";
-          if (b.roof === "flat") ctx.fillRect(x, y - 6, b.w, 6);
+          // 光暗面增加層次
+          ctx.fillStyle = "rgba(255,255,255,0.035)"; ctx.fillRect(x + 3, y + 4, Math.max(4, b.w * 0.22), b.h - 8);
+          ctx.fillStyle = "rgba(0,0,0,0.16)"; ctx.fillRect(x + b.w - 10, y, 10, b.h);
+          ctx.fillStyle = "rgba(128,49,45,0.74)";
+          if (b.roof === "flat") ctx.fillRect(x, y - 7, b.w, 7);
           else if (b.roof === "gable") {
-            for (let i = 0; i < 8; i++) {
-              const rw = b.w - i * 6; if (rw <= 0) break;
-              ctx.fillRect(x + i * 3, y - 6 - i * 3, rw, 3);
-            }
-          } else { for (let i = 0; i < b.w; i += 12) ctx.fillRect(x + i, y - 12, 10, 12); }
-          ctx.fillStyle = "rgba(243,199,75,0.18)";
+            ctx.beginPath();
+            ctx.moveTo(x - 4, y);
+            ctx.lineTo(x + b.w / 2, y - Math.min(28, b.w * 0.33));
+            ctx.lineTo(x + b.w + 4, y);
+            ctx.closePath(); ctx.fill();
+            ctx.fillStyle = "rgba(0,0,0,0.13)"; ctx.fillRect(x, y, b.w, 4);
+          } else { for (let i = 0; i < b.w; i += 12) ctx.fillRect(x + i, y - 13, 10, 13); }
           const rows = Math.max(2, Math.floor(b.h / 40));
           for (let r = 0; r < rows; r++) {
             for (let c = 0; c < b.windows; c++) {
               const wx = x + 10 + c * Math.floor((b.w - 20) / b.windows);
               const wy = y + 12 + r * Math.floor((b.h - 20) / rows);
-              ctx.fillRect(wx, wy, 6, 8);
+              ctx.fillStyle = ((r + c + Math.floor(b.tone * 10)) % 5 === 0) ? "rgba(255,210,105,0.26)" : "rgba(235,220,160,0.10)";
+              ctx.fillRect(wx, wy, 7, 9);
             }
           }
           if (b.chimney) {
-            ctx.fillStyle = "rgba(27,31,46,0.55)";
+            ctx.fillStyle = "rgba(27,31,46,0.60)";
             ctx.fillRect(x + b.w - 18, y - 26, 10, 20);
             ctx.fillStyle = "rgba(0,0,0,0.18)";
             ctx.fillRect(x + b.w - 20, y - 30, 14, 6);
@@ -2307,7 +2402,7 @@
           ctx.fillStyle = ok ? "rgba(190,255,200,0.98)" : "rgba(255,210,210,0.98)";
           ctx.font = "800 13px system-ui, sans-serif";
           const remain = Math.max(1, Math.ceil(this.quiz.lock || 0));
-          this.wrapText(ctx, `${this.quiz.feedback}　${remain}秒後繼續`, cx + 26, cy + ch - 20, cw - 52, 16, 1);
+          this.wrapText(ctx, `${this.quiz.feedback}　${remain}秒後繼續｜按任意鍵或點畫面立即繼續`, cx + 26, cy + ch - 20, cw - 52, 16, 1);
         }
       }
     }
