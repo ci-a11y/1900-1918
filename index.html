@@ -213,7 +213,7 @@
           }
           const easy = rows.filter(r => r.mode === "easy").slice(0, 5);
           const hard = rows.filter(r => r.mode === "hard").slice(0, 5);
-          const render = (title, arr) => `<b>${title}</b><br>` + (arr.length ? arr.map((r,i)=>`${i+1}. ${String(r.name||"無名和平代表")}｜${Number(r.score||0)}分｜${Number(r.correct||0)}/${Number(r.total||0)}`).join("<br>") : "未有紀錄");
+          const render = (title, arr) => `<b>${title}</b><br>` + (arr.length ? arr.map((r,i)=>`${i+1}. ${String(r.name||"無名和平特派員")}｜${Number(r.score||0)}分｜${Number(r.correct||0)}/${Number(r.total||0)}`).join("<br>") : "未有紀錄");
           box.innerHTML = render("簡易 Top 5", easy) + "<br><br>" + render("困難 Top 5", hard);
         })
         .catch(() => {
@@ -225,7 +225,7 @@
       let s = String(name || "").trim().replace(/[<>"'`]/g, "").slice(0, 12);
       const bad = ["仆街","屌","on9","傻閪","撚","柒","fuck","shit","bitch"];
       bad.forEach(w => s = s.split(w).join("*"));
-      if (!s || /^[\W_]+$/u.test(s)) s = "無名和平代表";
+      if (!s || /^[\W_]+$/u.test(s)) s = "無名和平特派員";
       return s;
     };
 
@@ -248,7 +248,7 @@
         "1914年，歐洲危機由局部衝突擴大成全面戰爭。",
         "1919年，戰勝國代表在巴黎和會商討戰後安排。",
         "你要穿越戰場，避開轟炸機、炮彈與鐵絲網，",
-        "收集歷史檔案，拉下終點旗仔計分，最終通過凡爾賽大門。"
+        "收集歷史檔案，觸碰終點旗杆計分，最終通過凡爾賽大門。"
       ],
       rulesTitle: "遊戲規則與注意事項",
       rulesLines: [
@@ -265,14 +265,14 @@
         "⚠ 轟炸機會定時飛過並投下炸彈",
         "",
         "【終點🚩】",
-        "先拉下終點旗仔計分，再通過凡爾賽大門；大門題答啱先過關",
+        "先觸碰終點旗杆計分，再通過凡爾賽大門；大門題答啱先過關",
         "",
         "【提示】",
         "手機畫面太細：建議打橫玩（Landscape）"
       ],
       winTitle: "任務成功",
       winLines: [
-        "你成功拉下終點旗仔，並通過凡爾賽大門。",
+        "你成功觸碰終點旗杆，並通過凡爾賽大門。",
         "巴黎和會雖然嘗試建立戰後和平秩序，",
         "但《凡爾賽條約》的嚴厲條款亦為日後國際衝突埋下伏線。"
       ],
@@ -722,20 +722,57 @@
     }
 
     class StarTrigger {
-      constructor(x, y, qIndex) { this.x = x; this.y = y; this.w = 22; this.h = 22; this.used = false; this.qIndex = qIndex; this.bob = 0; }
+      constructor(x, y, qIndex) {
+        this.x = x; this.y = y; this.w = 24; this.h = 26;
+        this.used = false; this.qIndex = qIndex; this.bob = 0;
+      }
       get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
       update(dt) { this.bob += dt * 6; }
-      draw(ctx, camX, scale) {
+      draw(ctx, camX, scale, player) {
         if (this.used) return;
         const bobY = Math.sin(this.bob) * 3;
         const sx = (this.x - camX) | 0;
         const sy = (this.y + bobY) | 0;
-        drawSprite(ctx, SPRITES.star, sx, sy, scale);
-        ctx.fillStyle = "rgba(0,0,0,0.55)";
-        ctx.fillRect(sx - 8, sy + 24, 64, 20);
-        ctx.fillStyle = "rgba(243,199,75,0.95)";
-        ctx.font = "bold 12px system-ui, sans-serif";
-        ctx.fillText("情報資訊", sx - 2, sy + 39);
+        const near = player && Math.abs((player.x + player.w / 2) - (this.x + this.w / 2)) < 135;
+
+        ctx.save();
+        // 柔光，令「情報資訊」不像普通背景物件
+        ctx.fillStyle = 'rgba(255,209,102,0.12)';
+        ctx.beginPath(); ctx.arc(sx + 13, sy + 13, 23, 0, Math.PI * 2); ctx.fill();
+
+        // 金色情報卷軸 / 任務牌
+        ctx.fillStyle = '#4b3419';
+        ctx.fillRect(sx + 1, sy + 4, 25, 22);
+        ctx.fillStyle = '#f0c95a';
+        ctx.fillRect(sx + 4, sy + 2, 20, 22);
+        ctx.fillStyle = '#ffe6a3';
+        ctx.fillRect(sx + 7, sy + 5, 14, 16);
+        ctx.strokeStyle = '#8a6124';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(sx + 4.5, sy + 2.5, 19, 21);
+
+        // 放大鏡符號，和回血羊皮紙分開
+        ctx.strokeStyle = '#1b1f2e';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(sx + 13, sy + 11, 5, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(sx + 17, sy + 15); ctx.lineTo(sx + 22, sy + 20); ctx.stroke();
+        ctx.fillStyle = '#1b1f2e';
+        ctx.font = '900 10px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('?', sx + 13, sy + 15);
+
+        // 只在接近時顯示文字，減少畫面雜訊
+        if (near) {
+          const label = '情報資訊';
+          ctx.font = 'bold 12px system-ui, sans-serif';
+          const tw = ctx.measureText(label).width + 16;
+          ctx.fillStyle = 'rgba(0,0,0,0.68)';
+          ctx.fillRect(sx - 15, sy + 29, tw, 19);
+          ctx.fillStyle = '#ffd166';
+          ctx.textAlign = 'left';
+          ctx.fillText(label, sx - 7, sy + 43);
+        }
+        ctx.restore();
       }
     }
 
@@ -1188,7 +1225,7 @@
         this.state = "menu";
         this.score = 0; this.lives = 3; this.maxLives = 3;
         this.mode = "easy";
-        this.playerName = "無名和平代表";
+        this.playerName = "無名和平特派員";
         this.submitted = false;
         this.finalStatus = "";
         this.correctCount = 0;
@@ -1221,10 +1258,12 @@
 
         this.player = new Player(70, 340);
         this.goal = { x: this.levelWidth - 135, y: 0, w: 135, h: 90 };
-        this.flag = { x: this.levelWidth - 240, y: 0, w: 34, h: 118 };
+        this.flag = { x: this.levelWidth - 240, y: 0, w: 42, h: 180 };
         this.flagCaptured = false;
         this.flagBonusText = "";
         this.flagBonusTimer = 0;
+        this.flagSlideY = 0;
+        this.flagTargetY = 0;
         this.goalAABB = () => new AABB(this.goal.x, this.goal.y, this.goal.w, this.goal.h);
         this.flagAABB = () => new AABB(this.flag.x, this.flag.y, this.flag.w, this.flag.h);
 
@@ -1359,6 +1398,8 @@
         this.flagCaptured = false;
         this.flagBonusText = "";
         this.flagBonusTimer = 0;
+        this.flagSlideY = 0;
+        this.flagTargetY = 0;
         this.quizBags = new WeakMap();
         this.clearInput();
         this.buildLevel();
@@ -1416,6 +1457,8 @@
         this.flagCaptured = false;
         this.flagBonusText = "";
         this.flagBonusTimer = 0;
+        this.flagSlideY = 0;
+        this.flagTargetY = 0;
         this.quizBags = new WeakMap();
         this.clearInput();
         this.buildLevel();
@@ -1474,9 +1517,11 @@
 
         this.goal.y = groundY - 74;
         this.goal.x = this.levelWidth - 126;
-        this.flag.y = groundY - 126;
-        this.flag.x = this.goal.x - 92;
+        this.flag.y = groundY - 190;
+        this.flag.x = this.goal.x - 175;
         this.flagCaptured = false;
+        this.flagSlideY = this.flag.y + 10;
+        this.flagTargetY = this.flag.y + this.flag.h - 48;
 
         const addDoc = (x, y) => this.items.push(new Item(x, y));
         addDoc(300, groundY - 70);
@@ -1642,6 +1687,9 @@
 
       bindKeyboard() {
         window.addEventListener("keydown", (e) => {
+          const target = e.target;
+          const isTyping = target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+          if (isTyping) return;
           const blocks = ["ArrowLeft","ArrowRight","ArrowUp","Space","Enter","Digit1","Digit2","Digit3","Digit4"];
           if (blocks.includes(e.code)) e.preventDefault();
 
@@ -1668,6 +1716,9 @@
         }, { passive: false });
 
         window.addEventListener("keyup", (e) => {
+          const target = e.target;
+          const isTyping = target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable);
+          if (isTyping) return;
           if (this.state !== "playing") return;
           if (e.code === "ArrowLeft") this.input.left = false;
           if (e.code === "ArrowRight") this.input.right = false;
@@ -1707,6 +1758,9 @@
         this.bomberWarningTimer = Math.max(0, (this.bomberWarningTimer || 0) - dt);
         this.bombFlashTimer = Math.max(0, (this.bombFlashTimer || 0) - dt);
         this.flagBonusTimer = Math.max(0, (this.flagBonusTimer || 0) - dt);
+        if (this.flagCaptured) {
+          this.flagSlideY += (this.flagTargetY - this.flagSlideY) * Math.min(1, dt * 6);
+        }
         this.timeLeft -= dt;
         if (this.timeLeft <= 0) { this.timeLeft = 0; this.setState("gameover", T.timeUp); this.clearInput(); return; }
 
@@ -1804,10 +1858,17 @@
 
         if (!this.flagCaptured && this.player.aabb.intersects(this.flagAABB())) {
           this.flagCaptured = true;
-          const bonus = 300 + Math.max(0, Math.ceil(this.timeLeft)) * 3;
+          const hitY = this.player.y + this.player.h * 0.5;
+          const top = this.flag.y;
+          const bottom = this.flag.y + this.flag.h;
+          const heightRatio = clamp((bottom - hitY) / this.flag.h, 0, 1);
+          const heightBonus = Math.round(200 + heightRatio * 800);
+          const timeBonus = Math.max(0, Math.ceil(this.timeLeft)) * 2;
+          const bonus = heightBonus + timeBonus;
           this.score += bonus;
-          this.flagBonusText = `拉旗成功 +${bonus}`;
-          this.flagBonusTimer = 2.2;
+          this.flagTargetY = this.flag.y + this.flag.h - 48;
+          this.flagBonusText = `旗幟得分 +${bonus}`;
+          this.flagBonusTimer = 2.4;
         }
 
         if (this.player.aabb.intersects(this.goalAABB())) {
@@ -1868,7 +1929,7 @@
         }
         for (const st of this.stars) {
           if (st.x - this.cameraX > w + 240 || st.x - this.cameraX < -240) continue;
-          st.draw(ctx, this.cameraX, this.scale);
+          st.draw(ctx, this.cameraX, this.scale, this.player);
         }
         for (const en of this.enemies) {
           if (en.x - this.cameraX > w + 240 || en.x - this.cameraX < -240) continue;
@@ -1893,7 +1954,7 @@
         }
 
         this.player.draw(ctx, this.cameraX, this.scale, this.effects.invertTimer > 0);
-        this.drawHUD(ctx);
+        if (this.state !== "menu") this.drawHUD(ctx);
         if (this.state === "playing") this.drawBomberWarning(ctx);
 
         if (this.state === "intro") this.drawPanel(ctx, T.introTitle, T.introLines, T.pressToContinue);
@@ -1958,36 +2019,54 @@
         const flagTop = this.flag.y | 0;
         ctx.save();
 
-        // 1) Mario 式拉旗：先經過旗杆計分，再前往凡爾賽大門
-        const poleBase = flagTop + 126;
-        ctx.strokeStyle = "#e5e9f0";
+        // 1) Mario 式旗杆：碰得越高，分數越多；旗幟會滑落
+        const poleH = this.flag.h;
+        const poleBase = flagTop + poleH;
+        ctx.strokeStyle = '#f2f5f8';
         ctx.lineWidth = 5;
         ctx.beginPath();
         ctx.moveTo(flagX + 14, flagTop);
         ctx.lineTo(flagX + 14, poleBase);
         ctx.stroke();
-        ctx.fillStyle = "rgba(229,233,240,0.65)";
-        ctx.fillRect(flagX + 2, poleBase - 4, 28, 7);
+        ctx.fillStyle = 'rgba(229,233,240,0.70)';
+        ctx.fillRect(flagX + 2, poleBase - 4, 32, 8);
 
-        const flagY = this.flagCaptured ? flagTop + 78 : flagTop + 8;
-        ctx.fillStyle = "#1f5fbf";
-        ctx.fillRect(flagX + 17, flagY, 16, 24);
-        ctx.fillStyle = "#f4f0e3";
-        ctx.fillRect(flagX + 33, flagY, 16, 24);
-        ctx.fillStyle = "#c43b3b";
-        ctx.fillRect(flagX + 49, flagY, 16, 24);
-        ctx.fillStyle = "rgba(0,0,0,0.65)";
-        ctx.fillRect(flagX - 10, poleBase + 8, 96, 20);
-        ctx.fillStyle = "#ffd166";
-        ctx.font = "bold 13px system-ui, sans-serif";
-        ctx.fillText("拉旗計分", flagX - 1, poleBase + 23);
+        // 高分/低分提示，令學生明白 Mario 式分數機制
+        ctx.font = 'bold 10px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(255,209,102,0.85)';
+        ctx.fillText('高分', flagX + 23, flagTop + 13);
+        ctx.fillStyle = 'rgba(232,229,216,0.62)';
+        ctx.fillText('低分', flagX + 23, poleBase - 10);
+
+        const flagY = this.flagCaptured ? (this.flagSlideY || flagTop + poleH - 48) : flagTop + 10;
+        ctx.fillStyle = '#1f5fbf';
+        ctx.fillRect(flagX + 17, flagY, 18, 26);
+        ctx.fillStyle = '#f4f0e3';
+        ctx.fillRect(flagX + 35, flagY, 18, 26);
+        ctx.fillStyle = '#c43b3b';
+        ctx.fillRect(flagX + 53, flagY, 18, 26);
+        ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(flagX + 17.5, flagY + 0.5, 53, 25);
+
+        ctx.fillStyle = 'rgba(0,0,0,0.65)';
+        ctx.fillRect(flagX - 10, poleBase + 8, 94, 20);
+        ctx.fillStyle = '#ffd166';
+        ctx.font = 'bold 13px system-ui, sans-serif';
+        ctx.fillText('旗幟得分', flagX - 1, poleBase + 23);
 
         if ((this.flagBonusTimer || 0) > 0 && this.flagBonusText) {
-          ctx.fillStyle = "rgba(0,0,0,0.70)";
-          ctx.fillRect(flagX - 8, flagTop - 34, 132, 24);
-          ctx.fillStyle = "#8df58d";
-          ctx.font = "900 15px system-ui, sans-serif";
-          ctx.fillText(this.flagBonusText, flagX, flagTop - 16);
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.fillStyle = 'rgba(0,0,0,0.76)';
+          ctx.fillRect(flagX - 8, flagTop - 38, 142, 28);
+          ctx.strokeStyle = 'rgba(141,245,141,0.75)';
+          ctx.strokeRect(flagX - 7.5, flagTop - 37.5, 141, 27);
+          ctx.fillStyle = '#8df58d';
+          ctx.font = '900 16px system-ui, sans-serif';
+          ctx.fillText(this.flagBonusText, flagX + 63, flagTop - 18);
+          ctx.restore();
         }
 
         // 2) 凡爾賽大門：通過旗杆後進入大門答終點題
@@ -1995,13 +2074,13 @@
         const gateH = 92;
         const postW = 11;
         const topY = gateY - 8;
-        ctx.fillStyle = "#5b4636";
+        ctx.fillStyle = '#5b4636';
         ctx.fillRect(gateX - postW, topY + 30, postW, gateH - 16);
         ctx.fillRect(gateX + gateW, topY + 30, postW, gateH - 16);
-        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
         ctx.fillRect(gateX - postW - 4, topY + gateH + 9, gateW + postW * 2 + 8, 8);
 
-        ctx.strokeStyle = "#f3c74b";
+        ctx.strokeStyle = '#f3c74b';
         ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.moveTo(gateX, topY + gateH);
@@ -2010,7 +2089,7 @@
         ctx.lineTo(gateX + gateW, topY + gateH);
         ctx.stroke();
 
-        ctx.strokeStyle = "#ffd166";
+        ctx.strokeStyle = '#ffd166';
         ctx.lineWidth = 2;
         for (let i = 10; i <= gateW - 10; i += 14) {
           ctx.beginPath();
@@ -2021,11 +2100,12 @@
         ctx.beginPath(); ctx.moveTo(gateX, topY + 58); ctx.lineTo(gateX + gateW, topY + 58); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(gateX, topY + 74); ctx.lineTo(gateX + gateW, topY + 74); ctx.stroke();
 
-        ctx.fillStyle = "rgba(0,0,0,0.68)";
+        ctx.fillStyle = 'rgba(0,0,0,0.68)';
         ctx.fillRect(gateX - 12, topY - 36, 174, 24);
-        ctx.fillStyle = "#ffd166";
-        ctx.font = "bold 15px system-ui, sans-serif";
-        ctx.fillText("凡爾賽大門 1919", gateX, topY - 18);
+        ctx.fillStyle = '#ffd166';
+        ctx.font = 'bold 15px system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('凡爾賽大門 1919', gateX, topY - 18);
         ctx.restore();
       }
 
@@ -2039,14 +2119,14 @@
         if ((this.bomberWarningTimer || 0) > 0) {
           const alpha = 0.55 + 0.25 * Math.sin(performance.now() / 80);
           ctx.fillStyle = `rgba(255,72,90,${alpha})`;
-          ctx.fillRect(this.W / 2 - 160, 78, 320, 36);
+          ctx.fillRect(this.W / 2 - 138, 76, 276, 30);
           ctx.strokeStyle = "rgba(255,209,102,0.95)";
           ctx.lineWidth = 2;
-          ctx.strokeRect(this.W / 2 - 160.5, 78.5, 320, 36);
+          ctx.strokeRect(this.W / 2 - 138.5, 76.5, 276, 30);
           ctx.fillStyle = "#fff5d6";
-          ctx.font = "900 20px system-ui, sans-serif";
+          ctx.font = "900 17px system-ui, sans-serif";
           ctx.textAlign = "center";
-          ctx.fillText("⚠ 敵機接近！小心空襲", this.W / 2, 102);
+          ctx.fillText("⚠ 敵機接近，小心空襲", this.W / 2, 97);
         }
         ctx.restore();
       }
