@@ -20,6 +20,11 @@
       -webkit-text-size-adjust: 100%;
       font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", Arial, sans-serif;
     }
+    body{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
     *, *::before, *::after{
       box-sizing:border-box;
       -webkit-tap-highlight-color: transparent;
@@ -33,9 +38,10 @@
     /* Canvas 全畫面（用 svh/dvh 防 iOS Safari 黑邊/跳動） */
     #game{
       display:block;
-      width:100vw;
-      height:100svh;      /* 新 Safari */
-      height:100dvh;      /* 新規格 */
+      width:min(100vw, calc(100svh * 16 / 9));
+      width:min(100vw, calc(100dvh * 16 / 9));
+      height:min(100svh, calc(100vw * 9 / 16));
+      height:min(100dvh, calc(100vw * 9 / 16));
       background:#0b1020;
       touch-action:none;
       -webkit-tap-highlight-color: transparent;
@@ -75,58 +81,65 @@
       position:fixed;
       left:0;
       right:0;
-      bottom: calc(14px + env(safe-area-inset-bottom));
-      height: 170px;
+      bottom: calc(8px + env(safe-area-inset-bottom));
+      height: 112px;
       pointer-events:none;
       z-index:10;
       display:none; /* JS 判斷手機先顯示 */
     }
+    body:not(.is-playing) #touchUI{display:none !important;}
 
-    /* 左邊：圓形方向盤 */
+    /* 左邊：圓形方向盤，縮細以免遮擋畫面 */
     #movePad{
       position:absolute;
-      left: 18px;
-      bottom: 0;
-      width: 124px;
-      height: 124px;
+      left: max(12px, env(safe-area-inset-left));
+      bottom: 4px;
+      width: 92px;
+      height: 92px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.10);
-      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.075);
+      border: 1px solid rgba(255,255,255,0.16);
       pointer-events:auto;
       touch-action:none;
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(4px);
     }
     #movePad::after{
       content:"";
       position:absolute;
       left:50%;
       top:50%;
-      width: 38px;
-      height: 38px;
-      margin-left:-19px;
-      margin-top:-19px;
+      width: 30px;
+      height: 30px;
+      margin-left:-15px;
+      margin-top:-15px;
       border-radius:50%;
-      background: rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.18);
     }
 
-    /* 右邊：跳躍按鈕（與方向盤保持距離，避免誤觸） */
+    /* 右邊：跳躍按鈕，縮細並降低透明度 */
     #btnJump{
       position:absolute;
-      right: 24px;
-      bottom: 10px;
-      width: 98px;
-      height: 98px;
+      right: max(14px, env(safe-area-inset-right));
+      bottom: 8px;
+      width: 78px;
+      height: 78px;
       border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.20);
-      background: rgba(255,255,255,0.16);
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.105);
       color: #fff;
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 800;
       pointer-events:auto;
       touch-action:none;
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(4px);
     }
-    #btnJump:active{ background: rgba(255,255,255,0.28); }
+    #btnJump:active{ background: rgba(255,255,255,0.23); }
+    @media (orientation: landscape) and (max-height: 520px){
+      #touchUI{height:96px; bottom:calc(5px + env(safe-area-inset-bottom));}
+      #movePad{width:78px;height:78px;left:max(10px, env(safe-area-inset-left));bottom:2px;}
+      #movePad::after{width:24px;height:24px;margin-left:-12px;margin-top:-12px;}
+      #btnJump{width:66px;height:66px;right:max(12px, env(safe-area-inset-right));bottom:6px;font-size:18px;}
+    }
 
     /* 任務封面：參考偵察任務風格，但改回一戰／和平方向 */
     #startOverlay{
@@ -2313,8 +2326,8 @@
           this.ctx.setTransform(1, 0, 0, 1, 0, 0);
           this.ctx.scale(dpr, dpr);
           this.ctx.imageSmoothingEnabled = false;
-          this.canvas.style.width = "100vw";
-          this.canvas.style.height = "100dvh";
+          this.canvas.style.width = "min(100vw, calc(100dvh * 16 / 9))";
+          this.canvas.style.height = "min(100dvh, calc(100vw * 9 / 16))";
         };
         apply();
         window.addEventListener("resize", apply, { passive: true });
@@ -2426,7 +2439,7 @@
         this.quizBags = new WeakMap();
         this.clearInput();
         this.buildLevel();
-        this.state = "playing";
+        this.setState("playing");
         const overlay = document.getElementById("startOverlay");
         if (overlay) overlay.style.display = "none";
       }
@@ -2464,12 +2477,15 @@
 
       setState(s, reason = "") {
         this.state = s;
+        document.body.classList.toggle("is-playing", s === "playing");
+        if (s !== "playing") this.clearInput();
         if (s === "gameover") this.gameOverReason = reason || "任務失敗。";
         if (s === "win" || s === "gameover") this.submitScore(s);
       }
 
       resetAll() {
         this.state = "menu";
+        document.body.classList.remove("is-playing");
         this.score = 0; this.maxLives = 3; this.lives = this.maxLives; this.timeLeft = this.timeLimit;
         this.effects.invertTimer = 0;
         this.bomberWarningTimer = 0;
@@ -2881,7 +2897,7 @@
       }
 
       beginQuiz({ title, source, idx, onCorrect, onWrong }) {
-        this.state = "quiz";
+        this.setState("quiz");
         const realIdx = Number.isInteger(idx) ? idx : this.nextQuizIndex(source);
         const rawItem = source[realIdx];
         this.quiz.title = this.getQuizDynamicTitle(source, rawItem, title);
@@ -3129,7 +3145,7 @@
             st.used = true;
             this.beginQuiz({
               title: T.quizStarTitle, source: QUIZ_STARS,
-              onCorrect: () => { this.score += 200; this.scheduleQuizContinue(() => { this.clearInput(); this.state = "playing"; }); },
+              onCorrect: () => { this.score += 200; this.scheduleQuizContinue(() => { this.clearInput(); this.setState("playing"); }); },
               onWrong:   () => { this.scheduleQuizContinue(() => { this.clearInput(); this.state = "playing"; this.effects.invertTimer = 4; }); }
             });
             return;
@@ -3160,11 +3176,11 @@
               this.player.vy = -260;
               this.beginQuiz({
                 title: T.quizWWITitle, source: QUIZ_WWI,
-                onCorrect: () => { this.score += 150; this.scheduleQuizContinue(() => { this.clearInput(); this.state = "playing"; }); },
+                onCorrect: () => { this.score += 150; this.scheduleQuizContinue(() => { this.clearInput(); this.setState("playing"); }); },
                 onWrong:   () => {
                   this.lives -= 1;
                   if (this.lives <= 0) this.scheduleQuizContinue(() => { this.setState("gameover", "你未能答對戰爭與和平題目，任務失敗。"); });
-                  else this.scheduleQuizContinue(() => { this.clearInput(); this.state = "playing"; });
+                  else this.scheduleQuizContinue(() => { this.clearInput(); this.setState("playing"); });
                 }
               });
               return;
