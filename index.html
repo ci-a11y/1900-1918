@@ -2,7 +2,7 @@
 <html lang="zh-HK">
 <head>
   <meta charset="UTF-8" />
-  <title>齊默爾曼行動：1917</title>
+  <title>1914–1919：戰爭與和平任務</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
   <style>
@@ -164,18 +164,18 @@
     <div id="startCard">
       <h1>1914–1919：戰爭與和平任務</h1>
       <div class="sub">
-        你是戰時情報員。沿途收集情報檔案，進入情報站破解一戰前因、戰爭發展與巴黎和會的關鍵資料。情報越完整，越有助達成巴黎和會協定。
+        你是和平特派員。沿途穿越一戰戰場，收集歷史檔案，破解一戰前因、戰爭發展、巴黎和會與《凡爾賽條約》的關鍵資料。情報越完整，越有助判斷這場「和平」能否真正維持國際秩序。
       </div>
       <div id="startGrid">
         <div>
           <label for="playerNameInput"><b>玩家名稱</b></label>
-          <input id="playerNameInput" maxlength="12" placeholder="例如：3A Chan / 歷史情報員" />
+          <input id="playerNameInput" maxlength="12" placeholder="例如：3A Chan / 和平代表" />
           <div>
             <button id="btnEasy">開始簡易模式</button>
             <button id="btnHard" class="secondary">開始困難模式</button>
           </div>
           <p class="smallNote">
-            簡易模式：較多生命、較寬鬆時間。困難模式：較少生命、較多敵人及情報站。完成或失敗後，系統會自動上載成績到 Google Sheet，不再另行詢問。
+            簡易模式：較多生命、較寬鬆時間。困難模式：較少生命、較多戰場障礙及情報站。完成或失敗後，系統會自動上載成績到 Google Sheet，不再另行詢問。
           </p>
         </div>
         <div id="leaderboardBox">
@@ -213,7 +213,7 @@
           }
           const easy = rows.filter(r => r.mode === "easy").slice(0, 5);
           const hard = rows.filter(r => r.mode === "hard").slice(0, 5);
-          const render = (title, arr) => `<b>${title}</b><br>` + (arr.length ? arr.map((r,i)=>`${i+1}. ${String(r.name||"無名情報員")}｜${Number(r.score||0)}分｜${Number(r.correct||0)}/${Number(r.total||0)}`).join("<br>") : "未有紀錄");
+          const render = (title, arr) => `<b>${title}</b><br>` + (arr.length ? arr.map((r,i)=>`${i+1}. ${String(r.name||"無名和平代表")}｜${Number(r.score||0)}分｜${Number(r.correct||0)}/${Number(r.total||0)}`).join("<br>") : "未有紀錄");
           box.innerHTML = render("簡易 Top 5", easy) + "<br><br>" + render("困難 Top 5", hard);
         })
         .catch(() => {
@@ -225,13 +225,13 @@
       let s = String(name || "").trim().replace(/[<>"'`]/g, "").slice(0, 12);
       const bad = ["仆街","屌","on9","傻閪","撚","柒","fuck","shit","bitch"];
       bad.forEach(w => s = s.split(w).join("*"));
-      if (!s || /^[\W_]+$/u.test(s)) s = "無名情報員";
+      if (!s || /^[\W_]+$/u.test(s)) s = "無名和平代表";
       return s;
     };
 
 
     /* =========================================================
-     * 齊默爾曼行動：1917（穩定版 v5.1）
+     * 1914–1919：戰爭與和平任務（正式版）
      * ✅ 修正黑MON：回歸穩陣 fixed internal res + DPR resize
      * ✅ 手機控制：圓形方向盤（左右拖）+ 跳躍分遠
      * ✅ 移除任何 btnLeft/btnRight/bindHold 殘碼，避免爆 error
@@ -243,12 +243,12 @@
       hudLives: "生命",
       hudTime: "時間",
       pressToContinue: "電腦：SPACE/ENTER　｜　手機：點畫面繼續",
-      introTitle: "任務簡報：Room 40（40號房間）",
+      introTitle: "任務簡報：前往凡爾賽",
       introLines: [
-        "1917年，德國外長齊默爾曼向墨西哥發出一封加密電報。",
-        "英國情報部門 Room 40 成功截獲並破譯。",
-        "你係英國情報員，要穿越城市避開德軍，",
-        "收集機密文件，並把電報送到唐寧街10號。"
+        "1914年，歐洲危機由局部衝突擴大成全面戰爭。",
+        "1919年，戰勝國代表在巴黎和會商討戰後安排。",
+        "你要穿越戰場，避開轟炸機、炮彈與鐵絲網，",
+        "收集歷史檔案，最終抵達凡爾賽大門。"
       ],
       rulesTitle: "遊戲規則與注意事項",
       rulesLines: [
@@ -259,47 +259,70 @@
         "【情報站📡】",
         "進入情報站要破解歷史情報；答錯→左右反轉10秒（主角會閃＋中央提示）",
         "",
-        "【敵人👢】",
-        "✅ 只有「踏中敵人頭部」先會彈出「一戰MC」",
-        "❌ 側邊撞到 / 被子彈射中：只會扣命＋擊退（唔需要答題）",
+        "【戰場威脅】",
+        "✅ 踏中敵軍頭部會彈出一戰題",
+        "❌ 側邊撞到、被炮彈擊中或撞上鐵絲網：會扣命＋擊退",
+        "⚠ 轟炸機會定時飛過並投下炸彈",
         "",
-        "【終點🚪】",
-        "到唐寧街10號要答「齊默爾曼電報」史料MC；答啱先過關",
+        "【終點🚩】",
+        "抵達凡爾賽大門要答巴黎和會／《凡爾賽條約》題；答啱先過關",
         "",
         "【提示】",
         "手機畫面太細：建議打橫玩（Landscape）"
       ],
       winTitle: "任務成功",
       winLines: [
-        "你成功把齊默爾曼電報送達唐寧街10號。",
-        "電報公開後在美國引起極大憤怒，推動民意反德。",
-        "美國於1917年4月參戰，改變第一次世界大戰形勢。"
+        "你成功抵達凡爾賽大門。",
+        "巴黎和會雖然嘗試建立戰後和平秩序，",
+        "但《凡爾賽條約》的嚴厲條款亦為日後國際衝突埋下伏線。"
       ],
       loseTitle: "任務失敗",
-      timeUp: "時間耗盡，電報未能送達唐寧街10號。",
+      timeUp: "時間耗盡，你未能抵達凡爾賽大門。",
       quizHint: "按 1–4 作答（或點選選項）",
-      quizDoorTitle: "過關史料題（齊默爾曼電報）",
+      quizDoorTitle: "凡爾賽大門：和平方案題",
       quizStarTitle: "情報站：破解關鍵情報",
       quizWWITitle: "戰場遭遇：第一次世界大戰題"
     };
 
-    const QUIZ_TELEGRAM = [
+    const QUIZ_FINAL = [
       {
-        q: "齊默爾曼電報的主要內容係咩？",
-        options: [
-          "德國邀請墨西哥結盟；若美國參戰便共同對付美國",
-          "德國要求墨西哥立即入侵加拿大",
-          "英國向墨西哥承諾戰後割讓德州",
-          "美國要求英國退出第一次世界大戰"
-        ],
+        q: "巴黎和會於哪一年召開？",
+        options: ["1919年", "1914年", "1917年", "1939年"],
         answer: 0,
-        explain: "電報提議：如美國參戰，德國希望墨西哥與德國結盟對抗美國。"
+        explain: "第一次世界大戰於1918年停戰，戰勝國於1919年在巴黎召開和會。"
       },
       {
-        q: "Room 40（40號房間）最主要負責邊類工作？",
-        options: ["密碼破譯/情報解讀", "製造坦克", "海軍補給", "戰地醫療"],
+        q: "抵達凡爾賽大門象徵甚麼歷史階段？",
+        options: [
+          "由戰爭走向戰後和平安排",
+          "戰時同盟正式瓦解",
+          "第二次世界大戰爆發",
+          "俄國退出國際聯盟"
+        ],
         answer: 0,
-        explain: "Room 40 以破譯及情報分析著稱。"
+        explain: "凡爾賽象徵巴黎和會及《凡爾賽條約》的戰後安排。"
+      },
+      {
+        q: "《凡爾賽條約》對德國最具爭議的安排之一是甚麼？",
+        options: [
+          "要求德國承擔戰爭罪責及支付賠款",
+          "容許德國擴充空軍",
+          "把法國交給德國管理",
+          "取消所有軍事限制"
+        ],
+        answer: 0,
+        explain: "戰爭罪責、巨額賠款、軍事限制和領土損失均令德國強烈不滿。"
+      },
+      {
+        q: "巴黎和會是否真正帶來持久和平？",
+        options: [
+          "未能完全做到，因部分安排留下不滿與衝突伏線",
+          "完全做到，歐洲此後沒有戰爭",
+          "完全做到，所有國家都滿意",
+          "與戰後和平沒有關係"
+        ],
+        answer: 0,
+        explain: "巴黎和會建立新秩序，但德、意不滿及集體安全不足，成為二戰遠因之一。"
       }
     ];
 
@@ -315,7 +338,7 @@
       {"q": "德國推行泛日耳曼主義，主要想加強哪一民族勢力？", "options": ["日耳曼民族", "斯拉夫民族", "拉丁民族", "阿拉伯民族"], "answer": 0, "explain": "泛日耳曼主義強調日耳曼民族優越與擴張。"},
       {"q": "俄國常以甚麼理念支持巴爾幹斯拉夫民族？", "options": ["泛斯拉夫主義", "泛日耳曼主義", "孤立主義", "綏靖主義"], "answer": 0, "explain": "俄國以泛斯拉夫主義包裝其在巴爾幹的影響力。"},
       {"q": "以下哪項最能說明軍備競賽的影響？", "options": ["加深恐懼與猜疑，使戰爭準備更充分", "令各國完全信任對方", "使殖民地爭奪停止", "令國聯提前成立"], "answer": 0, "explain": "軍備競賽令列強更易相信戰爭不可避免。"},
-      {"q": "齊默爾曼電報為何刺激美國？", "options": ["德國試圖拉攏墨西哥對抗美國", "英國要求美國退出戰爭", "法國入侵美國本土", "俄國支持德國"], "answer": 0, "explain": "電報內容威脅美國安全與外交利益。"},
+      {"q": "德國無限制潛艇戰為何刺激美國？", "options": ["威脅美國商船和人民安全", "英國要求美國退出戰爭", "法國入侵美國本土", "俄國支持德國"], "answer": 0, "explain": "德國潛艇戰損害美國利益，推高美國參戰可能。"},
       {"q": "1917年美國參戰對協約國有何影響？", "options": ["增強人力、物資和士氣", "令協約國立即投降", "令德國取得美國援助", "令俄國重新加入戰爭"], "answer": 0, "explain": "美國參戰增強協約國整體力量。"},
       {"q": "1917年俄國退出戰爭主要與哪件事有關？", "options": ["俄國革命", "巴黎和會", "無畏艦下水", "國聯成立"], "answer": 0, "explain": "俄國革命後新政權與德國議和，退出戰爭。"},
       {"q": "巴黎和會由哪三位主要領袖主導？", "options": ["威爾遜、勞萊喬治、克里孟梭", "希特拉、墨索里尼、史太林", "尼古拉二世、威廉二世、斐迪南", "羅斯福、邱吉爾、史太林"], "answer": 0, "explain": "巴黎和會的主要決定由美、英、法三巨頭主導。"},
@@ -348,7 +371,7 @@
       {"q": "壕溝戰造成甚麼問題？", "options": ["傷亡巨大而戰線推進有限", "戰爭迅速結束", "士兵生活舒適", "完全沒有新式武器"], "answer": 0, "explain": "壕溝戰造成消耗與僵持。"},
       {"q": "毒氣、坦克、機槍等新式武器反映甚麼？", "options": ["科技令戰爭殺傷力增加", "戰爭變得無傷亡", "外交取代軍事", "國聯成功止戰"], "answer": 0, "explain": "新式武器提高一戰破壞力。"},
       {"q": "無限制潛艇戰為何刺激美國？", "options": ["威脅美國商船和人民安全", "保護美國貿易", "令美國加入德國陣營", "使英國立即投降"], "answer": 0, "explain": "德國潛艇戰損害美國利益。"},
-      {"q": "齊默爾曼電報與美國參戰有何關係？", "options": ["加強美國反德情緒", "令美國支持德國", "令墨西哥攻打法國", "令俄國重返戰場"], "answer": 0, "explain": "電報被公開後刺激美國輿論。"},
+      {"q": "美國於1917年參戰對戰局有何影響？", "options": ["增強協約國人力、物資與士氣", "令美國支持德國", "令墨西哥攻打法國", "令俄國重返戰場"], "answer": 0, "explain": "美國參戰為協約國提供重要人力、物資和士氣支援。"},
       {"q": "1917年為何是戰爭轉捩點？", "options": ["美國參戰與俄國退出同時改變戰局", "德國簽署凡爾賽條約", "國聯成立", "二戰爆發"], "answer": 0, "explain": "1917年協約國和同盟國力量平衡受重大影響。"},
       {"q": "巴黎和會於哪一年召開？", "options": ["1919年", "1914年", "1917年", "1939年"], "answer": 0, "explain": "巴黎和會於一戰後的1919年召開。"},
       {"q": "巴黎和會中戰敗國有何地位？", "options": ["不獲准參與主要決策", "完全主導會議", "可否決所有條款", "主持和會"], "answer": 0, "explain": "戰敗國基本上被排除在談判外。"},
@@ -377,6 +400,58 @@
       {"q": "以下事件正確時序是？", "options": ["美國參戰 → 德國停戰 → 巴黎和會 → 凡爾賽條約", "巴黎和會 → 美國參戰 → 塞拉耶佛事件 → 德國停戰", "凡爾賽條約 → 美國參戰 → 德國停戰 → 巴黎和會", "德國停戰 → 塞拉耶佛事件 → 美國參戰 → 巴黎和會"], "answer": 0, "explain": "1917美國參戰，1918停戰，1919和會與條約。"},
       {"q": "一戰與巴黎和會如何連接到二戰遠因？", "options": ["和約不滿、經濟問題和集體安全失效助長侵略", "和會永久消除侵略", "國聯完全阻止德意擴張", "德國完全放棄復仇"], "answer": 0, "explain": "戰後秩序問題逐步成為二戰遠因。"},
       {"q": "如果學生收集更多情報，最能象徵甚麼？", "options": ["更全面理解戰爭成因與和約安排，有助達成和平協定", "可以直接消除所有戰爭", "可以不需回答任何問題", "代表德國自動勝利"], "answer": 0, "explain": "情報完整有助分析前因後果和作出和平安排。"}
+,
+      {"q": "巴黎和會三巨頭中，哪一位代表美國？", "options": ["威爾遜", "克里孟梭", "勞萊喬治", "威廉二世"], "answer": 0, "explain": "威爾遜提出十四點和平原則，主張較公正的戰後安排。"},
+      {"q": "巴黎和會三巨頭中，哪一位代表法國？", "options": ["克里孟梭", "威爾遜", "勞萊喬治", "尼古拉二世"], "answer": 0, "explain": "克里孟梭因法國多次受德國侵略，主張嚴懲德國。"},
+      {"q": "巴黎和會三巨頭中，哪一位代表英國？", "options": ["勞萊喬治", "威爾遜", "克里孟梭", "斐迪南大公"], "answer": 0, "explain": "勞萊喬治在威爾遜與克里孟梭之間尋求折衷。"},
+      {"q": "《凡爾賽條約》把薩爾煤田交由哪國管理15年？", "options": ["法國", "美國", "意大利", "俄國"], "answer": 0, "explain": "薩爾煤田由法國管理15年，其後由居民投票決定歸屬。"},
+      {"q": "《凡爾賽條約》下，但澤市的地位是甚麼？", "options": ["成為自由市，由國際聯盟管理", "完全歸法國", "完全歸美國", "成為奧匈帝國首都"], "answer": 0, "explain": "但澤市成為自由市，與波蘭走廊安排相關。"},
+      {"q": "德國失去海外殖民地後，這些殖民地通常被怎樣處理？", "options": ["成為戰勝國管轄的託管地", "全部歸還德國", "變成德國自治區", "交給奧匈帝國"], "answer": 0, "explain": "德國海外殖民地成為戰勝國管轄的託管地。"},
+      {"q": "《凡爾賽條約》對萊茵河地區有何安排？", "options": ["劃為非軍事區", "成為德國新首都", "交給意大利", "成為美國殖民地"], "answer": 0, "explain": "萊茵河地區非軍事化，以保障法國安全。"},
+      {"q": "德國被限制只可保留小規模軍隊，最能反映條約哪一方面？", "options": ["軍事限制", "民族自決", "殖民地擴張", "自由貿易"], "answer": 0, "explain": "軍隊人數上限及禁用潛艇、軍用飛機均屬軍事限制。"},
+      {"q": "以下哪一項最能反映德國對《凡爾賽條約》的感受？", "options": ["憤怒和屈辱", "完全滿意", "覺得條款過於寬鬆", "與德國無關"], "answer": 0, "explain": "戰爭罪責、賠款和軍事限制傷害德國民族自尊。"},
+      {"q": "國際聯盟總部設於哪一城市？", "options": ["日內瓦", "巴黎", "柏林", "羅馬"], "answer": 0, "explain": "國際聯盟總部設於瑞士日內瓦。"},
+      {"q": "國聯處理國際爭端的權力不包括哪一項？", "options": ["直接擁有常設世界軍隊", "道德譴責", "經濟制裁", "成員國軍事行動"], "answer": 0, "explain": "國聯沒有自己的獨立軍隊，是其重要弱點。"},
+      {"q": "國聯在1920年代的成就主要是哪一類？", "options": ["處理部分小國爭端", "阻止所有強國侵略", "建立龐大軍隊", "令所有國家裁軍"], "answer": 0, "explain": "國聯能處理若干小國爭端，但難以制止強國侵略。"},
+      {"q": "國聯失敗的重要原因之一是甚麼？", "options": ["美國拒絕加入", "美國完全控制國聯", "德國一直主持國聯", "國聯只處理體育活動"], "answer": 0, "explain": "美國作為倡議者卻沒有加入，削弱國聯威信。"},
+      {"q": "國聯作出重大決定常需一致同意，會造成甚麼問題？", "options": ["難以及時採取行動", "決策必定更快", "所有侵略者立即投降", "成員國不用投票"], "answer": 0, "explain": "一致同意制令國聯行動緩慢。"},
+      {"q": "集體安全的核心意思是甚麼？", "options": ["各國共同抵抗侵略者", "各國互相侵略", "強國瓜分弱國", "完全不處理國際糾紛"], "answer": 0, "explain": "集體安全強調以集體力量維持和平。"},
+      {"q": "《羅加諾公約》主要改善哪兩國關係？", "options": ["德國與法國", "英國與日本", "俄國與美國", "意大利與土耳其"], "answer": 0, "explain": "羅加諾公約有助舒緩德法緊張。"},
+      {"q": "《凱格—白里安公約》的主要問題是甚麼？", "options": ["缺乏有效強制執行力", "明確鼓勵侵略", "只容許德國參加", "由奧匈主導"], "answer": 0, "explain": "公約譴責戰爭，但缺乏強制機制。"},
+      {"q": "華盛頓會議和倫敦海軍會議主要屬於哪類和平嘗試？", "options": ["裁軍嘗試", "殖民地瓜分", "建立空軍同盟", "恢復奧匈帝國"], "answer": 0, "explain": "兩者屬於兩戰期間限制軍備的嘗試。"},
+      {"q": "英國在一戰前為何重視海軍？", "options": ["保護海上霸權和殖民帝國", "因完全沒有陸軍", "因要保護德國", "因放棄所有殖民地"], "answer": 0, "explain": "英國依賴海軍維持帝國安全與貿易。"},
+      {"q": "德國發展海軍會令哪國特別不安？", "options": ["英國", "瑞士", "比利時", "希臘"], "answer": 0, "explain": "德國海軍擴張挑戰英國海上優勢。"},
+      {"q": "法國對德國抱有復仇情緒，主要與哪件事有關？", "options": ["1871年普法戰爭失去阿爾薩斯和洛林", "美國拒絕加入國聯", "國聯成立", "英國簽訂海軍條約"], "answer": 0, "explain": "法國在普法戰爭後失去阿爾薩斯和洛林。"},
+      {"q": "俄國在巴爾幹問題上常支持哪一方？", "options": ["塞爾維亞及斯拉夫民族", "德國海軍", "英國殖民者", "法國復仇派"], "answer": 0, "explain": "俄國以泛斯拉夫主義支持巴爾幹斯拉夫民族。"},
+      {"q": "奧匈在巴爾幹問題上最擔心甚麼？", "options": ["帝國內民族主義蔓延", "英國放棄海軍", "德國太弱", "美國加入國聯"], "answer": 0, "explain": "奧匈是多民族帝國，擔心民族主義動搖統治。"},
+      {"q": "塞拉耶佛事件中遇刺的是誰？", "options": ["奧匈皇儲斐迪南大公", "威爾遜", "克里孟梭", "墨索里尼"], "answer": 0, "explain": "斐迪南大公遇刺成為一戰導火線。"},
+      {"q": "塞拉耶佛事件後，奧匈主要針對哪一國？", "options": ["塞爾維亞", "美國", "英國", "日本"], "answer": 0, "explain": "奧匈把事件歸咎於塞爾維亞民族主義勢力。"},
+      {"q": "一戰爆發的深層原因不包括哪一項？", "options": ["聯合國否決權", "極端民族主義", "同盟制度", "軍備競賽"], "answer": 0, "explain": "聯合國在1945年才成立，與一戰爆發無關。"},
+      {"q": "極端民族主義與普通愛國情感最大的分別是甚麼？", "options": ["排斥別國利益並可能訴諸暴力", "完全反對國家利益", "必然支持和平談判", "只關心文化交流"], "answer": 0, "explain": "極端民族主義具排他性和侵略性。"},
+      {"q": "殖民地爭奪對一戰前國際關係有何影響？", "options": ["加深列強競爭與衝突", "令列強完全合作", "令歐洲沒有矛盾", "令巴爾幹問題消失"], "answer": 0, "explain": "殖民競爭加劇英法德等國矛盾。"},
+      {"q": "第一次摩洛哥危機發生於哪一時段？", "options": ["1905–1906年", "1919–1920年", "1939–1945年", "1945–1951年"], "answer": 0, "explain": "第一次摩洛哥危機發生於1905至1906年。"},
+      {"q": "第二次摩洛哥危機又稱甚麼危機？", "options": ["阿加迪爾危機", "薩拉熱窩危機", "萊茵危機", "但澤危機"], "answer": 0, "explain": "1911年德國派黑豹號到阿加迪爾，引發危機。"},
+      {"q": "波斯尼亞危機發生於哪一年？", "options": ["1908年", "1914年", "1919年", "1929年"], "answer": 0, "explain": "奧匈於1908年兼併波斯尼亞和黑塞哥維那。"},
+      {"q": "巴爾幹戰爭主要發生於哪一時段？", "options": ["1912–1913年", "1900–1901年", "1919–1920年", "1935–1936年"], "answer": 0, "explain": "兩次巴爾幹戰爭發生於1912至1913年。"},
+      {"q": "巴爾幹戰爭後，哪國民族主義情緒更強烈？", "options": ["塞爾維亞", "美國", "瑞士", "西班牙"], "answer": 0, "explain": "塞爾維亞勢力與民族主義增長，加劇奧塞矛盾。"},
+      {"q": "壕溝戰為何令戰爭僵持？", "options": ["防守火力強，進攻代價高", "士兵完全不用作戰", "雙方沒有武器", "戰場只有海軍"], "answer": 0, "explain": "機槍、炮火和鐵絲網令進攻傷亡巨大。"},
+      {"q": "鐵絲網在一戰戰場上的作用是甚麼？", "options": ["阻慢敵軍進攻並暴露於火力之下", "加快敵軍通過", "提供醫療服務", "用作和平會議裝飾"], "answer": 0, "explain": "鐵絲網配合機槍和炮火，是壕溝戰的重要防禦物。"},
+      {"q": "一戰中的機槍主要造成甚麼戰場效果？", "options": ["提高防守火力和殺傷力", "令戰爭完全無傷亡", "取代所有外交", "令國聯成立"], "answer": 0, "explain": "機槍提高防守方殺傷力，使正面進攻代價高昂。"},
+      {"q": "坦克在一戰後期出現，主要目的之一是甚麼？", "options": ["突破壕溝與鐵絲網防線", "取代巴黎和會", "運送外交官", "建立國際聯盟"], "answer": 0, "explain": "坦克被用作突破壕溝僵局的新式武器。"},
+      {"q": "毒氣戰反映一戰哪一特徵？", "options": ["新式武器增加戰爭殘酷性", "戰爭更加人道", "所有士兵不受傷", "國聯成功裁軍"], "answer": 0, "explain": "毒氣是工業化戰爭殘酷性的例子。"},
+      {"q": "總體戰下，平民會受到甚麼影響？", "options": ["生產、糧食、宣傳和生活均受戰爭牽動", "完全不受影響", "只需參加巴黎和會", "只會增加旅遊"], "answer": 0, "explain": "總體戰動員整個社會，平民生活亦受影響。"},
+      {"q": "1918年德國停戰後，歐洲面對甚麼問題？", "options": ["戰後重建與和平安排", "戰爭立即完全消除所有矛盾", "所有帝國回復原狀", "不需要任何會議"], "answer": 0, "explain": "停戰後仍需處理賠款、領土、軍事及國際秩序問題。"},
+      {"q": "民族自決原則在東歐造成甚麼結果之一？", "options": ["建立若干新民族國家", "恢復所有舊帝國", "取消所有小國", "令德國統一歐洲"], "answer": 0, "explain": "巴黎和會後東歐出現波蘭、捷克斯洛伐克、南斯拉夫等新國家。"},
+      {"q": "民族自決未能完全實現，原因之一是甚麼？", "options": ["新國家內仍有不少少數民族", "所有民族都完全獨立", "殖民地全部即時獨立", "德國沒有任何少數民族問題"], "answer": 0, "explain": "新國界無法完全按民族分布劃分。"},
+      {"q": "意大利稱自己在巴黎和會得到「殘缺的勝利」，主要指甚麼？", "options": ["戰勝但所得領土回報不足", "戰敗並被分割", "完全控制歐洲", "拒絕參加一戰"], "answer": 0, "explain": "意大利認為戰時犧牲大，但和會回報不足。"},
+      {"q": "法西斯主義為何能吸引部分意大利人？", "options": ["承諾強勢領導和恢復國家光榮", "主張完全放棄國家", "支持多黨自由競爭", "反對所有宣傳"], "answer": 0, "explain": "戰後不滿、經濟問題和政治不穩令強人政治有市場。"},
+      {"q": "德國納粹宣傳常利用哪一情緒？", "options": ["對《凡爾賽條約》的怨恨", "對國聯完全滿意", "對軍事限制的支持", "對戰爭罪責的認同"], "answer": 0, "explain": "納粹利用民族屈辱和復仇情緒爭取支持。"},
+      {"q": "以下哪項最能評論巴黎和會？", "options": ["有和平理想，但執行和安排存在重大限制", "完全沒有任何和平理想", "所有國家完全滿意", "只處理體育比賽"], "answer": 0, "explain": "巴黎和會既有國聯與民族自決理想，也留下不滿與矛盾。"},
+      {"q": "以下哪項屬於《凡爾賽條約》的領土安排？", "options": ["阿爾薩斯和洛林歸還法國", "巴黎歸德國", "英國歸奧匈", "美國取得波蘭"], "answer": 0, "explain": "阿爾薩斯和洛林在條約下歸還法國。"},
+      {"q": "以下哪項屬於《凡爾賽條約》的賠償安排？", "options": ["德國須支付巨額賠款", "法國須賠償德國", "美國承擔德國賠款", "所有賠款取消"], "answer": 0, "explain": "德國須向協約國支付巨額賠款。"},
+      {"q": "以下哪項最能說明國聯對強國侵略無力？", "options": ["缺乏軍力和成員國執行意願", "擁有過多獨立軍隊", "所有強國都完全服從", "美國全力出兵"], "answer": 0, "explain": "國聯的執行力依賴成員國支持。"},
+      {"q": "若要判斷巴黎和會是否成功，最應同時考慮甚麼？", "options": ["短期和平安排與長期不滿後果", "只看會議地點", "只看旗幟顏色", "只看遊戲分數"], "answer": 0, "explain": "歷史評價需同時分析成效與局限。"},
+      {"q": "「凡爾賽大門」作為終點，最適合連結哪一課題？", "options": ["戰後和約與國際秩序重建", "中世紀城堡建築", "太空競賽", "二十世紀末科技"], "answer": 0, "explain": "凡爾賽象徵一戰後的和平會議與和約安排。"}
     ];
 
     const PALETTE = {
@@ -632,6 +707,134 @@
       }
     }
 
+
+    class Bomb {
+      constructor(x, y, vx = 0, vy = 120) {
+        this.x = x; this.y = y;
+        this.vx = vx; this.vy = vy;
+        this.w = 12; this.h = 18;
+        this.dead = false;
+        this.life = 5;
+      }
+      get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
+      update(dt, game) {
+        if (this.dead) return;
+        this.life -= dt;
+        if (this.life <= 0) { this.dead = true; return; }
+        this.vy += 500 * dt;
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        const a = this.aabb;
+        for (const p of game.platforms) {
+          if (a.intersects(p.aabb)) { this.dead = true; game.spawnBlast(this.x, this.y); return; }
+        }
+        if (this.y > game.H + 120) this.dead = true;
+      }
+      draw(ctx, camX) {
+        if (this.dead) return;
+        const sx = (this.x - camX) | 0;
+        const sy = this.y | 0;
+        ctx.fillStyle = "#2a2a2a";
+        ctx.beginPath();
+        ctx.ellipse(sx + 6, sy + 9, 5, 9, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#f3c74b";
+        ctx.fillRect(sx + 4, sy - 2, 4, 4);
+      }
+    }
+
+    class Bomber {
+      constructor(x, y, minX, maxX, speed = 70) {
+        this.x = x; this.y = y;
+        this.minX = minX; this.maxX = maxX;
+        this.vx = speed;
+        this.w = 86; this.h = 28;
+        this.dropTimer = 1.2 + Math.random() * 1.5;
+      }
+      get aabb() { return new AABB(this.x, this.y, this.w, this.h); }
+      update(dt, game) {
+        this.x += this.vx * dt;
+        if (this.x < this.minX) { this.x = this.minX; this.vx = Math.abs(this.vx); }
+        if (this.x + this.w > this.maxX) { this.x = this.maxX - this.w; this.vx = -Math.abs(this.vx); }
+
+        const onScreen = (this.x - game.cameraX) > -180 && (this.x - game.cameraX) < game.W + 180;
+        this.dropTimer -= dt;
+        if (onScreen && this.dropTimer <= 0) {
+          this.dropTimer = game.mode === "hard" ? 1.4 + Math.random() * 1.2 : 2.1 + Math.random() * 1.6;
+          game.bombs.push(new Bomb(this.x + this.w * 0.5, this.y + this.h - 2, this.vx * 0.15, 80));
+        }
+      }
+      draw(ctx, camX) {
+        const sx = (this.x - camX) | 0;
+        const sy = this.y | 0;
+        ctx.save();
+        if (this.vx < 0) {
+          ctx.translate(sx + this.w, sy);
+          ctx.scale(-1, 1);
+        } else {
+          ctx.translate(sx, sy);
+        }
+        ctx.fillStyle = "#46515f";
+        ctx.fillRect(16, 9, 54, 10);
+        ctx.fillStyle = "#5e6b78";
+        ctx.fillRect(30, 5, 24, 18);
+        ctx.fillStyle = "#7a3b2e";
+        ctx.fillRect(0, 11, 18, 6);
+        ctx.fillRect(68, 8, 16, 12);
+        ctx.fillStyle = "#cfd8e6";
+        ctx.fillRect(44, 7, 8, 4);
+        ctx.fillStyle = "#f3c74b";
+        ctx.fillRect(70, 5, 5, 5);
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.fillRect(24, 20, 38, 3);
+        ctx.restore();
+
+        ctx.fillStyle = "rgba(255,209,102,0.95)";
+        ctx.font = "bold 11px system-ui, sans-serif";
+        ctx.fillText("轟炸機", sx + 18, sy - 5);
+      }
+    }
+
+    class BarbedWire {
+      constructor(x, y, w = 72, h = 28) {
+        this.x = x; this.y = y; this.w = w; this.h = h;
+      }
+      get aabb() { return new AABB(this.x + 4, this.y + 4, this.w - 8, this.h - 4); }
+      draw(ctx, camX) {
+        const sx = (this.x - camX) | 0;
+        const sy = this.y | 0;
+        ctx.save();
+        ctx.strokeStyle = "#b7bdc8";
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 3; i++) {
+          const yy = sy + 6 + i * 8;
+          ctx.beginPath();
+          ctx.moveTo(sx, yy);
+          ctx.lineTo(sx + this.w, yy);
+          ctx.stroke();
+        }
+        ctx.strokeStyle = "#8a6b4a";
+        ctx.lineWidth = 3;
+        for (let x = sx + 6; x < sx + this.w; x += 20) {
+          ctx.beginPath();
+          ctx.moveTo(x, sy + this.h);
+          ctx.lineTo(x + 6, sy);
+          ctx.stroke();
+        }
+        ctx.strokeStyle = "#d8dde6";
+        ctx.lineWidth = 1.5;
+        for (let x = sx + 4; x < sx + this.w; x += 12) {
+          ctx.beginPath();
+          ctx.moveTo(x, sy + 4);
+          ctx.lineTo(x + 8, sy + 14);
+          ctx.moveTo(x + 8, sy + 4);
+          ctx.lineTo(x, sy + 14);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+
     class Enemy {
       constructor(x, y, patrolMin, patrolMax) {
         this.x = x; this.y = y;
@@ -866,7 +1069,7 @@
         this.state = "menu";
         this.score = 0; this.lives = 3;
         this.mode = "easy";
-        this.playerName = "無名情報員";
+        this.playerName = "無名和平代表";
         this.submitted = false;
         this.finalStatus = "";
         this.correctCount = 0;
@@ -890,9 +1093,13 @@
         this.enemies = [];
         this.stars = [];
         this.bullets = [];
+        this.bombs = [];
+        this.bombers = [];
+        this.wires = [];
+        this.blasts = [];
 
         this.player = new Player(70, 340);
-        this.goal = { x: this.levelWidth - 140, y: 0, w: 36, h: 60 };
+        this.goal = { x: this.levelWidth - 160, y: 0, w: 130, h: 70 };
         this.goalAABB = () => new AABB(this.goal.x, this.goal.y, this.goal.w, this.goal.h);
 
         this.quiz = { title: "", source: null, idx: 0, selected: -1, feedback: "", optionRects: [], lock: 0, onCorrect: null, onWrong: null };
@@ -1095,6 +1302,10 @@
         this.enemies.length = 0;
         this.stars.length = 0;
         this.bullets.length = 0;
+        this.bombs.length = 0;
+        this.bombers.length = 0;
+        this.wires.length = 0;
+        this.blasts.length = 0;
 
         const groundY = 430;
         this.platforms.push(new Platform(0, groundY, 520, 120, "ground"));
@@ -1122,7 +1333,7 @@
         this.platforms.push(new Platform(3040, 320, 160, 18, "beam"));
 
         this.goal.y = groundY - 60;
-        this.goal.x = this.levelWidth - 140;
+        this.goal.x = this.levelWidth - 170;
 
         const addDoc = (x, y) => this.items.push(new Item(x, y));
         addDoc(300, groundY - 70);
@@ -1171,6 +1382,19 @@
           addEnemy(1760, groundY - 30, 1740, 2020);
           addShooter(2480, groundY - 30, 2420, 2640, { patrol: false, range: 500, bulletSpeed: 420 });
         }
+
+        // 一戰戰場障礙：鐵絲網與轟炸機
+        this.wires.push(new BarbedWire(610, groundY - 28, 78, 28));
+        this.wires.push(new BarbedWire(1015, groundY - 28, 72, 28));
+        this.wires.push(new BarbedWire(1450, groundY - 28, 82, 28));
+        this.wires.push(new BarbedWire(1810, groundY - 28, 72, 28));
+        this.wires.push(new BarbedWire(2145, groundY - 28, 82, 28));
+        this.wires.push(new BarbedWire(2490, groundY - 28, 72, 28));
+        this.wires.push(new BarbedWire(3020, groundY - 28, 86, 28));
+
+        this.bombers.push(new Bomber(720, 105, 520, 1320, this.mode === "hard" ? 98 : 72));
+        this.bombers.push(new Bomber(1760, 95, 1480, 2380, this.mode === "hard" ? -105 : -76));
+        if (this.mode === "hard") this.bombers.push(new Bomber(2540, 120, 2280, 3180, 112));
       }
 
       generateBuildings(n) {
@@ -1195,6 +1419,10 @@
           arr.push({ x: Math.random() * this.levelWidth, y: 40 + Math.random() * 120, s: 2 + Math.floor(Math.random() * 2), spd: 4 + Math.random() * 8 });
         }
         return arr;
+      }
+
+      spawnBlast(x, y) {
+        this.blasts.push({ x, y, life: 0.38, max: 0.38 });
       }
 
       beginQuiz({ title, source, idx, onCorrect, onWrong }) {
@@ -1319,6 +1547,30 @@
           if (b.dead) this.bullets.splice(i, 1);
         }
 
+        for (const bm of this.bombers) bm.update(dt, this);
+        for (let i = this.bombs.length - 1; i >= 0; i--) {
+          const b = this.bombs[i];
+          b.update(dt, this);
+          if (!b.dead && this.player.invuln <= 0 && this.player.aabb.intersects(b.aabb)) {
+            b.dead = true;
+            this.spawnBlast(b.x, b.y);
+            const fromDir = (this.player.x + this.player.w / 2) < b.x ? -1 : 1;
+            this.player.hurt(this, fromDir);
+          }
+          if (b.dead) this.bombs.splice(i, 1);
+        }
+        for (let i = this.blasts.length - 1; i >= 0; i--) {
+          this.blasts[i].life -= dt;
+          if (this.blasts[i].life <= 0) this.blasts.splice(i, 1);
+        }
+
+        for (const wire of this.wires) {
+          if (this.player.invuln <= 0 && this.player.aabb.intersects(wire.aabb)) {
+            const fromDir = (this.player.x + this.player.w / 2) < (wire.x + wire.w / 2) ? -1 : 1;
+            this.player.hurt(this, fromDir);
+          }
+        }
+
         for (const it of this.items) {
           it.update(dt);
           if (!it.collected && this.player.aabb.intersects(it.aabb)) {
@@ -1372,7 +1624,7 @@
 
         if (this.player.aabb.intersects(this.goalAABB())) {
           this.beginQuiz({
-            title: T.quizDoorTitle, source: QUIZ_TELEGRAM, idx: (Math.random() * QUIZ_TELEGRAM.length) | 0,
+            title: T.quizDoorTitle, source: QUIZ_FINAL, idx: (Math.random() * QUIZ_FINAL.length) | 0,
             onCorrect: () => { this.score += 300; setTimeout(() => { this.clearInput(); this.setState("win"); }, 5000); },
             onWrong:   () => {
               this.lives -= 1;
@@ -1412,6 +1664,16 @@
 
         this.drawGoal(ctx);
 
+        for (const wire of this.wires) {
+          if (wire.x - this.cameraX > w + 220 || wire.x + wire.w - this.cameraX < -220) continue;
+          wire.draw(ctx, this.cameraX);
+        }
+
+        for (const bm of this.bombers) {
+          if (bm.x - this.cameraX > w + 260 || bm.x + bm.w - this.cameraX < -260) continue;
+          bm.draw(ctx, this.cameraX);
+        }
+
         for (const it of this.items) {
           if (it.x - this.cameraX > w + 240 || it.x - this.cameraX < -240) continue;
           it.draw(ctx, this.cameraX, this.scale);
@@ -1427,6 +1689,19 @@
         for (const b of this.bullets) {
           if (b.x - this.cameraX > w + 260 || b.x - this.cameraX < -260) continue;
           b.draw(ctx, this.cameraX, this.scale);
+        }
+        for (const b of this.bombs) {
+          if (b.x - this.cameraX > w + 260 || b.x - this.cameraX < -260) continue;
+          b.draw(ctx, this.cameraX);
+        }
+        for (const fx of this.blasts) {
+          const t = 1 - fx.life / fx.max;
+          const sx = (fx.x - this.cameraX) | 0;
+          const r = 8 + t * 24;
+          ctx.fillStyle = `rgba(255,183,3,${0.55 * (1 - t)})`;
+          ctx.beginPath();
+          ctx.arc(sx, fx.y, r, 0, Math.PI * 2);
+          ctx.fill();
         }
 
         this.player.draw(ctx, this.cameraX, this.scale, this.effects.invertTimer > 0);
@@ -1490,10 +1765,55 @@
       drawGoal(ctx) {
         const sx = (this.goal.x - this.cameraX) | 0;
         const sy = this.goal.y | 0;
-        drawSprite(ctx, SPRITES.door, sx, sy, this.scale);
-        ctx.font = "12px system-ui, sans-serif";
-        ctx.fillStyle = "rgba(255,255,255,0.70)";
-        ctx.fillText("10", sx + 10, sy - 6);
+
+        // 凡爾賽大門：金色大門 + Mario 式旗仔終點
+        ctx.save();
+        ctx.fillStyle = "#5b4636";
+        ctx.fillRect(sx - 8, sy + 8, 8, 58);
+        ctx.fillRect(sx + 82, sy + 8, 8, 58);
+
+        ctx.strokeStyle = "#f3c74b";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy + 66);
+        ctx.lineTo(sx, sy + 22);
+        ctx.quadraticCurveTo(sx + 41, sy - 8, sx + 82, sy + 22);
+        ctx.lineTo(sx + 82, sy + 66);
+        ctx.stroke();
+
+        ctx.strokeStyle = "#ffd166";
+        ctx.lineWidth = 2;
+        for (let i = 8; i <= 74; i += 11) {
+          ctx.beginPath();
+          ctx.moveTo(sx + i, sy + 64);
+          ctx.lineTo(sx + i, sy + 22 + Math.abs(i - 41) * 0.25);
+          ctx.stroke();
+        }
+        ctx.beginPath();
+        ctx.moveTo(sx, sy + 42);
+        ctx.lineTo(sx + 82, sy + 42);
+        ctx.stroke();
+
+        // 旗杆與旗仔
+        ctx.strokeStyle = "#d8dde6";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(sx + 104, sy - 18);
+        ctx.lineTo(sx + 104, sy + 66);
+        ctx.stroke();
+        ctx.fillStyle = "#1f5fbf";
+        ctx.fillRect(sx + 106, sy - 18, 12, 22);
+        ctx.fillStyle = "#f4f0e3";
+        ctx.fillRect(sx + 118, sy - 18, 12, 22);
+        ctx.fillStyle = "#c43b3b";
+        ctx.fillRect(sx + 130, sy - 18, 12, 22);
+
+        ctx.fillStyle = "rgba(0,0,0,0.55)";
+        ctx.fillRect(sx - 6, sy - 38, 156, 22);
+        ctx.fillStyle = "#ffd166";
+        ctx.font = "bold 13px system-ui, sans-serif";
+        ctx.fillText("凡爾賽大門 1919", sx + 2, sy - 22);
+        ctx.restore();
       }
 
       drawHUD(ctx) {
