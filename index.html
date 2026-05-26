@@ -2,7 +2,7 @@
 <html lang="zh-HK">
 <head>
   <meta charset="UTF-8" />
-  <title>1914–1919：戰爭與和平任務 v6.5 字體與結束畫面修正版</title>
+  <title>1914–1919：戰爭與和平任務 v7.2 規則頁與主角色優化版</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
   <style>
@@ -116,7 +116,7 @@
     }
     #startCard h1{
       margin:0 0 10px;
-      font-size:34px;
+      font-size:36px;
       letter-spacing:.08em;
       color:#f5d37a;
       text-shadow:0 2px 0 rgba(0,0,0,.35);
@@ -124,11 +124,62 @@
     #startCard .sub{
       border:1px solid rgba(99,209,156,.38);
       border-radius:16px;
-      padding:14px 16px;
+      padding:15px 18px;
       background:rgba(32,74,58,.38);
-      opacity:.96;
+      opacity:.97;
       margin-bottom:14px;
-      line-height:1.65;
+      line-height:1.72;
+      font-size:17px;
+    }
+    .startSectionTitle{
+      margin:16px 0 10px;
+      color:#ffd166;
+      font-size:18px;
+      font-weight:900;
+      letter-spacing:.04em;
+    }
+    .flowGrid{
+      display:grid;
+      grid-template-columns:repeat(4, 1fr);
+      gap:10px;
+      margin:8px 0 14px;
+    }
+    .flowCard{
+      border:1px solid rgba(243,199,75,.22);
+      background:linear-gradient(180deg, rgba(16,23,36,.72), rgba(10,16,25,.56));
+      border-radius:16px;
+      padding:12px 13px;
+      line-height:1.52;
+      min-height:112px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    .flowCard .flowStep{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:30px;
+      height:30px;
+      border-radius:50%;
+      background:rgba(243,199,75,.16);
+      border:1px solid rgba(243,199,75,.34);
+      color:#ffd166;
+      font-weight:900;
+      margin-bottom:8px;
+    }
+    .flowCard b{
+      display:block;
+      color:#ffd166;
+      margin-bottom:6px;
+      font-size:15px;
+    }
+    .flowCard span,
+    .flowCard li{
+      font-size:14px;
+      opacity:.94;
+    }
+    .flowCard ul{
+      margin:0;
+      padding-left:18px;
     }
     .missionPanels{
       display:grid;
@@ -141,31 +192,39 @@
       background:rgba(255,255,255,.055);
       border-radius:16px;
       padding:13px 15px;
-      line-height:1.55;
+      line-height:1.62;
     }
     .missionPanel b{color:#ffd166;}
-    .ruleGrid{
+    .routePills{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:8px;
+    }
+    .routePill{
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(243,199,75,.26);
+      background:rgba(243,199,75,.08);
+      color:#f4f0e3;
+      font-size:13px;
+      white-space:nowrap;
+    }
+    .modeGuide{
       display:grid;
-      grid-template-columns:repeat(3,1fr);
+      grid-template-columns:1fr 1fr;
       gap:10px;
-      margin:10px 0 14px;
+      margin:8px 0 14px;
     }
-    .ruleCard{
-      border:1px solid rgba(243,199,75,.22);
-      background:rgba(8,14,24,.42);
+    .modeCard{
+      border:1px solid rgba(255,255,255,.14);
       border-radius:14px;
-      padding:11px 12px;
-      line-height:1.48;
-      min-height:86px;
+      background:rgba(255,255,255,.055);
+      padding:12px 14px;
+      line-height:1.56;
     }
-    .ruleCard b{
-      display:block;
-      color:#ffd166;
-      margin-bottom:5px;
-      font-size:15px;
-    }
-    .ruleCard span{display:block;font-size:14px;opacity:.92;}
-    #startGrid{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;}
+    .modeCard b{color:#ffd166;display:block;margin-bottom:4px;}
+    #startGrid{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;align-items:start;}
     #startCard input{
       width:100%;
       box-sizing:border-box;
@@ -201,6 +260,28 @@
     }
     #leaderboardBox h3{margin:0 0 8px;color:#ffd166;}
     .smallNote{font-size:14px;opacity:.80;line-height:1.65;}
+    .wellnessNote{
+      margin-top:18px;
+      padding:14px 18px;
+      border-radius:16px;
+      border:1px solid rgba(255,98,98,.45);
+      background:linear-gradient(180deg, rgba(120,18,24,.18), rgba(75,8,12,.28));
+      color:#ff7b7b;
+      font-size:20px;
+      font-weight:900;
+      line-height:1.6;
+      text-align:center;
+      letter-spacing:.5px;
+      box-shadow:0 10px 24px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.05);
+      text-shadow:0 1px 0 rgba(0,0,0,.35);
+    }
+    .wellnessNote .heart{
+      display:inline-block;
+      margin:0 6px;
+      color:#ff5c73;
+      font-size:22px;
+      transform:translateY(1px);
+    }
     .startError{
       min-height:22px;
       margin: 0 0 10px;
@@ -215,8 +296,9 @@
     @media(max-width:760px){
       #startGrid{grid-template-columns:1fr;}
       .missionPanels{grid-template-columns:1fr;}
-      .ruleGrid{grid-template-columns:1fr;}
-      #startCard h1{font-size:26px;}
+      .flowGrid{grid-template-columns:1fr;}
+      .modeGuide{grid-template-columns:1fr;}
+      #startCard h1{font-size:28px;}
       #startCard{padding:18px;}
     }
 
@@ -229,21 +311,52 @@
     <div id="startCard">
       <h1>1914–1919：戰爭與和平任務</h1>
       <div class="sub">
-        你是「和平特派員」，任務不是單純擊敗敵人，而是帶着歷史線索穿越戰前歐洲、戰場前線及凡爾賽方向。你需要破解情報、回應戰場題，理解一次大戰如何爆發，以及巴黎和會如何嘗試重建和平。
+        你是「和平特派員」，需要帶着歷史線索穿越三段場景：由戰前歐洲的危機醞釀，進入壕溝與空襲的戰場前線，最後抵達凡爾賽方向，理解第一次世界大戰如何爆發，以及戰後和平安排如何形成。
+      </div>
+      <div class="startSectionTitle">開始前請先看清任務流程</div>
+      <div class="flowGrid">
+        <div class="flowCard">
+          <div class="flowStep">1</div>
+          <b>輸入玩家名稱</b>
+          <span>先輸入名稱，再選擇模式開始任務。完成後會於任務報告顯示玩家名稱。</span>
+        </div>
+        <div class="flowCard">
+          <div class="flowStep">2</div>
+          <b>控制角色前進</b>
+          <span>電腦可用 ← → 移動、SPACE / ↑ 跳躍；手機可用左方方向盤與右方跳躍按鈕。</span>
+        </div>
+        <div class="flowCard">
+          <div class="flowStep">3</div>
+          <b>收集情報並回答題目</b>
+          <span>收集情報會觸發情報題；踩中敵軍頭部會觸發戰場題。答對可得分，亦可強化學習效果。</span>
+        </div>
+        <div class="flowCard">
+          <div class="flowStep">4</div>
+          <b>抵達終點完成任務</b>
+          <span>避開敵軍、鐵絲網、炮彈及空襲，觸碰旗杆與凡爾賽大門，完成最後任務。</span>
+        </div>
       </div>
       <div class="missionPanels">
-        <div class="missionPanel"><b>學習目標</b><br>辨識一戰爆發的長期原因，理解戰爭如何影響軍人與平民，並評估巴黎和會及《凡爾賽條約》對戰後秩序的影響。</div>
-        <div class="missionPanel"><b>任務路線</b><br>第一段：戰前歐洲危機｜第二段：壕溝與空襲前線｜第三段：凡爾賽與戰後和平。完成終點題後會生成任務報告。</div>
+        <div class="missionPanel"><b>學習目標</b><br>辨識第一次世界大戰爆發的長期與短期原因，理解戰爭對前線與後方的影響，並評估巴黎和會及《凡爾賽條約》對戰後秩序的意義與局限。</div>
+        <div class="missionPanel"><b>得分與注意事項</b><br>收集情報、答對題目、取得補給、觸碰旗杆及保留時間均可得分；被敵軍、鐵絲網、炮彈或空襲擊中則會扣減生命，生命耗盡即任務失敗。</div>
       </div>
-      <div class="ruleGrid">
-        <div class="ruleCard"><b>① 操作</b><span>電腦：← → 移動，SPACE / ↑ 跳躍。</span><span>手機：左方方向盤移動，右方按鈕跳躍。</span></div>
-        <div class="ruleCard"><b>② 任務</b><span>收集情報、避開鐵絲網與空襲。</span><span>踩中敵軍頭部會觸發歷史題。</span></div>
-        <div class="ruleCard"><b>③ 計分</b><span>情報題 +200；戰場題 +150；終點題 +300。</span><span>補給、旗杆高度及剩餘時間均有獎分。</span></div>
+      <div class="missionPanel" style="margin-bottom:14px;">
+        <b>任務路線</b><br>
+        三個場景會依次推進，讓你逐步由「戰爭爆發前」走到「戰爭進行中」，再走向「戰後和平安排」。
+        <div class="routePills">
+          <div class="routePill">第一段：戰前歐洲．危機醞釀</div>
+          <div class="routePill">第二段：戰場前線．壕溝與空襲</div>
+          <div class="routePill">第三段：凡爾賽方向．戰後和平</div>
+        </div>
+      </div>
+      <div class="modeGuide">
+        <div class="modeCard"><b>簡易模式</b>障礙與節奏較寬鬆，適合第一次試玩或作課堂導入。</div>
+        <div class="modeCard"><b>困難模式</b>障礙與題目混合較多，適合完成初步熟習後再挑戰。</div>
       </div>
       <div id="startGrid">
         <div>
           <label for="playerNameInput"><b>玩家名稱</b></label>
-          <input id="playerNameInput" maxlength="12" placeholder="例如：3A 陳同學 / Chan123" />
+          <input id="playerNameInput" maxlength="12" placeholder="例如：3A陳同學" />
           <div id="nameError" class="startError"></div>
           <div>
             <button id="btnEasy">開始簡易模式</button>
@@ -259,6 +372,7 @@
           <button id="btnLoadLeaderboard" class="secondary" style="padding:8px 12px;font-size:14px;margin-top:10px;">更新龍虎榜</button>
         </div>
       </div>
+      <div class="wellnessNote"><span class="heart">❤</span><span class="heart">❤</span> 溫馨提示：請早點休息，切勿沉迷遊戲；保持充足睡眠，精神更充沛，學習更有效。 <span class="heart">❤</span><span class="heart">❤</span></div>
     </div>
   </div>
 
@@ -784,39 +898,39 @@
 
     const SPRITES = {
       playerIdle: [
-        "  HHH   ",
-        " HHHHH  ",
-        "  FFF   ",
-        "  PNC   ",
-        " CCCCC  ",
-        " CCPCC  ",
-        "  CCC   ",
-        "  C C   ",
-        "  M M   ",
-        " MM MM  "
+        "  HHHH  ",
+        " HHHHHH ",
+        "  FFFF  ",
+        "  FFFF  ",
+        " DDDYBB ",
+        " DDPDBB ",
+        " DDDDDB ",
+        "  DDD   ",
+        "  M MM  ",
+        " MM  MM "
       ],
       playerWalk1: [
-        "  HHH   ",
-        " HHHHH  ",
-        "  FFF   ",
-        "  PNC   ",
-        " CCCCC  ",
-        " CCPCC  ",
-        "  CC C  ",
-        " C  C   ",
-        " M   M  ",
+        "  HHHH  ",
+        " HHHHHH ",
+        "  FFFF  ",
+        "  FFFF  ",
+        " DDDYBB ",
+        " DDPDBB ",
+        " DDDD B ",
+        " DD  D  ",
+        " M   MM ",
         "MM   M  "
       ],
       playerWalk2: [
-        "  HHH   ",
-        " HHHHH  ",
-        "  FFF   ",
-        "  PNC   ",
-        " CCCCC  ",
-        " CCPCC  ",
-        " C CC   ",
-        "  C  C  ",
-        "  M   M ",
+        "  HHHH  ",
+        " HHHHHH ",
+        "  FFFF  ",
+        "  FFFF  ",
+        " DDDYBB ",
+        " DDPDBB ",
+        " D DDDB ",
+        "  D  DD ",
+        " MM   M ",
         "  M   MM"
       ],
       enemy1: [
@@ -1958,7 +2072,12 @@
         const invertFlicker = invertBlink && (Math.floor(performance.now() / 1000 * 12) % 2 === 0);
         if (invFlicker || invertFlicker) ctx.globalAlpha = 0.35;
 
-        drawSprite(ctx, sprite, (this.x - camX) | 0, this.y | 0, scale, this.face < 0);
+        const drawX = (this.x - camX) | 0;
+        ctx.fillStyle = "rgba(0,0,0,.22)";
+        ctx.beginPath();
+        ctx.ellipse(drawX + this.w * 0.5, this.y + this.h + 2, 8, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        drawSprite(ctx, sprite, drawX, this.y | 0, scale, this.face < 0);
         ctx.globalAlpha = 1;
       }
     }
