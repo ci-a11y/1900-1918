@@ -2,7 +2,7 @@
 <html lang="zh-HK">
 <head>
   <meta charset="UTF-8" />
-  <title>1914–1919：戰爭與和平任務 v5.5</title>
+  <title>1914–1919：戰爭與和平任務 v5.6</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
   <style>
@@ -1102,7 +1102,7 @@
         this.anim = 0;
         this.face = 1;
         this.moveDir = 1;
-        this.standOnBeams = true;
+        this.standOnBeams = false;
         this.patrolSpeed = 30 + Math.random() * 10;
         this.chargeSpeed = 110 + Math.random() * 20;
         this.attackCooldown = 0.7 + Math.random() * 0.5;
@@ -1432,6 +1432,7 @@
 
         this.scale = 3;
         this.levelWidth = 3000;
+        this.groundY = 430;
         this.cameraX = 0; this.cameraSmooth = 0.12;
 
         this.physics = {
@@ -1672,6 +1673,19 @@
         loadLeaderboard();
       }
 
+      forceEnemiesToGround() {
+        const groundY = this.groundY || 430;
+        for (const en of this.enemies) {
+          if (!en || !en.alive) continue;
+          // 陸上敵軍只可在地面巡邏；禁止因平台碰撞/座標殘留而出現在天空。
+          if (en.y < groundY - 85 || en.y > groundY - en.h + 18) {
+            en.y = groundY - en.h;
+            en.vy = 0;
+          }
+          en.standOnBeams = false;
+        }
+      }
+
       playerDie(reason) {
         if (this.state !== "playing") return;
         this.lives -= 1;
@@ -1696,7 +1710,7 @@
         this.wires.length = 0;
         this.blasts.length = 0;
 
-        const groundY = 430;
+        const groundY = this.groundY;
         this.platforms.push(new Platform(0, groundY, 520, 120, "ground"));
         this.platforms.push(new Platform(560, groundY, 380, 120, "ground"));
         this.platforms.push(new Platform(980, groundY, 360, 120, "ground"));
@@ -1779,9 +1793,11 @@
           addShooter(2480, groundY - 30, 2420, 2640, { patrol: false, range: 500, bulletSpeed: 420 });
         }
 
-        // 安全修正：任何敵軍若因改圖或平台計算異常而高於合理高度，立即壓回地面。
+        // 安全修正：所有陸上敵軍只准在地面高度出現。
         for (const en of this.enemies) {
-          if (en.y < groundY - 90) { en.y = groundY - 30; en.vy = 0; en.standOnBeams = false; }
+          en.standOnBeams = false;
+          en.y = groundY - en.h;
+          en.vy = 0;
         }
 
         // 一戰戰場障礙：鐵絲網與轟炸機
@@ -2120,6 +2136,8 @@
         for (const en of this.enemies) {
           en.update(dt, this);
           if (!en.alive) continue;
+          // 每一幀再保險：任何敵軍若離開地面高度，立即壓回地面。
+          if (en.y < this.groundY - 85) { en.y = this.groundY - en.h; en.vy = 0; }
           if (this.player.aabb.intersects(en.aabb)) {
             const playerBottom = this.player.y + this.player.h;
             const enemyTop = en.y;
@@ -2219,6 +2237,8 @@
         }
         for (const en of this.enemies) {
           if (en.x - this.cameraX > w + 240 || en.x - this.cameraX < -240) continue;
+          // 兜底：如果舊瀏覽器/舊快取殘留令敵軍座標異常，直接不繪畫天空敵軍。
+          if (en.y < this.groundY - 85) continue;
           en.draw(ctx, this.cameraX, this.scale);
         }
         for (const b of this.bullets) {
