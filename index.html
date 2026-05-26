@@ -2,7 +2,7 @@
 <html lang="zh-HK">
 <head>
   <meta charset="UTF-8" />
-  <title>1914–1919：戰爭與和平任務 v5.7</title>
+  <title>1914–1919：戰爭與和平任務 v5.8</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
   <style>
@@ -1147,7 +1147,8 @@
         const sx = (this.x - camX) | 0, sy = Math.max(399, this.y | 0);
         const step = Math.floor(Math.sin(this.anim) * 2);
         ctx.save();
-        if (this.face < 0) { ctx.translate(sx + this.w + 10, 0); ctx.scale(-1, 1); } else { ctx.translate(sx - 2, 0); }
+        // v5.8 修正：畫敵軍時必須同時 translate 到 sy；舊版只移動 x，令敵軍畫在天空。
+        if (this.face < 0) { ctx.translate(sx + this.w + 10, sy); ctx.scale(-1, 1); } else { ctx.translate(sx - 2, sy); }
         ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.fillRect(2, 30, 28, 4);
         ctx.fillStyle = '#334d34'; ctx.fillRect(8, 11, 13, 16);           // 外套
         ctx.fillStyle = '#48633e'; ctx.fillRect(5, 13, 5, 9);             // 手臂
@@ -1255,7 +1256,8 @@
         if (!this.alive) return;
         const sx = (this.x - camX) | 0, sy = Math.max(399, this.y | 0);
         ctx.save();
-        if (this.face < 0) { ctx.translate(sx + this.w + 28, 0); ctx.scale(-1, 1); } else { ctx.translate(sx - 2, 0); }
+        // v5.8 修正：槍兵同樣要 translate 到 sy，否則會畫到天空。
+        if (this.face < 0) { ctx.translate(sx + this.w + 28, sy); ctx.scale(-1, 1); } else { ctx.translate(sx - 2, sy); }
         ctx.fillStyle = 'rgba(0,0,0,0.24)'; ctx.fillRect(2, 30, 30, 4);
         ctx.fillStyle = '#2f4930'; ctx.fillRect(8, 11, 14, 16);
         ctx.fillStyle = '#d2a76f'; ctx.fillRect(10, 5, 9, 8);
