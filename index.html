@@ -2492,14 +2492,14 @@
         const payload = {
           name: this.playerName,
           mode: this.mode,
-          period: "1914–1919",
           score: Math.floor(this.score),
+          result: resultLabel,
+          successRate,
           correct,
           total,
-          successRate,
           time: Math.max(0, Math.ceil(this.timeLimit - this.timeLeft)),
           files: this.items.filter(i => i.collected).length,
-          result: resultLabel
+          heartsLeft: this.lives
         };
         if (!isFormalWebsite()) {
           this.finalStatus = "預覽版已關閉網絡連線，未上載成績；正式網站會自動上載。";
