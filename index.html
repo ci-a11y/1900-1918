@@ -149,6 +149,17 @@
     }
     #leaderboardBox h3{margin:0 0 8px;color:#ffd166;}
     .smallNote{font-size:14px;opacity:.78;line-height:1.6;}
+    .startError{
+      min-height:22px;
+      margin: 0 0 10px;
+      color:#ff6b7a;
+      font-weight:800;
+      font-size:15px;
+    }
+    #playerNameInput.invalid{
+      border-color:#ff6b7a !important;
+      box-shadow:0 0 0 2px rgba(255,107,122,.25);
+    }
     @media(max-width:760px){
       #startGrid{grid-template-columns:1fr;}
       #startCard h1{font-size:26px;}
@@ -164,18 +175,19 @@
     <div id="startCard">
       <h1>1914–1919：戰爭與和平任務</h1>
       <div class="sub">
-        你是和平特派員。沿途穿越一戰戰場，收集歷史檔案，破解一戰前因、戰爭發展、巴黎和會與《凡爾賽條約》的關鍵資料。情報越完整，越有助判斷這場「和平」能否真正維持國際秩序。
+        你是和平特派員，任務不是打贏戰爭，而是帶着歷史線索穿越一戰戰場。你要收集羊皮紙補給、破解「情報資訊」，理解1900–1914年的危機如何累積、戰爭如何擴大，以及1919年巴黎和會如何嘗試重建和平。最後請先觸碰旗杆取得高度分數，再通過凡爾賽大門完成任務。
       </div>
       <div id="startGrid">
         <div>
           <label for="playerNameInput"><b>玩家名稱</b></label>
-          <input id="playerNameInput" maxlength="12" placeholder="例如：3A Chan / 和平代表" />
+          <input id="playerNameInput" maxlength="12" placeholder="例如：3A 陳同學 / Chan123" />
+          <div id="nameError" class="startError"></div>
           <div>
             <button id="btnEasy">開始簡易模式</button>
             <button id="btnHard" class="secondary">開始困難模式</button>
           </div>
           <p class="smallNote">
-            簡易模式：較多生命、較寬鬆時間。困難模式：較少生命、較多戰場障礙及情報資訊。完成或失敗後，系統會自動上載成績到 Google Sheet，不再另行詢問。
+            請先輸入玩家名稱，才可開始任務。簡易模式較寬鬆；困難模式有更多戰場障礙及情報資訊。兩個模式均以 3 個心心表示生命，完成或失敗後會自動上載成績。
           </p>
         </div>
         <div id="leaderboardBox">
@@ -222,10 +234,16 @@
     }
 
     const cleanName = (name) => {
-      let s = String(name || "").trim().replace(/[<>"'`]/g, "").slice(0, 12);
+      // 支援中文、英文、數字及空格；只移除 HTML/JS 危險符號及過長字串。
+      let s = String(name || "")
+        .trim()
+        .replace(/[<>"'`]/g, "")
+        .replace(/\s+/g, " ")
+        .slice(0, 12);
       const bad = ["仆街","屌","on9","傻閪","撚","柒","fuck","shit","bitch"];
-      bad.forEach(w => s = s.split(w).join("*"));
-      if (!s || /^[\W_]+$/u.test(s)) s = "無名和平特派員";
+      bad.forEach(w => s = s.replace(new RegExp(w, "gi"), "*"));
+      // 舊版用 \W 會把純中文名字誤判為「無效」；改用 Unicode Letter/Number 判斷。
+      if (!s || !/[\p{L}\p{N}]/u.test(s)) s = "無名和平特派員";
       return s;
     };
 
@@ -736,41 +754,41 @@
         const near = player && Math.abs((player.x + player.w / 2) - (this.x + this.w / 2)) < 135;
 
         ctx.save();
-        // 柔光，令「情報資訊」不像普通背景物件
-        ctx.fillStyle = 'rgba(255,209,102,0.12)';
-        ctx.beginPath(); ctx.arc(sx + 13, sy + 13, 23, 0, Math.PI * 2); ctx.fill();
-
-        // 金色情報卷軸 / 任務牌
-        ctx.fillStyle = '#4b3419';
-        ctx.fillRect(sx + 1, sy + 4, 25, 22);
-        ctx.fillStyle = '#f0c95a';
-        ctx.fillRect(sx + 4, sy + 2, 20, 22);
-        ctx.fillStyle = '#ffe6a3';
-        ctx.fillRect(sx + 7, sy + 5, 14, 16);
-        ctx.strokeStyle = '#8a6124';
+        // 情報資訊：金色圓形情報徽章 + 放大鏡，和回血羊皮紙明確分開
+        ctx.fillStyle = 'rgba(255,209,102,0.18)';
+        ctx.beginPath(); ctx.arc(sx + 13, sy + 13, 25, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#1b1208';
+        ctx.beginPath(); ctx.arc(sx + 13, sy + 13, 18, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#f2c14e';
+        ctx.beginPath(); ctx.arc(sx + 13, sy + 13, 15, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#7a4f14';
         ctx.lineWidth = 2;
-        ctx.strokeRect(sx + 4.5, sy + 2.5, 19, 21);
+        ctx.beginPath(); ctx.arc(sx + 13, sy + 13, 15, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = '#fff1b5';
+        ctx.beginPath(); ctx.arc(sx + 13, sy + 13, 10, 0, Math.PI * 2); ctx.fill();
 
-        // 放大鏡符號，和回血羊皮紙分開
+        // 放大鏡符號
         ctx.strokeStyle = '#1b1f2e';
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.arc(sx + 13, sy + 11, 5, 0, Math.PI * 2); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(sx + 17, sy + 15); ctx.lineTo(sx + 22, sy + 20); ctx.stroke();
-        ctx.fillStyle = '#1b1f2e';
+        ctx.lineWidth = 2.4;
+        ctx.beginPath(); ctx.arc(sx + 11, sy + 11, 5.2, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(sx + 15, sy + 15); ctx.lineTo(sx + 21, sy + 21); ctx.stroke();
         ctx.font = '900 10px system-ui, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('?', sx + 13, sy + 15);
+        ctx.fillStyle = '#1b1f2e';
+        ctx.fillText('?', sx + 12, sy + 15);
 
         // 只在接近時顯示文字，減少畫面雜訊
         if (near) {
           const label = '情報資訊';
           ctx.font = 'bold 12px system-ui, sans-serif';
-          const tw = ctx.measureText(label).width + 16;
-          ctx.fillStyle = 'rgba(0,0,0,0.68)';
-          ctx.fillRect(sx - 15, sy + 29, tw, 19);
+          const tw = ctx.measureText(label).width + 18;
+          ctx.fillStyle = 'rgba(0,0,0,0.76)';
+          ctx.fillRect(sx - 21, sy + 31, tw, 20);
+          ctx.strokeStyle = 'rgba(255,209,102,0.45)';
+          ctx.strokeRect(sx - 20.5, sy + 31.5, tw - 1, 19);
           ctx.fillStyle = '#ffd166';
           ctx.textAlign = 'left';
-          ctx.fillText(label, sx - 7, sy + 43);
+          ctx.fillText(label, sx - 12, sy + 46);
         }
         ctx.restore();
       }
@@ -1258,7 +1276,7 @@
 
         this.player = new Player(70, 340);
         this.goal = { x: this.levelWidth - 135, y: 0, w: 135, h: 90 };
-        this.flag = { x: this.levelWidth - 240, y: 0, w: 42, h: 180 };
+        this.flag = { x: this.levelWidth - 260, y: 0, w: 48, h: 250 };
         this.flagCaptured = false;
         this.flagBonusText = "";
         this.flagBonusTimer = 0;
@@ -1381,8 +1399,8 @@
         this.mode = mode === "hard" ? "hard" : "easy";
         this.playerName = cleanName(name);
         this.score = 0;
-        this.maxLives = this.mode === "hard" ? 2 : 3;
-        this.lives = this.maxLives;
+        this.maxLives = 3;
+        this.lives = 3;
         this.timeLimit = this.mode === "hard" ? 130 : 150;
         this.timeLeft = this.timeLimit;
         this.effects.invertTimer = 0;
@@ -1517,24 +1535,29 @@
 
         this.goal.y = groundY - 74;
         this.goal.x = this.levelWidth - 126;
-        this.flag.y = groundY - 190;
-        this.flag.x = this.goal.x - 175;
+        this.flag.y = groundY - 260;
+        this.flag.x = this.goal.x - 205;
+        // 旗杆前的二、三層平台，方便學生跳得更高以爭取較高旗杆分數
+        this.platforms.push(new Platform(this.flag.x - 370, groundY - 78, 150, 18, "beam"));
+        this.platforms.push(new Platform(this.flag.x - 235, groundY - 138, 145, 18, "beam"));
+        this.platforms.push(new Platform(this.flag.x - 95,  groundY - 198, 120, 18, "beam"));
         this.flagCaptured = false;
         this.flagSlideY = this.flag.y + 10;
-        this.flagTargetY = this.flag.y + this.flag.h - 48;
+        this.flagTargetY = this.flag.y + this.flag.h - 50;
 
         const addDoc = (x, y) => this.items.push(new Item(x, y));
+        // 回血羊皮紙位置刻意避開「情報資訊」觸發點，避免兩種道具疊在同一位置
         addDoc(300, groundY - 70);
-        addDoc(720, 320);
-        addDoc(910, 270);
-        addDoc(1160, 300);
-        addDoc(1520, 330);
-        addDoc(1760, groundY - 70);
-        addDoc(1880, 250);
-        addDoc(2140, groundY - 70);
-        addDoc(2480, groundY - 70);
-        addDoc(2885, 330);
-        addDoc(2940, groundY - 70);
+        addDoc(610, groundY - 92);
+        addDoc(905, 270);
+        addDoc(1210, 300);
+        addDoc(1388, groundY - 78);
+        addDoc(1710, groundY - 70);
+        addDoc(1995, 290);
+        addDoc(2315, groundY - 70);
+        addDoc(2660, groundY - 70);
+        addDoc(2970, 285);
+        addDoc(3150, groundY - 70);
 
         // 原版星星觸發點改為「情報資訊」：只增設位置，不重寫地圖
         this.stars.push(new StarTrigger(760, 315, 0));
@@ -1866,8 +1889,8 @@
           const timeBonus = Math.max(0, Math.ceil(this.timeLeft)) * 2;
           const bonus = heightBonus + timeBonus;
           this.score += bonus;
-          this.flagTargetY = this.flag.y + this.flag.h - 48;
-          this.flagBonusText = `旗幟得分 +${bonus}`;
+          this.flagTargetY = this.flag.y + this.flag.h - 50;
+          this.flagBonusText = `旗杆高度獎勵 +${bonus}`;
           this.flagBonusTimer = 2.4;
         }
 
@@ -2035,26 +2058,26 @@
         ctx.font = 'bold 10px system-ui, sans-serif';
         ctx.textAlign = 'left';
         ctx.fillStyle = 'rgba(255,209,102,0.85)';
-        ctx.fillText('高分', flagX + 23, flagTop + 13);
+        ctx.fillText('最高分', flagX + 26, flagTop + 13);
         ctx.fillStyle = 'rgba(232,229,216,0.62)';
-        ctx.fillText('低分', flagX + 23, poleBase - 10);
+        ctx.fillText('基本分', flagX + 26, poleBase - 10);
 
-        const flagY = this.flagCaptured ? (this.flagSlideY || flagTop + poleH - 48) : flagTop + 10;
+        const flagY = this.flagCaptured ? (this.flagSlideY || flagTop + poleH - 50) : flagTop + 10;
         ctx.fillStyle = '#1f5fbf';
-        ctx.fillRect(flagX + 17, flagY, 18, 26);
+        ctx.fillRect(flagX + 18, flagY, 22, 30);
         ctx.fillStyle = '#f4f0e3';
-        ctx.fillRect(flagX + 35, flagY, 18, 26);
+        ctx.fillRect(flagX + 40, flagY, 22, 30);
         ctx.fillStyle = '#c43b3b';
-        ctx.fillRect(flagX + 53, flagY, 18, 26);
+        ctx.fillRect(flagX + 62, flagY, 22, 30);
         ctx.strokeStyle = 'rgba(0,0,0,0.45)';
         ctx.lineWidth = 1;
-        ctx.strokeRect(flagX + 17.5, flagY + 0.5, 53, 25);
+        ctx.strokeRect(flagX + 18.5, flagY + 0.5, 65, 29);
 
         ctx.fillStyle = 'rgba(0,0,0,0.65)';
         ctx.fillRect(flagX - 10, poleBase + 8, 94, 20);
         ctx.fillStyle = '#ffd166';
         ctx.font = 'bold 13px system-ui, sans-serif';
-        ctx.fillText('旗幟得分', flagX - 1, poleBase + 23);
+        ctx.fillText('旗杆高度分', flagX - 1, poleBase + 23);
 
         if ((this.flagBonusTimer || 0) > 0 && this.flagBonusText) {
           ctx.save();
@@ -2149,8 +2172,8 @@
         ctx.fillStyle = "rgba(232,229,216,0.90)";
         ctx.fillText(`${T.hudScore}：${score}`, pad + 12, pad + 42);
         ctx.font = "900 20px system-ui, sans-serif";
-        for (let i = 0; i < (this.maxLives || 3); i++) {
-          ctx.fillStyle = i < this.lives ? "rgba(255,70,90,0.98)" : "rgba(255,255,255,0.22)";
+        for (let i = 0; i < 3; i++) {
+          ctx.fillStyle = i < this.lives ? "rgba(255,70,90,0.98)" : "rgba(255,255,255,0.28)";
           ctx.fillText(i < this.lives ? "♥" : "♡", pad + 145 + i * 24, pad + 43);
         }
         ctx.font = "13px system-ui, sans-serif";
@@ -2295,13 +2318,38 @@
     window.__ww1Game = game;
 
     const nameInput = document.getElementById("playerNameInput");
+    const nameError = document.getElementById("nameError");
     const easyBtn = document.getElementById("btnEasy");
     const hardBtn = document.getElementById("btnHard");
-    if (easyBtn) easyBtn.addEventListener("click", () => game.startGame("easy", nameInput && nameInput.value));
-    if (hardBtn) hardBtn.addEventListener("click", () => game.startGame("hard", nameInput && nameInput.value));
-    if (nameInput) nameInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") game.startGame("easy", nameInput.value);
-    });
+
+    function hasValidName(v) {
+      return /[\p{L}\p{N}]/u.test(String(v || '').trim());
+    }
+    function requestStart(mode) {
+      const raw = nameInput ? nameInput.value : '';
+      if (!hasValidName(raw)) {
+        if (nameError) nameError.textContent = "請先輸入玩家名稱，可使用中文、英文或數字。";
+        if (nameInput) { nameInput.classList.add('invalid'); nameInput.focus(); }
+        return;
+      }
+      if (nameError) nameError.textContent = "";
+      if (nameInput) nameInput.classList.remove('invalid');
+      game.startGame(mode, raw);
+    }
+
+    if (easyBtn) easyBtn.addEventListener("click", () => requestStart("easy"));
+    if (hardBtn) hardBtn.addEventListener("click", () => requestStart("hard"));
+    if (nameInput) {
+      nameInput.addEventListener("input", () => {
+        if (hasValidName(nameInput.value)) {
+          nameInput.classList.remove('invalid');
+          if (nameError) nameError.textContent = "";
+        }
+      });
+      nameInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") requestStart("easy");
+      });
+    }
     loadLeaderboard();
   })();
   </script>
