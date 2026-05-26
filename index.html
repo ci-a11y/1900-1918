@@ -258,7 +258,45 @@
       min-height:190px;
       line-height:1.55;
     }
-    #leaderboardBox h3{margin:0 0 8px;color:#ffd166;}
+    #leaderboardBox h3{margin:0 0 10px;color:#ffd166;}
+    .leaderboardBlock{
+      margin:10px 0 14px;
+      padding:10px 11px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:14px;
+      background:rgba(255,255,255,.045);
+    }
+    .leaderboardBlock:last-child{margin-bottom:0;}
+    .leaderboardTitle{
+      color:#ffd166;
+      font-weight:900;
+      font-size:15px;
+      margin-bottom:8px;
+      letter-spacing:.03em;
+    }
+    .leaderboardHeader,.leaderboardRow{
+      display:grid;
+      grid-template-columns:42px 1fr 72px 70px;
+      gap:8px;
+      align-items:center;
+    }
+    .leaderboardHeader{
+      color:rgba(255,255,255,.62);
+      font-size:12px;
+      padding:0 0 5px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      margin-bottom:4px;
+    }
+    .leaderboardRow{
+      font-size:14px;
+      padding:5px 0;
+      color:rgba(245,245,240,.95);
+      border-bottom:1px solid rgba(255,255,255,.055);
+    }
+    .leaderboardRow:last-child{border-bottom:0;}
+    .leaderboardRank{color:#ffd166;font-weight:900;}
+    .leaderboardScore,.leaderboardQuiz{text-align:right;white-space:nowrap;}
+    .leaderboardEmpty{font-size:14px;color:rgba(255,255,255,.72);padding:4px 0;}
     .smallNote{font-size:14px;opacity:.80;line-height:1.65;}
     .wellnessNote{
       margin-top:18px;
@@ -412,8 +450,18 @@
           }
           const easy = rows.filter(r => r.mode === "easy").slice(0, 5);
           const hard = rows.filter(r => r.mode === "hard").slice(0, 5);
-          const render = (title, arr) => `<b>${title}</b><br>` + (arr.length ? arr.map((r,i)=>`${i+1}. ${String(r.name||"無名和平特派員")}｜${Number(r.score||0)}分｜${Number(r.correct||0)}/${Number(r.total||0)}`).join("<br>") : "未有紀錄");
-          box.innerHTML = render("簡易 Top 5", easy) + "<br><br>" + render("困難 Top 5", hard);
+          const esc = (v) => String(v ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
+          const render = (title, arr) => {
+            const rowsHtml = arr.length ? arr.map((r,i)=>{
+              const name = esc(String(r.name || "無名和平特派員").slice(0, 12));
+              const score = Number(r.score || 0);
+              const correct = Number(r.correct || 0);
+              const total = Number(r.total || 0);
+              return `<div class="leaderboardRow"><div class="leaderboardRank">${i+1}</div><div>${name}</div><div class="leaderboardScore">${score}分</div><div class="leaderboardQuiz">${correct}/${total}</div></div>`;
+            }).join("") : `<div class="leaderboardEmpty">暫無紀錄</div>`;
+            return `<div class="leaderboardBlock"><div class="leaderboardTitle">${title}</div><div class="leaderboardHeader"><div>排名</div><div>玩家</div><div class="leaderboardScore">分數</div><div class="leaderboardQuiz">答題</div></div>${rowsHtml}</div>`;
+          };
+          box.innerHTML = render("簡易模式 Top 5", easy) + render("困難模式 Top 5", hard);
         })
         .catch(() => {
           box.innerHTML = "未能讀取網上榜；完成遊戲後仍會嘗試自動上載。";
