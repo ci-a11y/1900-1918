@@ -104,7 +104,7 @@
       backdrop-filter: blur(4px);
     }
     #movePad::before{
-      content:"";
+      content:"←    →";
       position:absolute;
       inset:0;
       display:flex;
@@ -324,6 +324,26 @@
       line-height:1.56;
     }
     .modeCard b{color:#ffd166;display:block;margin-bottom:4px;}
+    .modeTag{
+      display:inline-block;
+      margin:7px 0 6px;
+      padding:6px 10px;
+      border-radius:999px;
+      font-weight:900;
+      letter-spacing:.04em;
+      font-size:14px;
+      border:1px solid rgba(255,255,255,.18);
+    }
+    .modeTag.easy{
+      color:#a8f7d0;
+      background:rgba(38,166,112,.18);
+      border-color:rgba(99,209,156,.46);
+    }
+    .modeTag.hard{
+      color:#ffd166;
+      background:rgba(183,82,45,.22);
+      border-color:rgba(255,116,83,.48);
+    }
     #startGrid{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;align-items:start;}
     #startCard input{
       width:100%;
@@ -376,7 +396,7 @@
     }
     .leaderboardHeader,.leaderboardRow{
       display:grid;
-      grid-template-columns:42px 1fr 72px 70px;
+      grid-template-columns:92px 1fr 72px 70px;
       gap:8px;
       align-items:center;
     }
@@ -460,7 +480,7 @@
       .wellnessNote .heart{font-size:17px; margin:0 3px;}
     }
     @media(max-width:540px){
-      .leaderboardHeader,.leaderboardRow{grid-template-columns:32px 1fr 58px 52px; gap:5px;}
+      .leaderboardHeader,.leaderboardRow{grid-template-columns:76px 1fr 58px 52px; gap:5px;}
       .leaderboardRow{font-size:12px;}
       .leaderboardHeader{font-size:11px;}
       .leaderboardTitle{font-size:14px;}
@@ -530,8 +550,8 @@
         </div>
       </div>
       <div class="modeGuide">
-        <div class="modeCard"><b>簡易模式</b>障礙與節奏較寬鬆，適合第一次試玩或作課堂導入。</div>
-        <div class="modeCard"><b>困難模式</b>障礙與題目混合較多，適合完成初步熟習後再挑戰。</div>
+        <div class="modeCard"><b>簡易模式</b><span class="modeTag easy">【向左走？向右走？】</span><br>可左右移動，障礙與節奏較寬鬆，適合第一次試玩或作課堂導入。</div>
+        <div class="modeCard"><b>困難模式</b><span class="modeTag hard">【終於知道「一去不返」這個道理～】</span><br>只能向右前進，不能回頭；障礙與題目混合較多，適合完成初步熟習後再挑戰。</div>
       </div>
       <div id="startGrid">
         <div>
@@ -543,7 +563,7 @@
             <button id="btnHard" class="secondary">開始困難模式</button>
           </div>
           <p class="smallNote">
-            請先輸入玩家名稱。簡易模式較寬鬆；困難模式包含更多障礙及混合題目。兩個模式均以 4 個心心表示生命，完成或失敗後會自動上載成績。
+            請先輸入玩家名稱。簡易模式可左右移動；困難模式只能向右前進、不能回頭。兩個模式均以 4 個心心表示生命，完成或失敗後會自動上載成績。
           </p>
         </div>
         <div id="leaderboardBox">
@@ -593,15 +613,18 @@
           const easy = rows.filter(r => r.mode === "easy").slice(0, 5);
           const hard = rows.filter(r => r.mode === "hard").slice(0, 5);
           const esc = (v) => String(v ?? "").replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
+          const rankTitles = ["榜一大哥", "榜二菁英", "榜三猛將", "榜四勇士", "榜五新星"];
+          const rankIcons = ["🏆", "🥈", "🥉", "4️⃣", "5️⃣"];
           const render = (title, arr) => {
             const rowsHtml = arr.length ? arr.map((r,i)=>{
               const name = esc(String(r.name || "無名和平特派員").slice(0, 12));
               const score = Number(r.score || 0);
               const correct = Number(r.correct || 0);
               const total = Number(r.total || 0);
-              return `<div class="leaderboardRow"><div class="leaderboardRank">${i+1}</div><div>${name}</div><div class="leaderboardScore">${score}分</div><div class="leaderboardQuiz">${correct}/${total}</div></div>`;
+              const rankLabel = `${rankIcons[i] || (i+1)} ${rankTitles[i] || ("第" + (i+1) + "名")}`;
+              return `<div class="leaderboardRow"><div class="leaderboardRank">${rankLabel}</div><div>${name}</div><div class="leaderboardScore">${score}分</div><div class="leaderboardQuiz">${correct}/${total}</div></div>`;
             }).join("") : `<div class="leaderboardEmpty">暫無紀錄</div>`;
-            return `<div class="leaderboardBlock"><div class="leaderboardTitle">${title}</div><div class="leaderboardHeader"><div>排名</div><div>玩家</div><div class="leaderboardScore">分數</div><div class="leaderboardQuiz">答題</div></div>${rowsHtml}</div>`;
+            return `<div class="leaderboardBlock"><div class="leaderboardTitle">${title}</div><div class="leaderboardHeader"><div>稱號</div><div>玩家</div><div class="leaderboardScore">分數</div><div class="leaderboardQuiz">答題</div></div>${rowsHtml}</div>`;
           };
           box.innerHTML = render("簡易模式 Top 5", easy) + render("困難模式 Top 5", hard);
         })
@@ -647,7 +670,7 @@
       ],
       rulesTitle: "遊戲規則與注意事項",
       rulesLines: [
-        "【一、操作】電腦：← → 移動，SPACE/↑ 跳躍；手機：左方方向盤移動，右方按鈕跳躍。",
+        "【一、操作】簡易模式可 ← → 移動；困難模式只能向右前進，不能回頭。SPACE/↑ 跳躍；手機用左方方向盤與右方跳躍按鈕。",
         "【二、情報】收集情報會觸發歷史題；答對可加分，答錯可能出現操作反轉等負面效果。",
         "【三、戰場】踩中敵軍頭部會觸發戰場題；從側面撞上敵軍、鐵絲網、炮彈或炸彈會扣生命。",
         "【四、終點】觸碰旗杆可按高度得分，再通過凡爾賽大門完成終點題。",
@@ -2163,8 +2186,11 @@
       update(dt, game) {
         const input = game.input;
         const inverted = game.effects.invertTimer > 0;
-        const LEFT = inverted ? input.right : input.left;
-        const RIGHT = inverted ? input.left : input.right;
+        const hardForwardOnly = game.mode === "hard";
+        // 困難模式設計為「一去不返」：不可向左退，只能停下或向右前進。
+        // 為免操作反轉效果令困難模式完全不能前進，困難模式會忽略水平反轉。
+        const LEFT = hardForwardOnly ? false : (inverted ? input.right : input.left);
+        const RIGHT = hardForwardOnly ? input.right : (inverted ? input.left : input.right);
 
         this.invuln = Math.max(0, this.invuln - dt);
         this.coyote = Math.max(0, this.coyote - dt);
@@ -2385,36 +2411,44 @@
         const btnJump = document.getElementById("btnJump");
 
         let padActive = false;
-        let centerX = 0;
 
-        const updateCenter = () => {
-          if (!pad) return;
+        const updateMoveInputFromPointer = (e) => {
+          if (!pad || this.state !== "playing") return;
           const r = pad.getBoundingClientRect();
-          centerX = r.left + r.width / 2;
+          const localX = e.clientX - r.left;
+          const ratio = localX / Math.max(1, r.width);
+          // iPad / Safari 版不用中心點計算，直接把方向區分成左、中、右三段。
+          // 這可避免只觸發右移、左移失效，亦即按下左半邊會即時後退。
+          if (ratio < 0.43) {
+            if (this.mode === "hard") {
+              this.input.left = false;
+              this.input.right = false;
+            } else {
+              this.input.left = true;
+              this.input.right = false;
+            }
+          } else if (ratio > 0.57) {
+            this.input.left = false;
+            this.input.right = true;
+          } else {
+            this.input.left = false;
+            this.input.right = false;
+          }
         };
 
         if (pad) {
-          updateCenter();
-          window.addEventListener("resize", updateCenter, { passive: true });
-          window.addEventListener("orientationchange", () => setTimeout(updateCenter, 80), { passive: true });
-
           pad.addEventListener("pointerdown", (e) => {
             e.preventDefault();
             if (this.state !== "playing") return;
             padActive = true;
-            pad.setPointerCapture(e.pointerId);
+            try { pad.setPointerCapture(e.pointerId); } catch {}
+            updateMoveInputFromPointer(e);
           }, { passive: false });
 
           pad.addEventListener("pointermove", (e) => {
             e.preventDefault();
             if (!padActive || this.state !== "playing") return;
-            const dx = e.clientX - centerX;
-            const padWidth = pad.getBoundingClientRect().width || 92;
-            const dead = Math.max(12, Math.min(24, padWidth * 0.14));
-
-            if (dx < -dead) { this.input.left = true;  this.input.right = false; }
-            else if (dx > dead) { this.input.right = true; this.input.left = false; }
-            else { this.input.left = false; this.input.right = false; }
+            updateMoveInputFromPointer(e);
           }, { passive:false });
 
           const release = (e) => {
@@ -2746,23 +2780,28 @@
         const addEnemy = (x, y, min, max) => this.enemies.push(new Enemy(x, y, min, max));
         const addShooter = (x, y, min, max, opts) => this.enemies.push(new ShooterEnemy(x, y, min, max, opts));
         const addGrenadier = (x, y, min, max, opts = {}) => this.enemies.push(new GrenadierEnemy(x, y, min, max, opts));
+        const beamStandY = (beamY, en) => beamY - en.h + 5; // 視覺上把平台兵稍為壓低，避免似凌空站立。
+        const safePatrol = (min, max, margin = 8) => [min + margin, max - margin];
         const addBeamEnemy = (x, beamY, min, max) => {
-          const en = new Enemy(x, beamY - 31, min, max);
-          en.fixedY = beamY - en.h;
+          const [pMin, pMax] = safePatrol(min, max);
+          const en = new Enemy(x, beamY - 26, pMin, pMax);
+          en.fixedY = beamStandY(beamY, en);
           en.standOnBeams = true;
           en.patrolSpeed = 22 + Math.random() * 8;
           en.chargeSpeed = 90 + Math.random() * 18;
           this.enemies.push(en);
         };
         const addBeamShooter = (x, beamY, min, max, opts = {}) => {
-          const en = new ShooterEnemy(x, beamY - 31, min, max, opts);
-          en.fixedY = beamY - en.h;
+          const [pMin, pMax] = safePatrol(min, max);
+          const en = new ShooterEnemy(x, beamY - 26, pMin, pMax, opts);
+          en.fixedY = beamStandY(beamY, en);
           en.standOnBeams = true;
           this.enemies.push(en);
         };
         const addBeamGrenadier = (x, beamY, min, max, opts = {}) => {
-          const en = new GrenadierEnemy(x, beamY - 31, min, max, opts);
-          en.fixedY = beamY - en.h;
+          const [pMin, pMax] = safePatrol(min, max);
+          const en = new GrenadierEnemy(x, beamY - 26, pMin, pMax, opts);
+          en.fixedY = beamStandY(beamY, en);
           en.standOnBeams = true;
           this.enemies.push(en);
         };
@@ -3041,7 +3080,7 @@
             this.resetAll(); return;
           }
           if (this.state !== "playing") return;
-          if (e.code === "ArrowLeft") this.input.left = true;
+          if (e.code === "ArrowLeft" && this.mode !== "hard") this.input.left = true;
           if (e.code === "ArrowRight") this.input.right = true;
           if (e.code === "Space" || e.code === "ArrowUp") {
             if (!this.input.jump) this.input.jumpPressed = true;
