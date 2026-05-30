@@ -603,7 +603,7 @@
         return;
       }
       box.textContent = "讀取中……";
-      fetch(LEADERBOARD_URL + "?top=10")
+      fetch(LEADERBOARD_URL + "?top=100")
         .then(r => r.json())
         .then(rows => {
           if (!Array.isArray(rows) || rows.length === 0) {
