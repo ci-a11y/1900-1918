@@ -48,6 +48,15 @@
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }
+    /* 手機橫向：盡量用滿 Safari 可視範圍，減少左右黑邊；不裁畫面 */
+    @media (pointer:coarse) and (orientation: landscape){
+      body{align-items:stretch; justify-content:stretch;}
+      #game{
+        width:100vw !important;
+        height:100svh !important;
+        height:100dvh !important;
+      }
+    }
 
     #rotateHint{
       position:fixed;
@@ -551,7 +560,7 @@
       </div>
       <div class="modeGuide">
         <div class="modeCard"><b>簡易模式</b><span class="modeTag easy">【向左走？向右走？】</span><br>可左右移動，障礙與節奏較寬鬆，適合第一次試玩或作課堂導入。</div>
-        <div class="modeCard"><b>困難模式</b><span class="modeTag hard">【終於知道「一去不返」這個道理～】</span><br>只能向右前進，不能回頭；障礙與題目混合較多，適合完成初步熟習後再挑戰。</div>
+        <div class="modeCard"><b>困難模式</b><span class="modeTag hard">【終於知「一去不返」這個道理～】</span><br>只能向右前進，不能回頭；障礙與題目混合較多，適合完成初步熟習後再挑戰。</div>
       </div>
       <div id="startGrid">
         <div>
@@ -2398,8 +2407,15 @@
           this.ctx.setTransform(1, 0, 0, 1, 0, 0);
           this.ctx.scale(dpr, dpr);
           this.ctx.imageSmoothingEnabled = false;
-          this.canvas.style.width = "min(100vw, calc(100dvh * 16 / 9))";
-          this.canvas.style.height = "min(100dvh, calc(100vw * 9 / 16))";
+          const coarseLandscape = window.matchMedia && window.matchMedia("(pointer: coarse) and (orientation: landscape)").matches;
+          if (coarseLandscape) {
+            // 手機橫向：使用實際 viewport 尺寸，避免 Safari 因 16:9 contain 留太多黑邊。
+            this.canvas.style.width = window.innerWidth + "px";
+            this.canvas.style.height = window.innerHeight + "px";
+          } else {
+            this.canvas.style.width = "min(100vw, calc(100dvh * 16 / 9))";
+            this.canvas.style.height = "min(100dvh, calc(100vw * 9 / 16))";
+          }
         };
         apply();
         window.addEventListener("resize", apply, { passive: true });
