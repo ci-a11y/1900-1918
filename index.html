@@ -608,6 +608,8 @@
     "use strict";
 
     const LEADERBOARD_URL = "https://script.google.com/macros/s/AKfycbznfJMNPGJqktjMsqBKZCiE5BAdZxafipeEflXFWBd9KxHRWAqyAgWH1yfXbk_W_GkN/exec";
+    // 每個新學年只需修改這一行；舊學年資料會保留在 Google Sheet。
+    const CURRENT_ACADEMIC_YEAR = "2026-27";
 
     function isFormalWebsite() {
       const host = String(location.hostname || "").toLowerCase();
@@ -622,7 +624,7 @@
         return;
       }
       box.textContent = "讀取中……";
-      fetch(LEADERBOARD_URL + "?top=100")
+      fetch(LEADERBOARD_URL + "?top=100&academicYear=" + encodeURIComponent(CURRENT_ACADEMIC_YEAR))
         .then(r => r.json())
         .then(rows => {
           if (!Array.isArray(rows) || rows.length === 0) {
@@ -645,7 +647,7 @@
             }).join("") : `<div class="leaderboardEmpty">暫無紀錄</div>`;
             return `<div class="leaderboardBlock"><div class="leaderboardTitle">${title}</div><div class="leaderboardHeader"><div>稱號</div><div>玩家</div><div class="leaderboardScore">分數</div><div class="leaderboardQuiz">答題</div></div>${rowsHtml}</div>`;
           };
-          box.innerHTML = render("簡易模式 Top 5", easy) + render("困難模式 Top 5", hard);
+          box.innerHTML = `<div style="margin:0 0 10px;font-weight:800;text-align:center;">${CURRENT_ACADEMIC_YEAR} 學年龍虎榜</div>` + render("簡易模式 Top 5", easy) + render("困難模式 Top 5", hard);
         })
         .catch(() => {
           box.innerHTML = "未能讀取網上榜；完成遊戲後仍會嘗試自動上載。";
@@ -2558,6 +2560,7 @@
         const successRate = total ? Math.round(correct / total * 100) : 0;
         const resultLabel = finalState === "win" ? "任務成功" : "任務失敗";
         const payload = {
+          academicYear: CURRENT_ACADEMIC_YEAR,
           name: this.playerName,
           mode: this.mode,
           score: Math.floor(this.score),
